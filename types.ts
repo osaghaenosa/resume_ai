@@ -1,0 +1,44 @@
+
+export type DocumentType = 'Resume' | 'Cover Letter';
+
+export interface Document {
+  id: string;
+  title: string;
+  type: DocumentType;
+  content: string;
+  createdAt: string; // ISO string
+}
+
+export interface DocumentRequest {
+  docType: DocumentType;
+  name: string;
+  contact: string;
+  experience: string;
+  education: string;
+  skills: string;
+  targetJob: string;
+  targetCompany: string;
+}
+
+export type UserPlan = 'Free' | 'Pro';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  password?: string; // Should be handled securely, not stored plaintext long-term in a real app
+  plan: UserPlan;
+  tokens: number;
+  documents: Document[];
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface SignupCredentials {
+  name: string;
+  email: string;
+  password: string;
+}
