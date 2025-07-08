@@ -1,31 +1,12 @@
+// === AuthContext.tsx (Updated Frontend with MongoDB + Node.js Backend) ===
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { User, UserPlan, Document, SignupCredentials, LoginCredentials } from '../types';
+import axios from 'axios';
 
-// --- Local Storage Database Wrapper ---
-const DB_KEY = 'aiResumeGenUsers';
+const API_URL = 'http://localhost:5000/api';
 const CURRENT_USER_ID_KEY = 'aiResumeGenCurrentUser';
 
-const db = {
-    getUsers: (): User[] => {
-        const usersJson = localStorage.getItem(DB_KEY);
-        return usersJson ? JSON.parse(usersJson) : [];
-    },
-    saveUsers: (users: User[]) => {
-        localStorage.setItem(DB_KEY, JSON.stringify(users));
-    },
-    getCurrentUserId: (): string | null => {
-        return localStorage.getItem(CURRENT_USER_ID_KEY);
-    },
-    setCurrentUserId: (userId: string) => {
-        localStorage.setItem(CURRENT_USER_ID_KEY, userId);
-    },
-    clearCurrentUserId: () => {
-        localStorage.removeItem(CURRENT_USER_ID_KEY);
-    }
-};
-
-// --- Auth Context ---
 interface AuthContextType {
     currentUser: User | null;
     login: (credentials: LoginCredentials) => Promise<void>;
@@ -40,125 +21,79 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const TOKEN_CONFIG: Record<UserPlan, number> = {
-    Free: 3,
-    Pro: 100,
-};
-
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-    // Effect to load user from local storage on initial app load
     useEffect(() => {
-        const userId = db.getCurrentUserId();
+        const userId = localStorage.getItem(CURRENT_USER_ID_KEY);
         if (userId) {
-            const users = db.getUsers();
-            const user = users.find(u => u.id === userId);
-            if (user) {
-                // Omit password from state for security
-                const { password, ...userWithoutPassword } = user;
-                setCurrentUser(userWithoutPassword);
-            }
+            axios.get(`${API_URL}/user/${userId}`)
+                .then(res => setCurrentUser(res.data))
+                .catch(() => localStorage.removeItem(CURRENT_USER_ID_KEY));
         }
     }, []);
 
-    const updateUserInDb = (updatedUser: User) => {
-        const users = db.getUsers();
-        const userIndex = users.findIndex(u => u.id === updatedUser.id);
-        if (userIndex !== -1) {
-            users[userIndex] = updatedUser;
-            db.saveUsers(users);
-        }
-    };
-    
     const signup = async (credentials: SignupCredentials): Promise<void> => {
-        const users = db.getUsers();
-        if (users.some(user => user.email === credentials.email)) {
-            throw new Error('An account with this email already exists.');
-        }
-
-        const newUser: User = {
-            id: `user_${Date.now()}`,
-            name: credentials.name,
-            email: credentials.email,
-            password: credentials.password, // In a real app, this would be hashed
-            plan: 'Free',
-            tokens: TOKEN_CONFIG.Free,
-            documents: [],
-        };
-        
-        users.push(newUser);
-        db.saveUsers(users);
-        db.setCurrentUserId(newUser.id);
-        
-        const { password, ...userForState } = newUser;
-        setCurrentUser(userForState);
+        const res = await axios.post(`${API_URL}/auth/signup`, credentials);
+        setCurrentUser(res.data);
+        localStorage.setItem(CURRENT_USER_ID_KEY, res.data._id);
     };
 
     const login = async (credentials: LoginCredentials): Promise<void> => {
-        const users = db.getUsers();
-        const user = users.find(u => u.email === credentials.email);
-
-        if (!user || user.password !== credentials.password) {
-            throw new Error('Invalid email or password.');
-        }
-
-        db.setCurrentUserId(user.id);
-        const { password, ...userForState } = user;
-        setCurrentUser(userForState);
+        const res = await axios.post(`${API_URL}/auth/login`, credentials);
+        setCurrentUser(res.data);
+        localStorage.setItem(CURRENT_USER_ID_KEY, res.data._id);
     };
 
     const logout = () => {
-        db.clearCurrentUserId();
         setCurrentUser(null);
+        localStorage.removeItem(CURRENT_USER_ID_KEY);
     };
 
-    const performUserUpdate = (updateFn: (user: User) => User) => {
-        setCurrentUser(prevUser => {
-            if (!prevUser) return null;
-            const updatedUser = updateFn(prevUser);
-            // We need the full user object with password to save to DB
-            const users = db.getUsers();
-            const fullUser = users.find(u => u.id === updatedUser.id);
-            if(fullUser) {
-                updateUserInDb({ ...fullUser, ...updatedUser });
-            }
-            return updatedUser;
-        });
+    const updateUser = async (updatedUser: User) => {
+        await axios.put(`${API_URL}/user/${updatedUser._id}`, updatedUser);
+        setCurrentUser(updatedUser);
     };
 
     const consumeToken = () => {
-        performUserUpdate(user => user.tokens > 0 ? { ...user, tokens: user.tokens - 1 } : user);
+        if (!currentUser || currentUser.tokens <= 0) return;
+        const updated = { ...currentUser, tokens: currentUser.tokens - 1 };
+        updateUser(updated);
     };
-    
+
     const upgradePlan = () => {
-         performUserUpdate(user => user.plan === 'Free' ? { ...user, plan: 'Pro', tokens: TOKEN_CONFIG.Pro } : user);
+        if (!currentUser || currentUser.plan === 'Pro') return;
+        const updated = { ...currentUser, plan: 'Pro', tokens: 100 };
+        updateUser(updated);
     };
 
     const addDocument = (doc: Omit<Document, 'id' | 'createdAt'>) => {
+        if (!currentUser) return;
         const newDoc: Document = {
             ...doc,
             id: `doc_${Date.now()}`,
             createdAt: new Date().toISOString(),
         };
-        performUserUpdate(user => ({
-            ...user,
-            documents: [newDoc, ...user.documents]
-        }));
+        const updated = { ...currentUser, documents: [newDoc, ...currentUser.documents] };
+        updateUser(updated);
     };
 
     const updateDocument = (updatedDoc: Document) => {
-        performUserUpdate(user => ({
-            ...user,
-            documents: user.documents.map(d => d.id === updatedDoc.id ? updatedDoc : d)
-        }));
+        if (!currentUser) return;
+        const updated = {
+            ...currentUser,
+            documents: currentUser.documents.map(doc => doc.id === updatedDoc.id ? updatedDoc : doc)
+        };
+        updateUser(updated);
     };
 
     const deleteDocument = (docId: string) => {
-        performUserUpdate(user => ({
-            ...user,
-            documents: user.documents.filter(d => d.id !== docId)
-        }));
+        if (!currentUser) return;
+        const updated = {
+            ...currentUser,
+            documents: currentUser.documents.filter(doc => doc.id !== docId)
+        };
+        updateUser(updated);
     };
 
     return (
@@ -170,8 +105,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 export const useAuth = (): AuthContextType => {
     const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
+    if (!context) throw new Error('useAuth must be used within AuthProvider');
     return context;
 };
