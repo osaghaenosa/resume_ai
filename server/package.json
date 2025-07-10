@@ -4,11 +4,7 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-<<<<<<< HEAD
     "start": "nodemon server.js"
-=======
-    "start": "node server.js"
->>>>>>> 03bf448cee3561e1b68a09c508de34705e343ff5
   },
   "keywords": [],
   "author": "",

@@ -22,8 +22,4 @@ router.post('/login', async (req, res) => {
     res.json(user);
 });
 
-<<<<<<< HEAD
 export default router;
-=======
-export default router;
->>>>>>> 03bf448cee3561e1b68a09c508de34705e343ff5
