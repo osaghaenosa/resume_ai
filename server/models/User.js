@@ -16,4 +16,8 @@ const userSchema = new mongoose.Schema({
     documents: [documentSchema]
 });
 
+<<<<<<< HEAD
 export default mongoose.model('User', userSchema);
+=======
+export default mongoose.model('User', userSchema);
+>>>>>>> 03bf448cee3561e1b68a09c508de34705e343ff5

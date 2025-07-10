@@ -14,4 +14,8 @@ router.put('/:id', async (req, res) => {
     res.json(updated);
 });
 
+<<<<<<< HEAD
 export default router;
+=======
+export default router;
+>>>>>>> 03bf448cee3561e1b68a09c508de34705e343ff5
