@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 export const Icon: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className }) => (
@@ -27,3 +28,14 @@ export const LoadingSpinner = () => (
         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
     </svg>
 );
+export const LockClosedIcon = ({ className }: { className?: string } = {}) => <Icon className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></Icon>;
+export const CreditCardIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></Icon>;
+export const ArrowLeftIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></Icon>;
+export const ArrowRightIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></Icon>;
+export const CheckCircleIcon = ({ className }: { className?: string } = {}) => <Icon className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></Icon>;
+export const PencilIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z" /></Icon>;
+export const BriefcaseIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.008c0 .828-.672 1.5-1.5 1.5h-15a1.5 1.5 0 01-1.5-1.5V14.15M17.25 6.75a2.25 2.25 0 00-2.25-2.25H9A2.25 2.25 0 006.75 6.75v3a2.25 2.25 0 002.25 2.25h6a2.25 2.25 0 002.25-2.25v-3zM15 6.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></Icon>;
+export const ShareIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.542l6.363 3.692m-6.363-10.884l6.363 3.692M20.25 12c0 1.933-1.567 3.5-3.5 3.5s-3.5-1.567-3.5-3.5 1.567-3.5 3.5-3.5 3.5 1.567 3.5 3.5zM3.75 12c0 1.933 1.567 3.5 3.5 3.5s3.5-1.567 3.5-3.5-1.567-3.5-3.5-3.5-3.5 1.567-3.5 3.5zM12 3.75c1.933 0 3.5 1.567 3.5 3.5S13.933 10.75 12 10.75 8.5 9.183 8.5 7.25 10.067 3.75 12 3.75z" /></Icon>;
+export const UploadIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></Icon>;
+export const LinkIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></Icon>;
+export const ExternalLinkIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></Icon>;

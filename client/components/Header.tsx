@@ -14,9 +14,10 @@ interface HeaderProps {
     isApp: boolean;
     onNavigateToLogin?: () => void;
     onNavigateToSignup?: () => void;
+    onUpgradeClick?: () => void;
 }
 
-export default function Header({ onNavigate, isApp, onNavigateToLogin, onNavigateToSignup }: HeaderProps) {
+export default function Header({ onNavigate, isApp, onNavigateToLogin, onNavigateToSignup, onUpgradeClick }: HeaderProps) {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const { currentUser, logout } = useAuth();
@@ -94,24 +95,34 @@ export default function Header({ onNavigate, isApp, onNavigateToLogin, onNavigat
                         
                         <div className="ml-6 flex items-center">
                             {currentUser ? (
-                                <div className="relative" id="user-menu-button-container">
-                                    <button
-                                        onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                        className="flex items-center space-x-2 bg-gray-800 p-1 pr-3 rounded-full hover:bg-gray-700 transition-colors"
-                                    >
-                                        <div className="h-7 w-7 bg-gray-600 rounded-full flex items-center justify-center">
-                                            <UserIcon className="h-5 w-5 text-white" />
-                                        </div>
-                                        <span className="text-sm font-semibold">{currentUser.name}</span>
-                                        <span className="text-xs bg-cyan-500 text-white font-bold px-2 py-0.5 rounded-full">{currentUser.tokens}</span>
-                                    </button>
-                                    {isUserMenuOpen && isApp && (
-                                        <div className="absolute right-0 mt-2 w-48 bg-[#111827] rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50">
-                                            <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('profile'); setIsUserMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">Profile</a>
-                                            <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('settings'); setIsUserMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">Settings</a>
-                                            <a href="#" onClick={(e) => { e.preventDefault(); logout(); setIsUserMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 w-full text-left">Logout</a>
-                                        </div>
+                                <div className="flex items-center gap-4">
+                                    {currentUser.plan === 'Free' && isApp && onUpgradeClick && (
+                                        <button 
+                                            onClick={onUpgradeClick}
+                                            className="bg-yellow-500 text-black font-bold text-xs py-1 px-3 rounded-full hover:bg-yellow-400 transition-all duration-300 transform hover:scale-105"
+                                        >
+                                            Upgrade
+                                        </button>
                                     )}
+                                    <div className="relative" id="user-menu-button-container">
+                                        <button
+                                            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                                            className="flex items-center space-x-2 bg-gray-800 p-1 pr-3 rounded-full hover:bg-gray-700 transition-colors"
+                                        >
+                                            <div className="h-7 w-7 bg-gray-600 rounded-full flex items-center justify-center">
+                                                <UserIcon className="h-5 w-5 text-white" />
+                                            </div>
+                                            <span className="text-sm font-semibold">{currentUser.name}</span>
+                                            <span className="text-xs bg-cyan-500 text-white font-bold px-2 py-0.5 rounded-full">{currentUser.tokens}</span>
+                                        </button>
+                                        {isUserMenuOpen && isApp && (
+                                            <div className="absolute right-0 mt-2 w-48 bg-[#111827] rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50">
+                                                <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('profile'); setIsUserMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">Profile</a>
+                                                <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('settings'); setIsUserMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">Settings</a>
+                                                <a href="#" onClick={(e) => { e.preventDefault(); logout(); setIsUserMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 w-full text-left">Logout</a>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="flex items-center space-x-2">
@@ -144,6 +155,14 @@ export default function Header({ onNavigate, isApp, onNavigateToLogin, onNavigat
                                     <p><span className="font-semibold">{currentUser.name}</span></p>
                                     <p><span className="text-cyan-400 font-bold">{currentUser.tokens}</span> Tokens Left</p>
                                 </div>
+                                {currentUser.plan === 'Free' && isApp && onUpgradeClick && (
+                                     <button 
+                                        onClick={() => {onUpgradeClick(); setIsMenuOpen(false);}}
+                                        className="w-full text-center block px-3 py-2 rounded-md text-base font-medium text-black bg-yellow-500 hover:bg-yellow-400"
+                                    >
+                                        Upgrade to Pro
+                                    </button>
+                                )}
                                 { isApp && <AppNavButton page="profile" isMobile>Profile</AppNavButton> }
                                 { isApp && <AppNavButton page="settings" isMobile>Settings</AppNavButton> }
                                 <button onClick={() => { logout(); setIsMenuOpen(false); }} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">Logout</button>

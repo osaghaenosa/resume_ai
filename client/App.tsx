@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import Features from './components/Features';
@@ -15,6 +15,18 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import AppLayout from './components/AppLayout';
+import { User } from './types';
+import UpgradeModal from './components/UpgradeModal';
+import CheckoutPage from './components/CheckoutPage';
+import PaymentSuccessPage from './components/PaymentSuccessPage';
+import AdPopup from './components/AdPopup';
+import SharePage from './components/SharePage';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+
+// Using a test public key from Stripe's documentation
+const stripePromise = loadStripe('pk_test_51H5a27G4ySg7oB8U4fGj8R7kC2hJ0b5hQ0n2hJ0b5hQ0n2hJ0b5hQ0n2hJ0b5hQ0n2hJ0b5hQ0n2hJ0b5hQ0n2hJ0b5hQ0');
+
 
 const Section: React.FC<{ id: string; children: React.ReactNode; className?: string }> = ({ id, children, className = '' }) => (
     <section
@@ -27,9 +39,9 @@ const Section: React.FC<{ id: string; children: React.ReactNode; className?: str
     </section>
 );
 
-const LandingPage: React.FC<{ onNavigateToLogin: () => void; onNavigateToSignup: () => void; }> = ({ onNavigateToLogin, onNavigateToSignup }) => (
+const LandingPage: React.FC<{ onNavigateToLogin: () => void; onNavigateToSignup: () => void; onStartUpgrade: () => void; }> = ({ onNavigateToLogin, onNavigateToSignup, onStartUpgrade }) => (
     <>
-        <Header onNavigate={() => {}} isApp={false} onNavigateToLogin={onNavigateToLogin} onNavigateToSignup={onNavigateToSignup} />
+        <Header onNavigate={() => {}} isApp={false} onNavigateToLogin={onNavigateToLogin} onNavigateToSignup={onNavigateToSignup} onUpgradeClick={onStartUpgrade} />
         <main>
             <Hero onStart={onNavigateToSignup} />
             <div className="relative">
@@ -47,7 +59,7 @@ const LandingPage: React.FC<{ onNavigateToLogin: () => void; onNavigateToSignup:
                         <Testimonials />
                     </Section>
                     <Section id="pricing">
-                        <Pricing onNavigateSignup={onNavigateToSignup} />
+                        <Pricing onNavigateSignup={onNavigateToSignup} onStartUpgrade={onStartUpgrade} />
                     </Section>
                     <Section id="about" className="bg-[#111827]">
                         <About />
@@ -68,26 +80,129 @@ const LandingPage: React.FC<{ onNavigateToLogin: () => void; onNavigateToSignup:
 );
 
 const AppContent: React.FC = () => {
-    const { currentUser } = useAuth();
+    const { currentUser, upgradePlan, generationCompleted, clearGenerationCompleted } = useAuth();
     const [view, setView] = useState<'landing' | 'login' | 'signup'>('landing');
+    const [upgradeFlowState, setUpgradeFlowState] = useState<'none' | 'modal' | 'checkout' | 'success'>('none');
+    const [showAdPopup, setShowAdPopup] = useState(false);
+
+    // Simple routing
+    const path = window.location.pathname;
+    const shareMatch = path.match(/^\/share\/(doc_\d+)$/);
+
+    if (shareMatch) {
+        const docId = shareMatch[1];
+        return <SharePage docId={docId} />;
+    }
+
+    useEffect(() => {
+        if (generationCompleted) {
+            if (currentUser?.plan === 'Free') {
+                setShowAdPopup(true);
+            }
+            clearGenerationCompleted(); // Reset the trigger
+        }
+    }, [generationCompleted, currentUser, clearGenerationCompleted]);
+
+    const handleLoginSuccess = (user: User) => {
+        setView('landing'); // Triggers a re-render where currentUser is now present
+        if (user.plan === 'Free') {
+            setTimeout(() => setUpgradeFlowState('modal'), 500); // Delay modal to allow dashboard to render
+        }
+    };
+    
+    const handleSignupSuccess = (user: User) => {
+        setView('landing');
+        if (user.plan === 'Free') {
+            setUpgradeFlowState('modal');
+        }
+    };
 
     const navigateToLogin = () => setView('login');
     const navigateToSignup = () => setView('signup');
-    const navigateToLanding = () => setView('landing');
     
+    const handleStartUpgrade = () => {
+        if (currentUser && currentUser.plan === 'Pro') {
+            // Already Pro, do nothing
+            return;
+        }
+        setUpgradeFlowState('modal');
+    };
+    
+    const handleProceedToCheckout = () => {
+        setUpgradeFlowState('checkout');
+    }
+
+    const handleStartUpgradeFromAd = () => {
+        setShowAdPopup(false);
+        setUpgradeFlowState('modal');
+    };
+    
+    const handleBackFromCheckout = () => {
+        setUpgradeFlowState('modal');
+    };
+
+    const handlePaymentConfirm = () => {
+        setUpgradeFlowState('success');
+    };
+
+    const handleFlowComplete = () => {
+        upgradePlan();
+        setUpgradeFlowState('none');
+    };
+    
+    // Stripe Elements options
+    const options = {
+      // In a real app, you'd fetch this from a server endpoint
+      clientSecret: 'pi_123_secret_456', 
+      appearance: {
+        theme: 'night',
+        variables: {
+          colorPrimary: '#06b6d4',
+          colorBackground: '#1f2937',
+          colorText: '#ffffff',
+          colorDanger: '#ef4444',
+          fontFamily: 'Ideal Sans, system-ui, sans-serif',
+          spacingUnit: '4px',
+          borderRadius: '4px',
+        }
+      },
+    };
+
+
+    if (currentUser?.plan === 'Free' && upgradeFlowState === 'checkout') {
+        return (
+            <Elements stripe={stripePromise} options={options}>
+                <CheckoutPage onPaymentConfirm={handlePaymentConfirm} onBack={handleBackFromCheckout} />
+            </Elements>
+        );
+    }
+
+    if (upgradeFlowState === 'success') {
+        return <PaymentSuccessPage onComplete={handleFlowComplete} />;
+    }
+
+    let mainContent;
     if (currentUser) {
-        return <AppLayout />;
-    }
-    
-    if (view === 'login') {
-        return <LoginPage onLoginSuccess={navigateToLanding} onNavigateToSignup={navigateToSignup} />;
-    }
-
-    if (view === 'signup') {
-        return <SignupPage onSignupSuccess={navigateToLanding} onNavigateToLogin={navigateToLogin} />;
+        mainContent = <AppLayout onUpgradeClick={handleStartUpgrade} />;
+    } else if (view === 'login') {
+        mainContent = <LoginPage onLoginSuccess={handleLoginSuccess} onNavigateToSignup={navigateToSignup} />;
+    } else if (view === 'signup') {
+        mainContent = <SignupPage onSignupSuccess={handleSignupSuccess} onNavigateToLogin={navigateToLogin} />;
+    } else {
+        mainContent = <LandingPage onNavigateToLogin={navigateToLogin} onNavigateToSignup={navigateToSignup} onStartUpgrade={handleStartUpgrade} />;
     }
 
-    return <LandingPage onNavigateToLogin={navigateToLogin} onNavigateToSignup={navigateToSignup} />;
+    return (
+        <>
+            {mainContent}
+            {currentUser && upgradeFlowState === 'modal' && (
+                <UpgradeModal onClose={() => setUpgradeFlowState('none')} onUpgrade={handleProceedToCheckout} />
+            )}
+            {showAdPopup && (
+                <AdPopup onClose={() => setShowAdPopup(false)} onUpgrade={handleStartUpgradeFromAd} />
+            )}
+        </>
+    )
 }
 
 

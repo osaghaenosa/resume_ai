@@ -2,10 +2,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { BrainIcon } from './Icons';
-import { LoginCredentials } from '../types';
+import { LoginCredentials, User } from '../types';
 
 interface LoginPageProps {
-    onLoginSuccess: () => void;
+    onLoginSuccess: (user: User) => void;
     onNavigateToSignup: () => void;
 }
 
@@ -24,8 +24,8 @@ export default function LoginPage({ onLoginSuccess, onNavigateToSignup }: LoginP
         setError('');
         setIsLoading(true);
         try {
-            await login(credentials);
-            onLoginSuccess();
+            const user = await login(credentials);
+            onLoginSuccess(user);
         } catch (err: any) {
             setError(err.message || 'Failed to log in. Please try again.');
         } finally {

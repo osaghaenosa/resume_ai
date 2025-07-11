@@ -2,10 +2,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { BrainIcon } from './Icons';
-import { SignupCredentials } from '../types';
+import { SignupCredentials, User } from '../types';
 
 interface SignupPageProps {
-    onSignupSuccess: () => void;
+    onSignupSuccess: (user: User) => void;
     onNavigateToLogin: () => void;
 }
 
@@ -28,8 +28,8 @@ export default function SignupPage({ onSignupSuccess, onNavigateToLogin }: Signu
         setError('');
         setIsLoading(true);
         try {
-            await signup(credentials);
-            onSignupSuccess();
+            const newUser = await signup(credentials);
+            onSignupSuccess(newUser);
         } catch (err: any) {
             setError(err.message || 'Failed to sign up. Please try again.');
         } finally {

@@ -1,5 +1,15 @@
 
-export type DocumentType = 'Resume' | 'Cover Letter';
+export type DocumentType = 'Resume' | 'Cover Letter' | 'Portfolio';
+export type PortfolioTemplate = 'onyx' | 'quartz' | 'sapphire' | 'emerald' | 'ruby';
+export type ResumeTemplate = 'classic' | 'modern' | 'simple' | 'creative' | 'technical';
+
+export interface PortfolioProject {
+  id: string;
+  title: string;
+  description: string;
+  link: string;
+  image: string; // Base64 encoded image
+}
 
 export interface Document {
   id: string;
@@ -7,6 +17,8 @@ export interface Document {
   type: DocumentType;
   content: string;
   createdAt: string; // ISO string
+  sourceRequest?: DocumentRequest; // To enable editing
+  isPublic?: boolean;
 }
 
 export interface DocumentRequest {
@@ -18,6 +30,14 @@ export interface DocumentRequest {
   skills: string;
   targetJob: string;
   targetCompany: string;
+  // Resume fields
+  resumeTemplate?: ResumeTemplate;
+  // Portfolio fields
+  profilePicture?: string; // Base64 encoded image
+  portfolioBio?: string;
+  portfolioProjects?: PortfolioProject[];
+  portfolioSocialLinks?: string;
+  portfolioTemplate?: PortfolioTemplate;
 }
 
 export type UserPlan = 'Free' | 'Pro';
