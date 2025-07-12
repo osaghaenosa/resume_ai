@@ -3,20 +3,31 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Document } from '../types';
 import GeneratorModal from './GeneratorModal';
-import ResumeCard from './ResumeCard';
-import ResumeViewer from './ResumeViewer';
+import DocumentCard from './DocumentCard';
+import DocumentViewer from './DocumentViewer';
 import { DocumentTextIcon } from './Icons';
 
 export default function HomePage() {
     const { currentUser, deleteDocument } = useAuth();
     const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
     const [viewingDoc, setViewingDoc] = useState<Document | null>(null);
+    const [editingDoc, setEditingDoc] = useState<Document | null>(null);
 
     const documents = currentUser?.documents ?? [];
 
     const handleViewDoc = (doc: Document) => {
         setViewingDoc(doc);
     };
+
+    const handleEditDoc = (doc: Document) => {
+        setViewingDoc(null); // Close viewer if open
+        setEditingDoc(doc);
+    }
+    
+    const handleCloseGenerator = () => {
+        setIsGeneratorOpen(false);
+        setEditingDoc(null);
+    }
 
     return (
         <div className="p-4 sm:p-6 lg:p-8">
@@ -37,7 +48,7 @@ export default function HomePage() {
                 {documents.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {documents.map(doc => (
-                            <ResumeCard 
+                            <DocumentCard 
                                 key={doc.id}
                                 doc={doc}
                                 onView={() => handleViewDoc(doc)}
@@ -54,8 +65,8 @@ export default function HomePage() {
                 )}
             </div>
 
-            {isGeneratorOpen && <GeneratorModal onClose={() => setIsGeneratorOpen(false)} />}
-            {viewingDoc && <ResumeViewer doc={viewingDoc} onClose={() => setViewingDoc(null)} />}
+            {(isGeneratorOpen || editingDoc) && <GeneratorModal onClose={handleCloseGenerator} docToEdit={editingDoc} />}
+            {viewingDoc && <DocumentViewer doc={viewingDoc} onClose={() => setViewingDoc(null)} onEdit={handleEditDoc} />}
         </div>
     );
 }

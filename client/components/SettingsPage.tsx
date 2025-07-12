@@ -10,8 +10,8 @@ const StatCard: React.FC<{ title: string, value: string | number, className?: st
     </div>
 );
 
-export default function SettingsPage() {
-    const { currentUser, upgradePlan } = useAuth();
+export default function SettingsPage({ onUpgradeClick }: { onUpgradeClick: () => void }) {
+    const { currentUser } = useAuth();
 
     if (!currentUser) {
         return null;
@@ -47,7 +47,7 @@ export default function SettingsPage() {
                         <h3 className="text-xl font-bold text-white">Unlock Your Full Potential</h3>
                         <p className="mt-2 text-gray-400">Upgrade to Pro for 100 monthly tokens, premium features, and priority support.</p>
                         <button
-                            onClick={upgradePlan}
+                            onClick={onUpgradeClick}
                             className="mt-4 bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-cyan-400 transition-colors duration-300"
                         >
                             Upgrade to Pro Now

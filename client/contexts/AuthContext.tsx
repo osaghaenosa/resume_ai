@@ -1,110 +1,146 @@
-// === AuthContext.tsx (Updated Frontend with MongoDB + Node.js Backend) ===
-
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import { User, UserPlan, Document, SignupCredentials, LoginCredentials } from '../types';
+import React, {
+  createContext, useState, useContext, ReactNode, useEffect
+} from 'react';
 import axios from 'axios';
+import {
+  User, Document,
+  SignupCredentials, LoginCredentials,
+  DocumentRequest
+} from '../types';
 
-const API_URL = 'http://localhost:5000/api';
-const CURRENT_USER_ID_KEY = 'aiResumeGenCurrentUser';
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 interface AuthContextType {
-    currentUser: User | null;
-    login: (credentials: LoginCredentials) => Promise<void>;
-    signup: (credentials: SignupCredentials) => Promise<void>;
-    logout: () => void;
-    consumeToken: () => void;
-    upgradePlan: () => void;
-    addDocument: (doc: Omit<Document, 'id' | 'createdAt'>) => void;
-    updateDocument: (doc: Document) => void;
-    deleteDocument: (docId: string) => void;
+  currentUser: User | null;
+  login: (credentials: LoginCredentials) => Promise<User>;
+  signup: (credentials: SignupCredentials) => Promise<User>;
+  logout: () => void;
+  consumeToken: () => Promise<void>;
+  upgradePlan: () => Promise<void>;
+  addDocument: (
+    doc: Omit<Document, 'id' | 'createdAt' | 'isPublic'>,
+    request: DocumentRequest
+  ) => Promise<Document>;
+  updateDocument: (
+    doc: Document,
+    request: DocumentRequest
+  ) => Promise<Document>;
+  deleteDocument: (docId: string) => Promise<void>;
+  publishDocument: (docId: string) => Promise<void>;
+  getPublicDocument: (docId: string) => Promise<Document | null>;
+  generationCompleted: boolean;
+  markGenerationCompleted: () => void;
+  clearGenerationCompleted: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [generationCompleted, setGenerationCompleted] = useState(false);
 
-    useEffect(() => {
-        const userId = localStorage.getItem(CURRENT_USER_ID_KEY);
-        if (userId) {
-            axios.get(`${API_URL}/user/${userId}`)
-                .then(res => setCurrentUser(res.data))
-                .catch(() => localStorage.removeItem(CURRENT_USER_ID_KEY));
-        }
-    }, []);
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      axios.get(`${API}/user/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      }).then(res => setCurrentUser(res.data.user))
+        .catch(() => logout());
+    }
+  }, []);
 
-    const signup = async (credentials: SignupCredentials): Promise<void> => {
-        const res = await axios.post(`${API_URL}/auth/signup`, credentials);
-        setCurrentUser(res.data);
-        localStorage.setItem(CURRENT_USER_ID_KEY, res.data._id);
-    };
+  const signup = async (credentials: SignupCredentials) => {
+    const res = await axios.post(`${API}/auth/signup`, credentials);
+    const { user, token } = res.data;
+    localStorage.setItem('token', token);
+    setCurrentUser(user);
+    return user;
+  };
 
-    const login = async (credentials: LoginCredentials): Promise<void> => {
-        const res = await axios.post(`${API_URL}/auth/login`, credentials);
-        setCurrentUser(res.data);
-        localStorage.setItem(CURRENT_USER_ID_KEY, res.data._id);
-    };
+  const login = async (credentials: LoginCredentials) => {
+    const res = await axios.post(`${API}/auth/login`, credentials);
+    const { user, token } = res.data;
+    localStorage.setItem('token', token);
+    setCurrentUser(user);
+    return user;
+  };
 
-    const logout = () => {
-        setCurrentUser(null);
-        localStorage.removeItem(CURRENT_USER_ID_KEY);
-    };
+  const logout = () => {
+    localStorage.removeItem('token');
+    setCurrentUser(null);
+  };
 
-    const updateUser = async (updatedUser: User) => {
-        await axios.put(`${API_URL}/user/${updatedUser._id}`, updatedUser);
-        setCurrentUser(updatedUser);
-    };
+  const authHeaders = () => {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error("No token found");
+    return { Authorization: `Bearer ${token}` };
+  };
 
-    const consumeToken = () => {
-        if (!currentUser || currentUser.tokens <= 0) return;
-        const updated = { ...currentUser, tokens: currentUser.tokens - 1 };
-        updateUser(updated);
-    };
+  const consumeToken = async () => {
+    const res = await axios.post(`${API}/user/consumeToken`, {}, { headers: authHeaders() });
+    setCurrentUser(res.data.user);
+  };
 
-    const upgradePlan = () => {
-        if (!currentUser || currentUser.plan === 'Pro') return;
-        const updated = { ...currentUser, plan: 'Pro', tokens: 100 };
-        updateUser(updated);
-    };
+  const upgradePlan = async () => {
+    const res = await axios.post(`${API}/user/upgradePlan`, {}, { headers: authHeaders() });
+    setCurrentUser(res.data.user);
+  };
 
-    const addDocument = (doc: Omit<Document, 'id' | 'createdAt'>) => {
-        if (!currentUser) return;
-        const newDoc: Document = {
-            ...doc,
-            id: `doc_${Date.now()}`,
-            createdAt: new Date().toISOString(),
-        };
-        const updated = { ...currentUser, documents: [newDoc, ...currentUser.documents] };
-        updateUser(updated);
-    };
+  const addDocument = async (doc: Omit<Document, 'id' | 'createdAt' | 'isPublic'>, request: DocumentRequest) => {
+    const res = await axios.post(`${API}/user/documents`, { ...doc, sourceRequest: request }, { headers: authHeaders() });
+    setCurrentUser(res.data.user);
+    return res.data.document;
+  };
 
-    const updateDocument = (updatedDoc: Document) => {
-        if (!currentUser) return;
-        const updated = {
-            ...currentUser,
-            documents: currentUser.documents.map(doc => doc.id === updatedDoc.id ? updatedDoc : doc)
-        };
-        updateUser(updated);
-    };
+  const updateDocument = async (doc: Document, request: DocumentRequest) => {
+    const res = await axios.put(`${API}/user/documents/${doc.id}`, {
+      title: doc.title,
+      content: doc.content,
+      sourceRequest: request
+    }, { headers: authHeaders() });
 
-    const deleteDocument = (docId: string) => {
-        if (!currentUser) return;
-        const updated = {
-            ...currentUser,
-            documents: currentUser.documents.filter(doc => doc.id !== docId)
-        };
-        updateUser(updated);
-    };
+    setCurrentUser(res.data.user);
+    return res.data.document;
+  };
 
-    return (
-        <AuthContext.Provider value={{ currentUser, login, signup, logout, consumeToken, upgradePlan, addDocument, updateDocument, deleteDocument }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  const deleteDocument = async (docId: string) => {
+    const res = await axios.delete(`${API}/user/documents/${docId}`, { headers: authHeaders() });
+    setCurrentUser(res.data.user);
+  };
+
+  const publishDocument = async (docId: string) => {
+    const res = await axios.post(`${API}/user/documents/${docId}/publish`, {}, { headers: authHeaders() });
+    setCurrentUser(res.data.user);
+  };
+
+  const getPublicDocument = async (docId: string) => {
+    try {
+      const res = await axios.get(`${API}/public/documents/${docId}`);
+      return res.data.document;
+    } catch {
+      return null;
+    }
+  };
+
+  const markGenerationCompleted = () => setGenerationCompleted(true);
+  const clearGenerationCompleted = () => setGenerationCompleted(false);
+
+  return (
+    <AuthContext.Provider value={{
+      currentUser, login, signup, logout,
+      consumeToken, upgradePlan,
+      addDocument, updateDocument, deleteDocument,
+      publishDocument, getPublicDocument,
+      generationCompleted, markGenerationCompleted,
+      clearGenerationCompleted
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = (): AuthContextType => {
-    const context = useContext(AuthContext);
-    if (!context) throw new Error('useAuth must be used within AuthProvider');
-    return context;
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
+  return context;
 };

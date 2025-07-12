@@ -7,7 +7,11 @@ import SettingsPage from './SettingsPage';
 
 type Page = 'home' | 'profile' | 'settings';
 
-export default function AppLayout() {
+interface AppLayoutProps {
+    onUpgradeClick: () => void;
+}
+
+export default function AppLayout({ onUpgradeClick }: AppLayoutProps) {
     const [page, setPage] = useState<Page>('home');
 
     const renderPage = () => {
@@ -15,7 +19,7 @@ export default function AppLayout() {
             case 'profile':
                 return <ProfilePage />;
             case 'settings':
-                return <SettingsPage />;
+                return <SettingsPage onUpgradeClick={onUpgradeClick} />;
             case 'home':
             default:
                 return <HomePage />;
@@ -24,7 +28,7 @@ export default function AppLayout() {
     
     return (
         <div className="min-h-screen flex flex-col bg-[#0B1120]">
-            <Header onNavigate={setPage} isApp={true} />
+            <Header onNavigate={setPage} isApp={true} onUpgradeClick={onUpgradeClick}/>
             <main className="flex-grow max-w-7xl mx-auto w-full">
                 {renderPage()}
             </main>
