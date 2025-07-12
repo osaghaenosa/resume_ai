@@ -80,7 +80,7 @@ export default function Header({ onNavigate, isApp, onNavigateToLogin, onNavigat
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center">
                         <a href="#" onClick={handleLogoClick} className="text-xl font-bold text-white flex items-center">
-                           <span className="text-cyan-400">AI</span>ResumeGen
+                           <span className="text-cyan-400">Nosentix AI</span>ResumeGen
                         </a>
                     </div>
                     <div className="hidden md:flex items-center">
