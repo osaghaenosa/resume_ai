@@ -1,11 +1,9 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Document } from '../types';
 import { XIcon, ClipboardCopyIcon, CheckIcon, TrashIcon, DownloadIcon, LoadingSpinner, PencilIcon, ShareIcon } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-
 
 interface DocumentViewerProps {
     doc: Document | null;
@@ -23,6 +21,7 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
     const editableContentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        console.log("Opened document viewer for:", doc); // ✅ Debug
         setIsEditing(false);
         setShareText('Share');
     }, [doc]);
@@ -46,14 +45,21 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
             onClose();
         }
     };
-    
+
     const handleSave = () => {
-        if (editableContentRef.current && doc.sourceRequest) {
-            const newContent = editableContentRef.current.innerHTML;
-            updateDocument({ ...doc, content: newContent }, doc.sourceRequest);
-            setIsEditing(false);
-        }
+    if (editableContentRef.current && doc.sourceRequest && doc.id) {
+        const newContent = editableContentRef.current.innerHTML;
+        updateDocument(
+        { ...doc, id: doc.id, content: newContent }, // explicitly include `id`
+        doc.sourceRequest
+        );
+        setIsEditing(false);
+    } else {
+        console.error("Missing document data for update.");
+        alert("Update failed: missing document ID.");
+    }
     };
+
 
     const handleCancel = () => {
         setIsEditing(false);
@@ -73,7 +79,7 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
                 backgroundColor: isPortfolio ? null : '#ffffff',
                 allowTaint: isPortfolio,
             });
-    
+
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
             const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -84,26 +90,26 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
 
             let pdfImgWidth = pdfWidth - (margin * 2);
             let pdfImgHeight = pdfImgWidth / aspectRatio;
-            
-            if (pdfImgHeight > pdfHeight - (margin*2)) {
-                pdfImgHeight = pdfHeight - (margin*2);
+
+            if (pdfImgHeight > pdfHeight - (margin * 2)) {
+                pdfImgHeight = pdfHeight - (margin * 2);
                 pdfImgWidth = pdfImgHeight * aspectRatio;
             }
 
             const x = (pdfWidth - pdfImgWidth) / 2;
             const y = (pdfHeight - pdfImgHeight) / 2;
-    
+
             pdf.addImage(imgData, 'PNG', x, y, pdfImgWidth, pdfImgHeight);
             pdf.save(`${doc.title.replace(/ /g, '_')}.pdf`);
 
-        } catch(err) {
+        } catch (err) {
             console.error("Failed to download PDF", err);
             alert("Sorry, there was an error creating the PDF. Please try again.");
         } finally {
             setIsDownloadingPdf(false);
         }
     };
-    
+
     const handleEdit = () => {
         if (doc.type === 'Portfolio') {
             onEdit(doc);
@@ -131,7 +137,7 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     };
-    
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-[#111827] rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
@@ -141,7 +147,7 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
                         <p className="text-sm text-gray-400">{doc.type}</p>
                     </div>
                     <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-                         {isEditing ? (
+                        {isEditing ? (
                             <>
                                 <button onClick={handleSave} className="flex items-center text-sm p-2 rounded-md text-cyan-400 bg-cyan-900/50 hover:bg-cyan-900/80">
                                     <CheckIcon />
@@ -153,7 +159,7 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
                                 </button>
                             </>
                         ) : (
-                             <>
+                            <>
                                 <button onClick={handleEdit} className="flex items-center text-sm p-2 rounded-md text-cyan-400 hover:bg-gray-700 hover:text-cyan-300">
                                     <PencilIcon />
                                     <span className="hidden sm:inline ml-2">Edit</span>
@@ -161,7 +167,7 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
                                 {doc.type === 'Portfolio' && (
                                     <>
                                         <button onClick={handleShare} className="flex items-center text-sm p-2 rounded-md text-cyan-400 hover:bg-gray-700 hover:text-cyan-300">
-                                            {shareText === 'Link Copied!' ? <CheckIcon/> : <ShareIcon />}
+                                            {shareText === 'Link Copied!' ? <CheckIcon /> : <ShareIcon />}
                                             <span className="hidden sm:inline ml-2">{shareText}</span>
                                         </button>
                                         <button onClick={handleDownloadHtml} className="flex items-center text-sm p-2 rounded-md text-cyan-400 hover:bg-gray-700 hover:text-cyan-300">
@@ -179,7 +185,7 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
                                     <span className="hidden sm:inline ml-2">{isCopied ? 'Copied!' : 'Copy'}</span>
                                 </button>
                                 <button onClick={handleDelete} className="p-2 rounded-full hover:bg-red-500/10 text-red-500 hover:text-red-400">
-                                <TrashIcon />
+                                    <TrashIcon />
                                 </button>
                             </>
                         )}
@@ -190,14 +196,14 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
                 </div>
                 <div className="flex-grow overflow-y-auto p-6 bg-gray-600">
                     {isEditing ? (
-                         <div
+                        <div
                             key={doc.id}
                             ref={editableContentRef}
                             contentEditable={true}
                             suppressContentEditableWarning={true}
                             className="bg-white rounded p-1 outline-none focus:outline-2 focus:outline-cyan-500 focus:outline-offset-2"
                             dangerouslySetInnerHTML={{ __html: doc.content }}
-                         />
+                        />
                     ) : (
                         <div ref={contentRef}>
                             <div dangerouslySetInnerHTML={{ __html: doc.content }} />

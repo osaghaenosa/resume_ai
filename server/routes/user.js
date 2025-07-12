@@ -11,21 +11,27 @@ const auth = async (req, res, next) => {
     if (!token) return res.status(401).json({ message: 'No token' });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-
-    if (!user) return res.status(401).json({ message: 'User not found' });
-
-    req.user = user;
+    req.user = await User.findById(decoded.id);
     next();
   } catch (err) {
     res.status(401).json({ message: 'Unauthorized' });
   }
 };
 
+// Normalize documents (add `id`)
+const normalizeUser = (user) => {
+  const userObj = user.toObject();
+  userObj.documents = userObj.documents.map(doc => ({
+    ...doc,
+    id: doc._id?.toString?.() || doc.id
+  }));
+  delete userObj.password;
+  return userObj;
+};
+
 // Get current user
 router.get('/me', auth, (req, res) => {
-  const { password, ...userData } = req.user.toObject();
-  res.json({ user: userData });
+  res.json({ user: normalizeUser(req.user) });
 });
 
 // Consume token
@@ -33,8 +39,7 @@ router.post('/consumeToken', auth, async (req, res, next) => {
   try {
     req.user.tokens = Math.max(0, req.user.tokens - 1);
     await req.user.save();
-    const { password, ...userData } = req.user.toObject();
-    res.json({ user: userData });
+    res.json({ user: normalizeUser(req.user) });
   } catch (err) {
     next(err);
   }
@@ -46,8 +51,7 @@ router.post('/upgradePlan', auth, async (req, res, next) => {
     req.user.plan = 'Pro';
     req.user.tokens = 100;
     await req.user.save();
-    const { password, ...userData } = req.user.toObject();
-    res.json({ user: userData });
+    res.json({ user: normalizeUser(req.user) });
   } catch (err) {
     next(err);
   }
@@ -59,7 +63,7 @@ router.post('/documents', auth, async (req, res, next) => {
     const { title, type, content, sourceRequest } = req.body;
 
     const newDoc = {
-      id: `doc_${Date.now()}`,
+      _id: `doc_${Date.now()}`, // consistent `_id` style
       title,
       type,
       content,
@@ -68,15 +72,14 @@ router.post('/documents', auth, async (req, res, next) => {
       sourceRequest
     };
 
-    if (!Array.isArray(req.user.documents)) {
-      req.user.documents = [];
-    }
-
     req.user.documents.unshift(newDoc);
     await req.user.save();
 
-    const { password, ...userData } = req.user.toObject();
-    res.json({ message: 'Document saved', document: newDoc, user: userData });
+    res.json({
+      message: 'Document saved',
+      document: { ...newDoc, id: newDoc._id },
+      user: normalizeUser(req.user)
+    });
   } catch (err) {
     next(err);
   }
@@ -88,7 +91,7 @@ router.put('/documents/:id', auth, async (req, res, next) => {
     const { id } = req.params;
     const { title, content, sourceRequest } = req.body;
 
-    const docIndex = req.user.documents.findIndex(d => d.id === id);
+    const docIndex = req.user.documents.findIndex(d => d._id == id || d.id == id);
     if (docIndex === -1) return res.status(404).json({ message: 'Document not found' });
 
     req.user.documents[docIndex] = {
@@ -99,12 +102,12 @@ router.put('/documents/:id', auth, async (req, res, next) => {
     };
 
     await req.user.save();
-    const { password, ...userData } = req.user.toObject();
+    const updatedDoc = req.user.documents[docIndex];
 
     res.json({
       message: 'Document updated',
-      document: req.user.documents[docIndex],
-      user: userData
+      document: { ...updatedDoc, id: updatedDoc._id },
+      user: normalizeUser(req.user)
     });
   } catch (err) {
     next(err);
@@ -115,12 +118,25 @@ router.put('/documents/:id', auth, async (req, res, next) => {
 router.delete('/documents/:id', auth, async (req, res, next) => {
   try {
     const { id } = req.params;
+    req.user.documents = req.user.documents.filter(d => d._id != id && d.id != id);
+    await req.user.save();
+    res.json({ message: 'Document deleted', user: normalizeUser(req.user) });
+  } catch (err) {
+    next(err);
+  }
+});
 
-    req.user.documents = req.user.documents.filter(d => d.id !== id);
+// Publish document
+router.post('/documents/:id/publish', auth, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const docIndex = req.user.documents.findIndex(d => d._id == id || d.id == id);
+    if (docIndex === -1) return res.status(404).json({ message: 'Document not found' });
+
+    req.user.documents[docIndex].isPublic = true;
     await req.user.save();
 
-    const { password, ...userData } = req.user.toObject();
-    res.json({ message: 'Document deleted', user: userData });
+    res.json({ message: 'Document published', user: normalizeUser(req.user) });
   } catch (err) {
     next(err);
   }

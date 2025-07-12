@@ -93,6 +93,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const updateDocument = async (doc: Document, request: DocumentRequest) => {
+    if (!doc.id) throw new Error("Missing document ID for update");
+
     const res = await axios.put(`${API}/user/documents/${doc.id}`, {
       title: doc.title,
       content: doc.content,
@@ -102,6 +104,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setCurrentUser(res.data.user);
     return res.data.document;
   };
+
+
 
   const deleteDocument = async (docId: string) => {
     const res = await axios.delete(`${API}/user/documents/${docId}`, { headers: authHeaders() });
