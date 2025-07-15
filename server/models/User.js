@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
 
 const DocumentSchema = new mongoose.Schema({
-  id: String,
+  _id: { type: String, required: true },  // custom string _id like "doc_123"
   title: String,
   content: String,
   createdAt: String,
   isPublic: Boolean,
   sourceRequest: Object,
-});
+}, { _id: false }); // prevent auto-generating ObjectId
 
 const UserSchema = new mongoose.Schema({
   name: String,

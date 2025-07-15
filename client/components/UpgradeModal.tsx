@@ -76,8 +76,8 @@ export default function UpgradeModal({ onClose, onUpgrade }: UpgradeModalProps) 
                 <button onClick={onClose} aria-label="Close" className="absolute top-4 right-4 text-gray-400 hover:text-white z-10 p-1">
                     <XIcon />
                 </button>
-
-                <div className="p-8 text-center">
+                <div className="h-100 overflow-scroll">
+                    <div className="p-8 text-center">
                     <h2 className="text-3xl font-extrabold text-white">Unlock Your Potential!</h2>
                     <p className="mt-3 text-lg text-gray-400 max-w-2xl mx-auto">You're on the Free plan. Upgrade to Pro to remove limits and get access to our most powerful features.</p>
                 </div>
@@ -101,6 +101,8 @@ export default function UpgradeModal({ onClose, onUpgrade }: UpgradeModalProps) 
                         Maybe Later
                     </button>
                 </div>
+                </div>
+                
             </div>
         </div>
     );

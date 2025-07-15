@@ -2,6 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
+
 const router = express.Router();
 
 // Auth middleware
@@ -63,7 +64,7 @@ router.post('/documents', auth, async (req, res, next) => {
     const { title, type, content, sourceRequest } = req.body;
 
     const newDoc = {
-      _id: `doc_${Date.now()}`, // consistent `_id` style
+      _id: `doc_${Date.now()}`, // custom id
       title,
       type,
       content,
@@ -85,7 +86,7 @@ router.post('/documents', auth, async (req, res, next) => {
   }
 });
 
-// Update document
+// Update document + deduct token
 router.put('/documents/:id', auth, async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -94,19 +95,27 @@ router.put('/documents/:id', auth, async (req, res, next) => {
     const docIndex = req.user.documents.findIndex(d => d._id == id || d.id == id);
     if (docIndex === -1) return res.status(404).json({ message: 'Document not found' });
 
-    req.user.documents[docIndex] = {
-      ...req.user.documents[docIndex],
-      title,
-      content,
-      sourceRequest
-    };
+    const doc = req.user.documents[docIndex];
+
+    const isPortfolio = doc.type === 'Portfolio';
+    const tokenCost = isPortfolio ? 3 : 1;
+
+    if (req.user.tokens < tokenCost) {
+      return res.status(403).json({ message: 'Insufficient tokens to edit this document.' });
+    }
+
+    // Safely update document fields
+    doc.title = title;
+    doc.content = content;
+    doc.sourceRequest = sourceRequest;
+
+    req.user.tokens -= tokenCost;
 
     await req.user.save();
-    const updatedDoc = req.user.documents[docIndex];
 
     res.json({
       message: 'Document updated',
-      document: { ...updatedDoc, id: updatedDoc._id },
+      document: { ...doc.toObject(), id: doc._id },
       user: normalizeUser(req.user)
     });
   } catch (err) {
@@ -141,5 +150,32 @@ router.post('/documents/:id/publish', auth, async (req, res, next) => {
     next(err);
   }
 });
+
+// Public route to access a shared portfolio
+router.get('/share/:id', async (req, res, next) => {
+  try {
+    // Find the user that owns the document
+    const user = await User.findOne({ "documents._id": req.params.id });
+    if (!user) return res.status(404).json({ message: "User or document not found" });
+
+    // Find the exact doc
+    const doc = user.documents.find(d => d._id == req.params.id || d.id == req.params.id);
+    if (!doc || !doc.isPublic || doc.type !== 'Portfolio') {
+      return res.status(404).json({ message: "Portfolio not shared or invalid type" });
+    }
+
+    res.json({
+      id: doc._id,
+      title: doc.title,
+      content: doc.content,
+      createdAt: doc.createdAt,
+      type: doc.type,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+
 
 export default router;
