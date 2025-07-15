@@ -8,7 +8,7 @@ import {
   DocumentRequest
 } from '../types';
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API = process.env.REACT_APP_API_URL;
 
 interface AuthContextType {
   currentUser: User | null;
