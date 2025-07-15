@@ -86,14 +86,16 @@ router.post('/documents', auth, async (req, res, next) => {
 });
 
 // Update document
+// Update document
 router.put('/documents/:id', auth, async (req, res, next) => {
   try {
     const { id } = req.params;
     const { title, content, sourceRequest } = req.body;
 
-    const docIndex = req.user.documents.findIndex(d => d._id == id || d.id == id);
+    const docIndex = req.user.documents.findIndex(d => d.id === id);
     if (docIndex === -1) return res.status(404).json({ message: 'Document not found' });
 
+    // Update document content
     req.user.documents[docIndex] = {
       ...req.user.documents[docIndex],
       title,
@@ -101,18 +103,17 @@ router.put('/documents/:id', auth, async (req, res, next) => {
       sourceRequest
     };
 
-    await req.user.save();
-    const updatedDoc = req.user.documents[docIndex];
+    // Deduct 1 token, not below 0
+    req.user.tokens = Math.max(0, req.user.tokens - 1);
 
-    res.json({
-      message: 'Document updated',
-      document: { ...updatedDoc, id: updatedDoc._id },
-      user: normalizeUser(req.user)
-    });
+    await req.user.save();
+    const { password, ...userData } = req.user.toObject();
+    res.json({ message: 'Document updated', document: req.user.documents[docIndex], user: userData });
   } catch (err) {
     next(err);
   }
 });
+
 
 // Delete document
 router.delete('/documents/:id', auth, async (req, res, next) => {
