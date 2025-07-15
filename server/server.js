@@ -3,6 +3,9 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
 
+import uploadRoutes from './routes/upload.js';
+
+
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/user.js';
 
@@ -11,6 +14,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+//image uploading
+app.use('/api/upload', uploadRoutes);
 
 // Routes
 app.use('/api/auth', authRoutes);
