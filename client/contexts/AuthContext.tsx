@@ -117,14 +117,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setCurrentUser(res.data.user);
   };
 
-  const getPublicDocument = async (docId: string) => {
-    try {
-      const res = await axios.get(`${API}/public/documents/${docId}`);
-      return res.data.document;
-    } catch {
-      return null;
-    }
-  };
+  
+  const getPublicDocument = async (docId: string): Promise<Document | null> => {
+  try {
+    const res = await fetch(`${API}/user/share/${docId}`);
+    if (!res.ok) return null;
+
+    const data = await res.json();
+
+    return {
+      id: data.id,
+      title: data.title,
+      content: data.content,
+      type: data.type,
+      createdAt: data.createdAt,
+    };
+  } catch (err) {
+    console.error("Error fetching public doc:", err);
+    return null;
+  }
+};
+  
 
   const markGenerationCompleted = () => setGenerationCompleted(true);
   const clearGenerationCompleted = () => setGenerationCompleted(false);

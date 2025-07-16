@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Document } from '../types';
-import { XIcon, ClipboardCopyIcon, CheckIcon, TrashIcon, DownloadIcon, LoadingSpinner, PencilIcon, ShareIcon } from './Icons';
+import {
+    XIcon, ClipboardCopyIcon, CheckIcon,
+    TrashIcon, DownloadIcon, LoadingSpinner,
+    PencilIcon, ShareIcon
+} from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -72,7 +76,7 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
 
         setIsDownloadingPdf(true);
         try {
-            const isPortfolio = localDoc.type === 'Portfolio';
+            const isPortfolio = localDoc.docType?.toLowerCase() === 'portfolio';
             const canvas = await html2canvas(element, {
                 scale: 2,
                 useCORS: isPortfolio,
@@ -114,7 +118,7 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
             return;
         }
 
-        if (localDoc.type === 'Portfolio') {
+        if (localDoc.docType?.toLowerCase() === 'portfolio') {
             onEdit(localDoc);
         } else {
             setIsEditing(true);
@@ -122,7 +126,7 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
     };
 
     const handleShare = () => {
-        if (localDoc.type !== 'Portfolio') return;
+        if (localDoc.docType?.toLowerCase() !== 'portfolio') return;
 
         publishDocument(localDoc.id);
         const shareUrl = `${window.location.origin}/share/${localDoc.id}`;
@@ -132,7 +136,23 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
     };
 
     const handleDownloadHtml = () => {
-        const blob = new Blob([localDoc.content], { type: 'text/html' });
+        if (localDoc.docType?.toLowerCase() !== 'portfolio') return;
+
+        const htmlString = `
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>${localDoc.title}</title>
+                    <style>body{font-family:sans-serif;padding:40px;background:#f4f4f4;color:#333;}</style>
+                </head>
+                <body>
+                    ${localDoc.content}
+                </body>
+            </html>
+        `;
+
+        const blob = new Blob([htmlString], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -150,7 +170,7 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
                     <div className="flex justify-between items-center p-4 border-b border-gray-700">
                         <div>
                             <h2 className="text-xl font-bold text-white">{localDoc.title}</h2>
-                            <p className="text-sm text-gray-400">{localDoc.type}</p>
+                            <p className="text-sm text-gray-400">{localDoc.docType}</p>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
                             {isEditing ? (
@@ -166,12 +186,12 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
                                 </>
                             ) : (
                                 <>
-                                    <button onClick={handleEdit} className="flex items-center text-sm p-2 rounded-md text-cyan-400 hover:bg-gray-700 hover:text-cyan-300">
+                                    <button onClick={handleEdit} className="flex items-center text-sm p-2 rounded-md text-cyan-400 hover:bg-gray-700">
                                         <PencilIcon />
                                         <span className="ml-2 hidden sm:inline">Edit</span>
                                     </button>
 
-                                    {localDoc.type === 'Portfolio' && (
+                                    {localDoc.docType?.toLowerCase() === 'portfolio' && (
                                         <>
                                             <button onClick={handleShare} className="flex items-center text-sm p-2 rounded-md text-cyan-400 hover:bg-gray-700">
                                                 {shareText === 'Link Copied!' ? <CheckIcon /> : <ShareIcon />}
@@ -210,8 +230,8 @@ export default function DocumentViewer({ doc, onClose, onEdit }: DocumentViewerP
                             <div
                                 key={localDoc.id}
                                 ref={editableContentRef}
-                                contentEditable={true}
-                                suppressContentEditableWarning={true}
+                                contentEditable
+                                suppressContentEditableWarning
                                 className="bg-white rounded p-1 outline-none focus:outline-2 focus:outline-cyan-500"
                                 dangerouslySetInnerHTML={{ __html: localDoc.content }}
                             />

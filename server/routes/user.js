@@ -2,8 +2,9 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
-
 const router = express.Router();
+
+const VALID_DOC_TYPES = ['resume', 'portfolio', 'cover_letter', 'report', 'article']; // Add more types as needed
 
 // Auth middleware
 const auth = async (req, res, next) => {
@@ -61,10 +62,15 @@ router.post('/upgradePlan', auth, async (req, res, next) => {
 // Save a new document
 router.post('/documents', auth, async (req, res, next) => {
   try {
-    const { title, type, content, sourceRequest } = req.body;
+    let { title, type, content, sourceRequest } = req.body;
+    type = type?.toLowerCase();
+
+    if (!VALID_DOC_TYPES.includes(type)) {
+      return res.status(400).json({ message: 'Invalid document type' });
+    }
 
     const newDoc = {
-      _id: `doc_${Date.now()}`, // custom id
+      _id: `doc_${Date.now()}`,
       title,
       type,
       content,
@@ -90,24 +96,27 @@ router.post('/documents', auth, async (req, res, next) => {
 router.put('/documents/:id', auth, async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, content, sourceRequest } = req.body;
+    let { title, content, sourceRequest, type } = req.body;
+    type = type?.toLowerCase();
 
-    const docIndex = req.user.documents.findIndex(d => d.id === id);
+    const docIndex = req.user.documents.findIndex(d => d._id == id || d.id == id);
     if (docIndex === -1) return res.status(404).json({ message: 'Document not found' });
 
     const doc = req.user.documents[docIndex];
 
-    const isPortfolio = doc.type === 'Portfolio';
-    const tokenCost = isPortfolio ? 3 : 1;
+    if (!VALID_DOC_TYPES.includes(type)) {
+      return res.status(400).json({ message: 'Invalid document type' });
+    }
 
+    const tokenCost = type === 'portfolio' ? 3 : 1;
     if (req.user.tokens < tokenCost) {
       return res.status(403).json({ message: 'Insufficient tokens to edit this document.' });
     }
 
-    // Safely update document fields
     doc.title = title;
     doc.content = content;
     doc.sourceRequest = sourceRequest;
+    doc.type = type;
 
     req.user.tokens -= tokenCost;
 
@@ -123,7 +132,6 @@ router.put('/documents/:id', auth, async (req, res, next) => {
   }
 });
 
-
 // Delete document
 router.delete('/documents/:id', auth, async (req, res, next) => {
   try {
@@ -136,14 +144,20 @@ router.delete('/documents/:id', auth, async (req, res, next) => {
   }
 });
 
-// Publish document
+// Publish document (only portfolios can be public)
 router.post('/documents/:id/publish', auth, async (req, res, next) => {
   try {
     const { id } = req.params;
     const docIndex = req.user.documents.findIndex(d => d._id == id || d.id == id);
     if (docIndex === -1) return res.status(404).json({ message: 'Document not found' });
 
-    req.user.documents[docIndex].isPublic = true;
+    const doc = req.user.documents[docIndex];
+
+    if (doc.type !== 'portfolio') {
+      return res.status(400).json({ message: 'Only portfolio documents can be shared publicly.' });
+    }
+
+    doc.isPublic = true;
     await req.user.save();
 
     res.json({ message: 'Document published', user: normalizeUser(req.user) });
@@ -155,13 +169,11 @@ router.post('/documents/:id/publish', auth, async (req, res, next) => {
 // Public route to access a shared portfolio
 router.get('/share/:id', async (req, res, next) => {
   try {
-    // Find the user that owns the document
     const user = await User.findOne({ "documents._id": req.params.id });
     if (!user) return res.status(404).json({ message: "User or document not found" });
 
-    // Find the exact doc
     const doc = user.documents.find(d => d._id == req.params.id || d.id == req.params.id);
-    if (!doc || !doc.isPublic || doc.type !== 'Portfolio') {
+    if (!doc || !doc.isPublic || doc.type !== 'portfolio') {
       return res.status(404).json({ message: "Portfolio not shared or invalid type" });
     }
 
@@ -176,7 +188,5 @@ router.get('/share/:id', async (req, res, next) => {
     next(err);
   }
 });
-
-
 
 export default router;
