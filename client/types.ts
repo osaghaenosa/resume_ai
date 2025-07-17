@@ -14,11 +14,11 @@ export interface PortfolioProject {
 export interface Document {
   id: string;
   title: string;
-  type: DocumentType;
   content: string;
-  createdAt: string; // ISO string
-  sourceRequest?: DocumentRequest; // To enable editing
+  docType: string; // 👈 Make sure it's `docType` not `type`
+  createdAt: string;
   isPublic?: boolean;
+  sourceRequest?: any;
 }
 
 export interface DocumentRequest {

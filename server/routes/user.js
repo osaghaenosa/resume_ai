@@ -4,7 +4,8 @@ import User from '../models/User.js';
 
 const router = express.Router();
 
-const VALID_DOC_TYPES = ['resume', 'portfolio', 'cover_letter', 'report', 'article']; // Add more types as needed
+const VALID_DOC_TYPES = ['resume', 'portfolio', 'cover_letter', 'report', 'article'];
+const PORTFOLIO_TYPE = 'portfolio'; // lowercase, normalized
 
 // Auth middleware
 const auth = async (req, res, next) => {
@@ -63,11 +64,13 @@ router.post('/upgradePlan', auth, async (req, res, next) => {
 router.post('/documents', auth, async (req, res, next) => {
   try {
     let { title, type, content, sourceRequest } = req.body;
-    type = type?.toLowerCase();
+    type = type?.toLowerCase().trim();
 
     if (!VALID_DOC_TYPES.includes(type)) {
       return res.status(400).json({ message: 'Invalid document type' });
     }
+    
+    const isPortfolio = type==='portfolio';
 
     const newDoc = {
       _id: `doc_${Date.now()}`,
@@ -75,7 +78,7 @@ router.post('/documents', auth, async (req, res, next) => {
       type,
       content,
       createdAt: new Date().toISOString(),
-      isPublic: false,
+      isPublic: isPortfolio?true:false,
       sourceRequest
     };
 
@@ -97,7 +100,7 @@ router.put('/documents/:id', auth, async (req, res, next) => {
   try {
     const { id } = req.params;
     let { title, content, sourceRequest, type } = req.body;
-    type = type?.toLowerCase();
+    type = type?.toLowerCase().trim();
 
     const docIndex = req.user.documents.findIndex(d => d._id == id || d.id == id);
     if (docIndex === -1) return res.status(404).json({ message: 'Document not found' });
@@ -108,7 +111,7 @@ router.put('/documents/:id', auth, async (req, res, next) => {
       return res.status(400).json({ message: 'Invalid document type' });
     }
 
-    const tokenCost = type === 'portfolio' ? 3 : 1;
+    const tokenCost = type === PORTFOLIO_TYPE ? 3 : 1;
     if (req.user.tokens < tokenCost) {
       return res.status(403).json({ message: 'Insufficient tokens to edit this document.' });
     }
@@ -153,7 +156,8 @@ router.post('/documents/:id/publish', auth, async (req, res, next) => {
 
     const doc = req.user.documents[docIndex];
 
-    if (doc.type !== 'portfolio') {
+    const docType = doc.type?.toLowerCase().trim();
+    if (docType !== PORTFOLIO_TYPE) {
       return res.status(400).json({ message: 'Only portfolio documents can be shared publicly.' });
     }
 
@@ -173,7 +177,9 @@ router.get('/share/:id', async (req, res, next) => {
     if (!user) return res.status(404).json({ message: "User or document not found" });
 
     const doc = user.documents.find(d => d._id == req.params.id || d.id == req.params.id);
-    if (!doc || !doc.isPublic || doc.type !== 'portfolio') {
+    const docType = doc?.type?.toLowerCase().trim();
+
+    if (!doc || !doc.isPublic || docType !== PORTFOLIO_TYPE) {
       return res.status(404).json({ message: "Portfolio not shared or invalid type" });
     }
 

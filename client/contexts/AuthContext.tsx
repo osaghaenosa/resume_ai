@@ -119,23 +119,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   
   const getPublicDocument = async (docId: string): Promise<Document | null> => {
-  try {
-    const res = await fetch(`${API}/user/share/${docId}`);
-    if (!res.ok) return null;
-
-    const data = await res.json();
-
-    return {
-      id: data.id,
-      title: data.title,
-      content: data.content,
-      type: data.type,
-      createdAt: data.createdAt,
-    };
-  } catch (err) {
-    console.error("Error fetching public doc:", err);
-    return null;
-  }
+    try {
+        const res = await fetch(`/api/user/share/${docId}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return {
+            id: data.id,
+            title: data.title,
+            content: data.content,
+            type: data.type,
+            createdAt: data.createdAt,
+        };
+    } catch (err) {
+        console.error("Error fetching public doc:", err);
+        return null;
+    }
 };
   
 
