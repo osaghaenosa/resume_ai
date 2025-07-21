@@ -38,7 +38,7 @@ export default function Contact() {
                 </form>
                 {status && <p className="mt-6 text-center text-green-400">{status}</p>}
                 <div className="mt-8 text-center text-gray-400">
-                    <p>Or email us directly at <a href="mailto:support@airesumegen.com" className="text-cyan-400 hover:underline">support@airesumegen.com</a></p>
+                    <p>Or email us directly at <a href="mailto:airesumegen@gmail.com" className="text-cyan-400 hover:underline">airesumegen@gmail.com</a></p>
                 </div>
             </div>
         </>

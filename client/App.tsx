@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import Features from './components/Features';
@@ -21,12 +21,7 @@ import CheckoutPage from './components/CheckoutPage';
 import PaymentSuccessPage from './components/PaymentSuccessPage';
 import AdPopup from './components/AdPopup';
 import SharePage from './components/SharePage';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements } from '@stripe/react-stripe-js';
-
-// Using a test public key from Stripe's documentation
-const stripePromise = loadStripe('pk_test_51H5a27G4ySg7oB8U4fGj8R7kC2hJ0b5hQ0n2hJ0b5hQ0n2hJ0b5hQ0n2hJ0b5hQ0n2hJ0b5hQ0n2hJ0b5hQ0n2hJ0b5hQ0');
-
+import SuccessModal from './components/SuccessModal';
 
 const Section: React.FC<{ id: string; children: React.ReactNode; className?: string }> = ({ id, children, className = '' }) => (
     <section
@@ -84,6 +79,8 @@ const AppContent: React.FC = () => {
     const [view, setView] = useState<'landing' | 'login' | 'signup'>('landing');
     const [upgradeFlowState, setUpgradeFlowState] = useState<'none' | 'modal' | 'checkout' | 'success'>('none');
     const [showAdPopup, setShowAdPopup] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const successModalTimerRef = useRef<number | null>(null);
 
     // Simple routing
     const path = window.location.pathname;
@@ -94,14 +91,35 @@ const AppContent: React.FC = () => {
         return <SharePage docId={docId} />;
     }
 
+    const closeSuccessAndShowAd = useCallback(() => {
+        setShowSuccessModal(false);
+        if (currentUser && currentUser.plan === 'Free') {
+            setShowAdPopup(true);
+        }
+        clearGenerationCompleted(); // Reset trigger now that the flow is complete
+    }, [currentUser, clearGenerationCompleted]);
+
     useEffect(() => {
         if (generationCompleted) {
-            if (currentUser?.plan === 'Free') {
-                setShowAdPopup(true);
+            setShowSuccessModal(true);
+            
+            // Clear previous timer if any
+            if (successModalTimerRef.current) {
+                clearTimeout(successModalTimerRef.current);
             }
-            clearGenerationCompleted(); // Reset the trigger
+
+            successModalTimerRef.current = window.setTimeout(() => {
+                closeSuccessAndShowAd();
+            }, 5000); // Display for 5 seconds
+
+            return () => { // Cleanup on unmount
+                if (successModalTimerRef.current) {
+                    clearTimeout(successModalTimerRef.current);
+                }
+            };
         }
-    }, [generationCompleted, currentUser, clearGenerationCompleted]);
+    }, [generationCompleted, closeSuccessAndShowAd]);
+
 
     const handleLoginSuccess = (user: User) => {
         setView('landing'); // Triggers a re-render where currentUser is now present
@@ -137,10 +155,6 @@ const AppContent: React.FC = () => {
         setUpgradeFlowState('modal');
     };
     
-    const handleBackFromCheckout = () => {
-        setUpgradeFlowState('modal');
-    };
-
     const handlePaymentConfirm = () => {
         setUpgradeFlowState('success');
     };
@@ -149,31 +163,21 @@ const AppContent: React.FC = () => {
         upgradePlan();
         setUpgradeFlowState('none');
     };
-    
-    // Stripe Elements options
-    const options = {
-      // In a real app, you'd fetch this from a server endpoint
-      clientSecret: 'pi_123_secret_456', 
-      appearance: {
-        theme: 'night',
-        variables: {
-          colorPrimary: '#06b6d4',
-          colorBackground: '#1f2937',
-          colorText: '#ffffff',
-          colorDanger: '#ef4444',
-          fontFamily: 'Ideal Sans, system-ui, sans-serif',
-          spacingUnit: '4px',
-          borderRadius: '4px',
+
+    const handleManualSuccessClose = () => {
+        if (successModalTimerRef.current) {
+            clearTimeout(successModalTimerRef.current);
+            successModalTimerRef.current = null;
         }
-      },
+        closeSuccessAndShowAd();
     };
-
-
+    
     if (currentUser?.plan === 'Free' && upgradeFlowState === 'checkout') {
         return (
-            <Elements stripe={stripePromise} options={options}>
-                <CheckoutPage onPaymentConfirm={handlePaymentConfirm} onBack={handleBackFromCheckout} />
-            </Elements>
+            <CheckoutPage 
+                user={currentUser}
+                onPaymentConfirm={handlePaymentConfirm}
+            />
         );
     }
 
@@ -201,6 +205,7 @@ const AppContent: React.FC = () => {
             {showAdPopup && (
                 <AdPopup onClose={() => setShowAdPopup(false)} onUpgrade={handleStartUpgradeFromAd} />
             )}
+            {showSuccessModal && <SuccessModal onClose={handleManualSuccessClose} />}
         </>
     )
 }

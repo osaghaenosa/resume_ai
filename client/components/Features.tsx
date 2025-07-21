@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrainIcon, ShieldCheckIcon, ZapIcon, SparklesIcon, FeatherIcon } from './Icons';
+import { BrainIcon, ShieldCheckIcon, ZapIcon, SparklesIcon, FeatherIcon, BriefcaseIcon } from './Icons';
 
 interface FeatureCardProps {
   icon: React.ReactNode;
@@ -30,6 +30,11 @@ const features = [
         description: "Our AI is trained to avoid robotic language, producing natural, persuasive text that truly reflects your voice.",
     },
     {
+        icon: <BriefcaseIcon />,
+        title: "Stunning Portfolios",
+        description: "Generate a professional, single-page portfolio website to showcase your work and even sell products. No coding required.",
+    },
+    {
         icon: <ShieldCheckIcon />,
         title: "AI Detector Bypass",
         description: "Proprietary technology ensures your documents are flagged as human-written, avoiding automated screening filters.",
@@ -51,8 +56,8 @@ export default function Features() {
     return (
         <>
             <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-extrabold text-white">Why You'll Love It</h2>
-                <p className="mt-4 text-lg text-gray-400">Everything you need to land your dream job.</p>
+                <h2 className="text-3xl md:text-4xl font-extrabold text-white">The Future of Your Career Starts Here</h2>
+                <p className="mt-4 text-lg text-gray-400">More than a resume builder. A complete toolkit for your job search.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {features.map((feature, index) => (

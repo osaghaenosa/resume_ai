@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { DocumentType, DocumentRequest, PortfolioProject, Document, PortfolioTemplate, ResumeTemplate, UserPlan } from '../types';
+import { DocumentType, DocumentRequest, PortfolioProject, Document, PortfolioTemplate, ResumeTemplate, UserPlan, Product } from '../types';
 import { generateDocument } from '../services/geminiService';
 import { XIcon, LoadingSpinner, TrashIcon, UploadIcon, LinkIcon, ArrowLeftIcon, ArrowRightIcon, LockClosedIcon, UserIcon as ProfileIcon } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,15 +8,36 @@ import { useAuth } from '../contexts/AuthContext';
 interface GeneratorModalProps {
     onClose: () => void;
     docToEdit?: Document | null;
+    onUpgrade: () => void;
 }
 
-const FormInput: React.FC<{ label: string, name: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, placeholder?: string, disabled?: boolean, icon?: React.ReactNode }> = ({ label, name, value, onChange, placeholder, disabled, icon }) => (
+const useImageUrl = (imageId: string | null | undefined): string | null => {
+    const { getImage } = useAuth();
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (imageId && imageId.startsWith('img_')) {
+            const data = getImage(imageId);
+            setImageUrl(data);
+        } else if (imageId) {
+            // This case handles a fresh upload where the value might be a base64 string temporarily
+            setImageUrl(imageId);
+        } else {
+            setImageUrl(null);
+        }
+    }, [imageId, getImage]);
+
+    return imageUrl;
+};
+
+const FormInput: React.FC<{ label: string, name: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, placeholder?: string, disabled?: boolean, icon?: React.ReactNode, type?: string }> = ({ label, name, value, onChange, placeholder, disabled, icon, type = 'text' }) => (
     <div>
         <label htmlFor={name} className="block text-sm font-medium text-gray-300 mb-1">{label}</label>
         <div className="relative">
             <input
-                type="text" id={name} name={name} value={value} onChange={onChange} placeholder={placeholder} disabled={disabled}
+                type={type} id={name} name={name} value={value} onChange={onChange} placeholder={placeholder} disabled={disabled}
                 className={`w-full bg-gray-900 border border-gray-700 rounded-md py-2 px-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed ${icon ? 'pl-10' : ''}`}
+                 step={type === 'number' ? '0.01' : undefined}
             />
             {icon && <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">{icon}</div>}
         </div>
@@ -68,6 +89,17 @@ const TemplateCard: React.FC<{
 
 
 const emptyProject: PortfolioProject = { id: `proj_${Date.now()}`, title: '', description: '', link: '', image: '' };
+const emptyProduct: Product = { 
+    id: `prod_${Date.now()}`, 
+    title: '', 
+    description: '', 
+    price: 0, 
+    image: '',
+    paymentMethod: 'link',
+    checkoutLink: '',
+    bankDetails: '',
+    flutterwaveKey: '',
+};
 
 const DEFAULT_FORM_DATA: Omit<DocumentRequest, 'docType'> = {
     name: 'Alex Doe',
@@ -81,30 +113,67 @@ const DEFAULT_FORM_DATA: Omit<DocumentRequest, 'docType'> = {
     profilePicture: '',
     portfolioBio: `A passionate and creative professional with a knack for building beautiful and functional web experiences. I specialize in frontend development and have a strong eye for design. My goal is to leverage my skills to create products that not only work flawlessly but also delight users.`,
     portfolioProjects: [{ ...emptyProject, title: 'My Awesome App', description: 'A brief description of this cool project.' }],
-    portfolioSocialLinks: `https://github.com/me, https://linkedin.com/in/me`,
+    portfolioSocialLinks: `https://github.com/alex, https://linkedin.com/in/alex`,
     portfolioTemplate: 'onyx',
+    products: [],
 };
 
 // --- Template Definitions ---
+const resumeTemplateNames: ResumeTemplate[] = [
+    'classic', 'modern', 'simple', 'creative', 'technical',
+    'classic-2', 'classic-3', 'classic-4', 'classic-5', 'classic-6', 'classic-7', 'classic-8', 'classic-9', 'classic-10', 'classic-11',
+    'modern-2', 'modern-3', 'modern-4', 'modern-5', 'modern-6', 'modern-7', 'modern-8', 'modern-9', 'modern-10', 'modern-11',
+    'simple-2', 'simple-3', 'simple-4', 'simple-5', 'simple-6', 'simple-7', 'simple-8', 'simple-9', 'simple-10', 'simple-11',
+    'creative-2', 'creative-3', 'creative-4', 'creative-5', 'creative-6', 'creative-7', 'creative-8', 'creative-9', 'creative-10', 'creative-11',
+    'technical-2', 'technical-3', 'technical-4', 'technical-5', 'technical-6', 'technical-7', 'technical-8', 'technical-9', 'technical-10', 'technical-11'
+];
+const portfolioTemplateNames: PortfolioTemplate[] = [
+    'onyx', 'quartz', 'sapphire', 'emerald', 'ruby',
+    'onyx-2', 'onyx-3', 'onyx-4', 'onyx-5', 'onyx-6', 'onyx-7', 'onyx-8', 'onyx-9', 'onyx-10', 'onyx-11',
+    'quartz-2', 'quartz-3', 'quartz-4', 'quartz-5', 'quartz-6', 'quartz-7', 'quartz-8', 'quartz-9', 'quartz-10', 'quartz-11',
+    'sapphire-2', 'sapphire-3', 'sapphire-4', 'sapphire-5', 'sapphire-6', 'sapphire-7', 'sapphire-8', 'sapphire-9', 'sapphire-10', 'sapphire-11',
+    'emerald-2', 'emerald-3', 'emerald-4', 'emerald-5', 'emerald-6', 'emerald-7', 'emerald-8', 'emerald-9', 'emerald-10', 'emerald-11',
+    'ruby-2', 'ruby-3', 'ruby-4', 'ruby-5', 'ruby-6', 'ruby-7', 'ruby-8', 'ruby-9', 'ruby-10', 'ruby-11'
+];
+
 const RESUME_TEMPLATES: { name: ResumeTemplate, description: string, isPro: boolean, preview: React.ReactNode }[] = [
-    { name: 'classic', description: 'Timeless two-column format.', isPro: false, preview: <div className="h-full w-full bg-white p-3 flex gap-2"><div className="w-2/3 bg-gray-200 rounded-sm"></div><div className="w-1/3 bg-gray-300 rounded-sm"></div></div> },
-    { name: 'modern', description: 'Sleek single-column design.', isPro: false, preview: <div className="h-full w-full bg-white p-3 flex flex-col gap-2"><div className="h-4 w-1/3 bg-teal-500 rounded-sm"></div><div className="h-2 w-full bg-gray-200"></div><div className="h-2 w-full bg-gray-200"></div></div> },
-    { name: 'simple', description: 'Minimalist and text-focused.', isPro: false, preview: <div className="h-full w-full bg-white p-3 flex flex-col gap-2"><div className="h-3 w-1/2 bg-gray-600"></div><div className="h-2 w-1/3 bg-gray-400 mt-[-4px]"></div><div className="h-2 w-full bg-gray-200 mt-2"></div></div> },
-    { name: 'creative', description: 'Asymmetrical with a sidebar.', isPro: true, preview: <div className="h-full w-full bg-white p-0 flex"><div className="w-1/3 h-full bg-slate-700 p-2"><div className="h-6 w-6 rounded-full bg-cyan-400 mx-auto"></div></div><div className="w-2/3 p-2"><div className="h-4 w-full bg-gray-600"></div></div></div> },
-    { name: 'technical', description: 'Structured for developers.', isPro: true, preview: <div className="h-full w-full bg-black p-3"><div className="h-3 w-1/2 bg-green-400"></div><div className="h-2 w-full bg-gray-700 mt-2"></div></div> }
+    { name: 'classic', description: 'Timeless two-column format.', isPro: false, preview: <div className="h-full w-full bg-white p-2 flex flex-col text-black text-[5px] leading-tight font-serif"><div className="text-center"><div className="font-bold text-[8px]">NAME</div><div className="text-gray-600">Contact</div><div className="w-full h-[1px] bg-black my-1"></div></div><div className="flex gap-2 mt-1 flex-grow"><div className="w-2/3 space-y-1"><div className="font-bold text-gray-800">Summary</div><div className="h-4 w-full bg-gray-200 rounded-sm"></div><div className="font-bold text-gray-800 mt-1">Experience</div><div className="h-8 w-full bg-gray-200 rounded-sm"></div></div><div className="w-1/3 space-y-1"><div className="font-bold text-gray-800">Skills</div><div className="h-6 w-full bg-gray-300 rounded-sm"></div></div></div></div> },
+    { name: 'modern', description: 'Sleek single-column design.', isPro: false, preview: <div className="h-full w-full bg-white p-2 flex flex-col text-black text-[5px] leading-tight font-sans"><div className="flex justify-between items-start border-b-2 border-teal-500 pb-1"><div><div className="text-teal-500 font-light text-[10px]">NAME</div><div className="text-gray-500">Title</div></div><div className="text-right text-gray-500">Contact<br/>Info</div></div><div className="mt-2 space-y-1"><div className="text-teal-500 font-bold tracking-wider">SUMMARY</div><div className="h-4 w-full bg-gray-200 rounded-sm"></div><div className="text-teal-500 font-bold tracking-wider mt-1">EXPERIENCE</div><div className="h-8 w-full bg-gray-200 rounded-sm"></div></div></div> },
+    { name: 'simple', description: 'Minimalist and text-focused.', isPro: false, preview: <div className="h-full w-full bg-white p-2 flex flex-col text-black text-[5px] leading-tight font-sans"><div className="font-semibold text-[8px]">NAME</div><div className="text-gray-500">Contact</div><div className="mt-3 space-y-1"><div className="text-gray-500 tracking-wider border-b border-gray-200 pb-0.5">EXPERIENCE</div><div className="h-8 w-full bg-gray-100 rounded-sm mt-1"></div><div className="text-gray-500 tracking-wider border-b border-gray-200 pb-0.5 mt-2">SKILLS</div><div className="h-4 w-full bg-gray-100 rounded-sm mt-1"></div></div></div> },
+    { name: 'creative', description: 'Asymmetrical with a sidebar.', isPro: true, preview: <div className="h-full w-full bg-[#F8F5F2] flex text-[5px] leading-tight font-sans"><div className="w-1/3 h-full bg-[#1a2c3f] text-white p-2 flex flex-col items-center"><div className="w-8 h-8 rounded-full bg-[#c8a46e] mb-2"></div><div className="font-bold border-b border-[#c8a46e] pb-0.5 mb-1 text-[#c8a46e] w-full text-center">CONTACT</div></div><div className="w-2/3 p-2 text-slate-800"><div className="text-[10px] font-bold text-[#1a2c3f]">NAME</div><div className="text-[#c8a46e] font-medium">Title</div><div className="mt-3 space-y-1"><div className="font-bold tracking-wider text-[#1a2c3f]">SUMMARY</div><div className="h-8 w-full bg-gray-300/70 rounded-sm"></div></div></div></div> },
+    { name: 'technical', description: 'Clean & professional for devs.', isPro: true, preview: <div className="h-full w-full bg-white p-2 text-[5px] leading-tight font-mono"><div className="flex justify-between items-baseline"><div className="text-[9px] text-black">NAME</div><div className="text-[7px] text-blue-600">Title</div></div><div className="w-full h-[1px] bg-gray-200 my-1"></div><div className="mt-2 space-y-2"><div className="text-blue-600">// SKILLS</div><div className="h-6 w-full bg-gray-100 rounded-sm mt-1"></div><div className="text-blue-600 mt-1">// EXPERIENCE</div><div className="h-8 w-full bg-gray-100 rounded-sm mt-1"></div></div></div> },
+    ...resumeTemplateNames.filter(n => n.includes('-')).map(name => {
+        const base = name.split('-')[0];
+        const isBasePro = ['creative', 'technical'].includes(base);
+        const variantNum = parseInt(name.split('-')[1]);
+        const isPro = isBasePro || (!isBasePro && (variantNum > 6 && variantNum < 10));
+        return { name, description: `A ${isPro ? 'premium' : 'new'} take on the ${base} style.`, isPro, preview: <div className="h-full w-full bg-gray-800 flex items-center justify-center text-gray-500"><span className="text-xs">{name}</span></div> }
+    })
 ];
 
 const PORTFOLIO_TEMPLATES: { name: PortfolioTemplate, description: string, isPro: boolean, preview: React.ReactNode }[] = [
-    { name: 'onyx', description: 'Dark, modern, and minimalist.', isPro: false, preview: <div className="h-full w-full bg-[#111827] p-3 flex flex-col gap-2"><div className="h-4 w-2/3 bg-gray-300"></div><div className="h-2 w-1/3 bg-[#5EEAD4]"></div><div className="flex-grow flex gap-2 items-end"><div className="flex-1 h-8 bg-[#1F2937]"></div><div className="flex-1 h-8 bg-[#1F2937]"></div></div></div> },
-    { name: 'quartz', description: 'Clean, professional, and light.', isPro: false, preview: <div className="h-full w-full bg-white p-3 flex gap-2"><div className="w-1/3 bg-gray-100"></div><div className="flex-grow flex flex-col gap-2"><div className="h-4 w-full bg-gray-600"></div><div className="h-2 w-2/3 bg-gray-400"></div><div className="h-8 w-full bg-gray-200 mt-2"></div></div></div> },
-    { name: 'sapphire', description: 'Creative, bold, and colorful.', isPro: false, preview: <div className="h-full w-full bg-[#F0F4F8] flex flex-col"><div className="h-1/3 bg-[#4F46E5] p-2"><div className="h-4 w-2/3 bg-white"></div></div><div className="flex-grow p-2 flex gap-2"><div className="flex-1 h-full bg-white shadow"></div><div className="flex-1 h-full bg-white shadow"></div></div></div> },
-    { name: 'emerald', description: 'Professional, clean, with avatar.', isPro: true, preview: <div className="h-full w-full bg-gray-50 p-2 flex flex-col items-center"><div className="h-8 w-8 rounded-full bg-green-500"></div><div className="h-2 w-2/3 bg-gray-800 mt-1"></div></div> },
-    { name: 'ruby', description: 'Bold, elegant, with avatar.', isPro: true, preview: <div className="h-full w-full bg-black p-2 flex flex-col items-center justify-center"><div className="h-8 w-8 rounded-full bg-red-600"></div><div className="h-3 w-1/2 bg-white mt-1"></div></div> },
+    { name: 'onyx', description: 'Dark, modern, and minimalist.', isPro: false, preview: <div className="h-full w-full bg-[#111827] p-1 flex flex-col text-[5px] leading-tight font-sans text-white"><div className="text-center py-2"><div className="font-bold text-[10px]">NAME</div><div className="text-teal-400 text-[7px]">Title</div></div><div className="font-bold text-center mt-1">My Work</div><div className="flex gap-1 p-1 flex-grow items-center"><div className="h-full w-1/2 bg-[#1F2937] rounded-sm p-1"><div className="w-full h-1/2 bg-gray-500 rounded-sm"></div></div><div className="h-full w-1/2 bg-[#1F2937] rounded-sm p-1"><div className="w-full h-1/2 bg-gray-500 rounded-sm"></div></div></div></div> },
+    { name: 'quartz', description: 'Clean, professional, and light.', isPro: false, preview: <div className="h-full w-full bg-white flex text-[5px] leading-tight font-serif text-black"><div className="w-1/3 h-full border-r border-gray-200 p-1"><div className="font-bold">Contact</div><div className="h-6 w-full bg-gray-100 mt-1"></div></div><div className="w-2/3 p-1"><div className="font-bold text-center text-[8px] mb-1">NAME</div><div className="font-bold">About</div><div className="h-4 w-full bg-gray-100 mt-1"></div><div className="font-bold mt-2">Projects</div><div className="h-8 w-full bg-gray-100 mt-1"></div></div></div> },
+    { name: 'sapphire', description: 'Creative, bold, and colorful.', isPro: false, preview: <div className="h-full w-full bg-gray-100 flex flex-col text-[5px] leading-tight font-sans text-black"><div className="h-1/3 bg-indigo-600 text-white p-2"><div className="text-[10px] font-bold">NAME</div><div>Title</div></div><div className="p-1 flex-grow"><div className="font-bold text-center">Work</div><div className="flex gap-1 mt-1 flex-grow h-full items-stretch"><div className="w-1/2 bg-white rounded-sm shadow-md"></div><div className="w-1/2 bg-white rounded-sm shadow-md"></div></div></div></div> },
+    { name: 'emerald', description: 'Classic & professional with avatar.', isPro: true, preview: <div className="h-full w-full bg-gray-100 flex flex-col items-center text-[5px] leading-tight font-sans text-black p-1"><div className="w-10 h-10 rounded-full bg-[#81B29A] border-2 border-white shadow-md"></div><div className="font-bold text-[8px] mt-1">NAME</div><div className="text-gray-500">Title</div><div className="mt-2 font-bold text-[#81B29A]">Portfolio</div><div className="flex gap-1 mt-1 w-full"><div className="w-1/2 h-8 bg-white shadow-sm rounded"></div><div className="w-1/2 h-8 bg-white shadow-sm rounded"></div></div></div> },
+    { name: 'ruby', description: 'Bold, elegant, editorial style.', isPro: true, preview: <div className="h-full w-full bg-[#1a1a1a] flex flex-col items-center text-[5px] leading-tight font-serif text-white p-1"><div className="w-10 h-10 rounded-full bg-pink-700 border-2 border-white/50"></div><div className="font-bold text-[10px] mt-1">NAME</div><div className="text-pink-600">Title</div><div className="mt-2 flex gap-1 w-full flex-grow items-center"><div className="w-1/2 h-full bg-[#2a2a2a] rounded-sm"></div><div className="w-1/2 h-full bg-[#2a2a2a] rounded-sm"></div></div></div> },
+     ...portfolioTemplateNames.filter(n => n.includes('-')).map(name => {
+        const base = name.split('-')[0];
+        const isBasePro = ['emerald', 'ruby'].includes(base);
+        const variantNum = parseInt(name.split('-')[1]);
+        const isPro = isBasePro || (!isBasePro && (variantNum > 6 && variantNum < 10));
+        return { name, description: `A ${isPro ? 'premium' : 'new'} take on the ${base} style.`, isPro, preview: <div className="h-full w-full bg-gray-800 flex items-center justify-center text-gray-500"><span className="text-xs">{name}</span></div> }
+    })
 ];
 
 
-export default function GeneratorModal({ onClose, docToEdit }: GeneratorModalProps) {
-    const { currentUser, consumeToken, addDocument, updateDocument, markGenerationCompleted } = useAuth();
+const ImagePreview: React.FC<{ imageId: string, className: string, alt: string, placeholder: React.ReactNode }> = ({ imageId, className, alt, placeholder }) => {
+    const imageUrl = useImageUrl(imageId);
+    return imageUrl ? <img src={imageUrl} alt={alt} className={className} /> : <>{placeholder}</>;
+};
+
+export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: GeneratorModalProps) {
+    const { currentUser, consumeToken, addDocument, updateDocument, markGenerationCompleted, saveImage } = useAuth();
     const [formData, setFormData] = useState<Omit<DocumentRequest, 'docType'>>({ ...DEFAULT_FORM_DATA, name: currentUser?.name || 'Alex Doe' });
     const [docType, setDocType] = useState<DocumentType>(docToEdit?.type || 'Resume');
     const [isLoading, setIsLoading] = useState(false);
@@ -113,7 +182,10 @@ export default function GeneratorModal({ onClose, docToEdit }: GeneratorModalPro
 
     useEffect(() => {
         if (docToEdit?.sourceRequest) {
-            setFormData(docToEdit.sourceRequest);
+            setFormData(prev => ({
+                ...prev,
+                ...docToEdit.sourceRequest
+            }));
             setDocType(docToEdit.type);
         }
     }, [docToEdit]);
@@ -131,17 +203,33 @@ export default function GeneratorModal({ onClose, docToEdit }: GeneratorModalPro
             )
         }));
     };
+    
+    const handleProductChange = (productId: string, field: keyof Product, value: string | number) => {
+        setFormData(prev => ({
+            ...prev,
+            products: (prev.products || []).map(p => 
+                p.id === productId ? { ...p, [field]: value } : p
+            )
+        }));
+    };
 
-    const handleFileChange = (file: File, field: 'profilePicture' | 'projectImage', projectId?: string) => {
+    const handleFileChange = (file: File, field: 'profilePicture' | 'projectImage' | 'productImage', itemId?: string) => {
         const reader = new FileReader();
         reader.onloadend = () => {
             const base64String = reader.result as string;
+            const imageId = saveImage(base64String);
+
             if (field === 'profilePicture') {
-                setFormData(prev => ({...prev, profilePicture: base64String}));
-            } else if (field === 'projectImage' && projectId) {
+                setFormData(prev => ({...prev, profilePicture: imageId}));
+            } else if (field === 'projectImage' && itemId) {
                 setFormData(prev => ({
                     ...prev,
-                    portfolioProjects: (prev.portfolioProjects || []).map(p => p.id === projectId ? { ...p, image: base64String } : p)
+                    portfolioProjects: (prev.portfolioProjects || []).map(p => p.id === itemId ? { ...p, image: imageId } : p)
+                }));
+            } else if (field === 'productImage' && itemId) {
+                setFormData(prev => ({
+                    ...prev,
+                    products: (prev.products || []).map(p => p.id === itemId ? { ...p, image: imageId } : p)
                 }));
             }
         };
@@ -162,13 +250,30 @@ export default function GeneratorModal({ onClose, docToEdit }: GeneratorModalPro
         }));
     };
 
+    const addProduct = () => {
+        setFormData(prev => ({
+            ...prev,
+            products: [...(prev.products || []), { ...emptyProduct, id: `prod_${Date.now()}` }]
+        }));
+    };
+    
+    const removeProduct = (id: string) => {
+        setFormData(prev => ({
+            ...prev,
+            products: (prev.products || []).filter(p => p.id !== id)
+        }));
+    };
+
     const hasTokens = currentUser ? currentUser.tokens > 0 : false;
+    const canPerformAction = currentUser ? currentUser.plan === 'Pro' || hasTokens : false;
     const isFormDisabled = isLoading || !currentUser;
-    const isSubmitDisabled = isLoading || !currentUser || !hasTokens && !docToEdit;
     
     const handleGenerate = useCallback(async () => {
         if (!currentUser) { setError("Please log in."); return; }
-        if (currentUser.tokens <= 0 && !docToEdit) { setError("You have no generation tokens left."); return; }
+        if (!canPerformAction) { 
+            setError("You have no generation tokens left. Please upgrade to continue."); 
+            return; 
+        }
 
         setIsLoading(true);
         setError('');
@@ -184,42 +289,80 @@ export default function GeneratorModal({ onClose, docToEdit }: GeneratorModalPro
                  updateDocument({ ...docToEdit, title: docTitle, content: result }, request);
             } else {
                 addDocument({ title: docTitle, type: docType, content: result }, request);
-                consumeToken();
                 markGenerationCompleted();
             }
+            consumeToken(); // Consume a token for both new generation and updates
             onClose();
         } catch (err: any) {
             setError(err.message || 'An unexpected error occurred.');
         } finally {
             setIsLoading(false);
         }
-    }, [formData, docType, currentUser, consumeToken, addDocument, updateDocument, docToEdit, onClose, markGenerationCompleted]);
+    }, [formData, docType, currentUser, consumeToken, addDocument, updateDocument, docToEdit, onClose, markGenerationCompleted, canPerformAction]);
+
+    const handleUpgrade = () => {
+        onClose();
+        onUpgrade();
+    };
 
     const getButtonText = () => {
-        if (!currentUser) return 'Please Log In';
-        if (!hasTokens && !docToEdit) return 'No Tokens Left';
         const action = docToEdit ? 'Update' : 'Generate';
         return `${action} ${docType}`;
     }
 
-    const renderWizardButtons = (maxSteps: number) => (
-         <div className="pt-4 mt-4 border-t border-gray-700">
+    const renderActionButtons = (isWizard: boolean, maxSteps?: number) => {
+        const finalStep = !isWizard || (isWizard && wizardStep === maxSteps);
+        const isSubmitDisabled = isLoading || !currentUser;
+
+        const wizardControls = (
             <div className="flex justify-between items-center">
                 <button type="button" onClick={() => setWizardStep(s => s - 1)} disabled={wizardStep === 1 || isFormDisabled} className="flex items-center gap-2 text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed">
                     <ArrowLeftIcon /> Back
                 </button>
-                {wizardStep < maxSteps ? (
-                    <button type="button" onClick={() => setWizardStep(s => s + 1)} disabled={isFormDisabled} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-md flex items-center gap-2 disabled:bg-gray-600">
-                       Next <ArrowRightIcon />
-                    </button>
-                ) : (
-                     <button type="button" onClick={handleGenerate} disabled={isSubmitDisabled} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded-md disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center min-w-[150px]">
+                <button type="button" onClick={() => setWizardStep(s => s + 1)} disabled={isFormDisabled} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-md flex items-center gap-2 disabled:bg-gray-600">
+                    Next <ArrowRightIcon />
+                </button>
+            </div>
+        );
+
+        const finalActionButtons = (
+             canPerformAction ? (
+                <button type="button" onClick={handleGenerate} disabled={isSubmitDisabled} className="w-full bg-cyan-500 text-white font-bold py-3 px-8 rounded-md hover:bg-cyan-400 transition-colors duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center h-12">
+                   {isLoading ? <LoadingSpinner /> : getButtonText()}
+               </button>
+             ) : (
+                <button type="button" onClick={handleUpgrade} className="w-full bg-yellow-500 text-black font-bold py-3 px-8 rounded-md hover:bg-yellow-400 transition-colors duration-300 flex items-center justify-center h-12 gap-2">
+                    <LockClosedIcon className="h-5 w-5"/>
+                    Upgrade to {docToEdit ? 'Update' : 'Generate'}
+                </button>
+             )
+        );
+
+        const wizardFinalButtons = (
+            <div className="flex justify-between items-center">
+                <button type="button" onClick={() => setWizardStep(s => s - 1)} disabled={wizardStep === 1 || isFormDisabled} className="flex items-center gap-2 text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                    <ArrowLeftIcon /> Back
+                </button>
+                 {canPerformAction ? (
+                    <button type="button" onClick={handleGenerate} disabled={isSubmitDisabled} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded-md disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center min-w-[150px]">
                         {isLoading ? <LoadingSpinner /> : getButtonText()}
                     </button>
-                )}
+                 ) : (
+                    <button type="button" onClick={handleUpgrade} className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2 px-6 rounded-md flex items-center gap-2">
+                         <LockClosedIcon className="h-5 w-5"/>
+                        Upgrade to {docToEdit ? 'Update' : 'Generate'}
+                    </button>
+                 )}
             </div>
-        </div>
-    );
+        );
+
+        return (
+            <div className="pt-4 mt-4 border-t border-gray-700">
+                {finalStep ? (isWizard ? wizardFinalButtons : finalActionButtons) : wizardControls}
+            </div>
+        );
+    }
+
 
     const renderCoverLetterForm = () => (
         <div>
@@ -230,11 +373,7 @@ export default function GeneratorModal({ onClose, docToEdit }: GeneratorModalPro
                 <FormInput label="Target Company" name="targetCompany" value={formData.targetCompany} onChange={handleInputChange} disabled={isFormDisabled} />
                 <FormTextarea label="Relevant Experience & Skills" name="experience" value={formData.experience} onChange={handleInputChange} rows={5} disabled={isFormDisabled} />
             </div>
-            <div className="pt-4 mt-4 border-t border-gray-700">
-                 <button type="button" onClick={handleGenerate} disabled={isSubmitDisabled} className="w-full bg-cyan-500 text-white font-bold py-3 px-8 rounded-md hover:bg-cyan-400 transition-colors duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center h-12">
-                    {isLoading ? <LoadingSpinner /> : getButtonText()}
-                </button>
-            </div>
+            {renderActionButtons(false)}
         </div>
     );
     
@@ -275,12 +414,12 @@ export default function GeneratorModal({ onClose, docToEdit }: GeneratorModalPro
                      </div>
                 </div>
             )}
-            {renderWizardButtons(maxSteps)}
+            {renderActionButtons(true, maxSteps)}
         </div>);
     };
     
     const renderPortfolioWizard = () => {
-        const maxSteps = 5;
+        const maxSteps = 6;
         return (<div>
             <div className="flex justify-center items-center mb-4">
                 <span className="text-sm text-gray-400">Step {wizardStep} of {maxSteps}</span>
@@ -325,7 +464,12 @@ export default function GeneratorModal({ onClose, docToEdit }: GeneratorModalPro
                                 <span>{formData.profilePicture ? 'Change Picture' : 'Upload Picture'}</span>
                                 <input type="file" accept="image/png, image/jpeg, image/gif" className="hidden" onChange={e => e.target.files && handleFileChange(e.target.files[0], 'profilePicture')} />
                             </label>
-                            {formData.profilePicture ? <img src={formData.profilePicture} alt="Preview" className="w-16 h-16 object-cover rounded-full" /> : <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center"><ProfileIcon className="h-8 w-8 text-gray-500" /></div>}
+                            <ImagePreview
+                                imageId={formData.profilePicture || ''}
+                                alt="Profile Preview"
+                                className="w-16 h-16 object-cover rounded-full"
+                                placeholder={<div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center"><ProfileIcon className="h-8 w-8 text-gray-500" /></div>}
+                            />
                         </div>
                     </div>
                 </div>
@@ -348,7 +492,7 @@ export default function GeneratorModal({ onClose, docToEdit }: GeneratorModalPro
                                         <span>{proj.image ? 'Change Image' : 'Upload Image'}</span>
                                         <input type="file" accept="image/png, image/jpeg, image/gif" className="hidden" onChange={e => e.target.files && handleFileChange(e.target.files[0], 'projectImage', proj.id)} />
                                     </label>
-                                    {proj.image && <img src={proj.image} alt="Preview" className="w-16 h-12 object-cover rounded-md" />}
+                                    <ImagePreview imageId={proj.image} alt="Project Preview" className="w-16 h-12 object-cover rounded-md" placeholder={<div className="w-16 h-12 rounded-md bg-gray-800"></div>} />
                                 </div>
                             </div>
                             <button type="button" onClick={() => removeProject(proj.id)} className="absolute top-2 right-2 p-1 text-gray-500 hover:text-red-500 hover:bg-gray-700 rounded-full"><TrashIcon /></button>
@@ -360,7 +504,64 @@ export default function GeneratorModal({ onClose, docToEdit }: GeneratorModalPro
                     </button>
                 </div>
             )}
-            {wizardStep === 5 && ( // Socials & Contact
+            {wizardStep === 5 && ( // Products
+                <div className="animate-fade-in">
+                     <h3 className="text-lg font-semibold text-white text-center">Products for Sale</h3>
+                     <p className="text-center text-gray-400 text-sm mb-4">Optionally, add products you want to sell.</p>
+                    <div className="space-y-6 max-h-64 overflow-y-auto pr-2">
+                    {(formData.products || []).map((prod, index) => (
+                        <div key={prod.id} className="p-4 bg-gray-900/50 border border-gray-700 rounded-lg space-y-3 relative">
+                            <FormInput label={`Product ${index + 1} Title`} name="title" value={prod.title} onChange={e => handleProductChange(prod.id, 'title', e.target.value)} disabled={isFormDisabled} />
+                            <FormTextarea label="Description" name="description" value={prod.description} onChange={e => handleProductChange(prod.id, 'description', e.target.value)} rows={2} disabled={isFormDisabled} />
+                            <FormInput label="Price ($)" name="price" type="number" value={String(prod.price)} onChange={e => handleProductChange(prod.id, 'price', e.target.valueAsNumber || 0)} disabled={isFormDisabled} />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">Product Image</label>
+                                <div className="flex items-center gap-4">
+                                    <label className="flex-grow w-full flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md cursor-pointer transition-colors">
+                                        <UploadIcon />
+                                        <span>{prod.image ? 'Change Image' : 'Upload Image'}</span>
+                                        <input type="file" accept="image/png, image/jpeg, image/gif" className="hidden" onChange={e => e.target.files && handleFileChange(e.target.files[0], 'productImage', prod.id)} />
+                                    </label>
+                                     <ImagePreview imageId={prod.image} alt="Product Preview" className="w-16 h-12 object-cover rounded-md" placeholder={<div className="w-16 h-12 rounded-md bg-gray-800"></div>} />
+                                </div>
+                            </div>
+                             <div className="mt-3">
+                                <label className="block text-sm font-medium text-gray-300 mb-2">Payment Method</label>
+                                <div className="flex gap-4">
+                                    {(['link', 'bank', 'flutterwave'] as const).map(method => (
+                                        <label key={method} className="flex items-center gap-2 text-sm">
+                                            <input
+                                                type="radio"
+                                                name={`paymentMethod-${prod.id}`}
+                                                value={method}
+                                                checked={prod.paymentMethod === method}
+                                                onChange={() => handleProductChange(prod.id, 'paymentMethod', method)}
+                                                className="form-radio h-4 w-4 bg-gray-800 border-gray-600 text-cyan-600 focus:ring-cyan-500"
+                                            />
+                                            <span className="capitalize">{method}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                            {prod.paymentMethod === 'link' && (
+                                <FormInput label="Checkout Link" name="checkoutLink" value={prod.checkoutLink || ''} onChange={e => handleProductChange(prod.id, 'checkoutLink', e.target.value)} disabled={isFormDisabled} placeholder="https://your.store/checkout/item" />
+                            )}
+                            {prod.paymentMethod === 'bank' && (
+                                <FormTextarea label="Bank Account Details" name="bankDetails" value={prod.bankDetails || ''} onChange={e => handleProductChange(prod.id, 'bankDetails', e.target.value)} rows={3} disabled={isFormDisabled} placeholder="Bank Name: Example Bank&#10;Account Name: Your Name&#10;Account Number: 1234567890" />
+                            )}
+                            {prod.paymentMethod === 'flutterwave' && (
+                                <FormInput label="Flutterwave Public Key" name="flutterwaveKey" value={prod.flutterwaveKey || ''} onChange={e => handleProductChange(prod.id, 'flutterwaveKey', e.target.value)} disabled={isFormDisabled} placeholder="FLWPUBK_TEST-xxxxxxxx-X" />
+                            )}
+                            <button type="button" onClick={() => removeProduct(prod.id)} className="absolute top-2 right-2 p-1 text-gray-500 hover:text-red-500 hover:bg-gray-700 rounded-full"><TrashIcon /></button>
+                        </div>
+                    ))}
+                    </div>
+                    <button type="button" onClick={addProduct} className="mt-4 w-full text-cyan-400 font-semibold py-2 px-4 rounded-md border-2 border-dashed border-gray-600 hover:bg-gray-800 transition-colors">
+                       + Add a Product
+                    </button>
+                </div>
+            )}
+            {wizardStep === 6 && ( // Socials & Contact
                  <div className="space-y-4 animate-fade-in">
                      <h3 className="text-lg font-semibold text-white text-center">Final Touches</h3>
                      <p className="text-center text-gray-400 text-sm mb-4">How can people reach you?</p>
@@ -368,7 +569,7 @@ export default function GeneratorModal({ onClose, docToEdit }: GeneratorModalPro
                     <FormInput label="Social Links (comma-separated URLs)" name="portfolioSocialLinks" value={formData.portfolioSocialLinks || ''} onChange={handleInputChange} disabled={isFormDisabled} />
                 </div>
             )}
-            {renderWizardButtons(maxSteps)}
+            {renderActionButtons(true, maxSteps)}
         </div>);
     };
     

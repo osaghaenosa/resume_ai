@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { CheckIcon, XIcon } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
+import { FREE_TOKENS, PRO_TOKENS, PRO_PRICE } from '../config';
 
 interface UpgradeModalProps {
     onClose: () => void;
@@ -54,16 +54,16 @@ export default function UpgradeModal({ onClose, onUpgrade }: UpgradeModalProps) 
             title: "Free Trial",
             price: "0",
             period: "once",
-            features: ["3 Resume/Cover Letter Generations", "Basic Templates", "Standard AI Tone"],
+            features: [`${FREE_TOKENS} Resume/Cover Letter Generations`, "Basic Templates", "Standard AI Tone"],
             isCurrent: true,
             action: onClose,
             actionText: "Current Plan",
         },
         {
             title: "Pro Monthly",
-            price: "29",
+            price: String(PRO_PRICE),
             period: "month",
-            features: ["100 Generations/Month", "Unlimited Downloads", "Premium Templates", "Human-Like AI Tone", "AI Detector Bypass", "Priority Support"],
+            features: [`${PRO_TOKENS} Generations/Month`, "Unlimited Downloads", "Premium Templates", "Human-Like AI Tone", "AI Detector Bypass", "Priority Support"],
             isCurrent: false,
             action: onUpgrade,
             actionText: "Upgrade to Pro",
@@ -72,37 +72,37 @@ export default function UpgradeModal({ onClose, onUpgrade }: UpgradeModalProps) 
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
-            <div className="bg-[#0B1120] border border-gray-700 rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col relative">
+            <div className="bg-[#0B1120] border border-gray-700 rounded-lg shadow-2xl w-full max-w-3xl max-h-[70vh] flex flex-col relative">
                 <button onClick={onClose} aria-label="Close" className="absolute top-4 right-4 text-gray-400 hover:text-white z-10 p-1">
                     <XIcon />
                 </button>
-                <div className="h-100 overflow-scroll">
-                    <div className="p-8 text-center">
+
+                <div className="p-8 text-center flex-shrink-0">
                     <h2 className="text-3xl font-extrabold text-white">Unlock Your Potential!</h2>
                     <p className="mt-3 text-lg text-gray-400 max-w-2xl mx-auto">You're on the Free plan. Upgrade to Pro to remove limits and get access to our most powerful features.</p>
                 </div>
 
-                <div className="p-8 pt-0 grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {tiers.map((tier) => (
-                        <TierCard
-                            key={tier.title}
-                            title={tier.title}
-                            price={tier.price}
-                            period={tier.period}
-                            features={tier.features}
-                            isCurrent={tier.isCurrent}
-                            onAction={tier.action}
-                            actionText={tier.actionText}
-                        />
-                    ))}
+                <div className="flex-grow overflow-y-auto">
+                    <div className="p-8 pt-0 grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {tiers.map((tier) => (
+                            <TierCard
+                                key={tier.title}
+                                title={tier.title}
+                                price={tier.price}
+                                period={tier.period}
+                                features={tier.features}
+                                isCurrent={tier.isCurrent}
+                                onAction={tier.action}
+                                actionText={tier.actionText}
+                            />
+                        ))}
+                    </div>
+                    <div className="p-8 pt-0 text-center">
+                        <button onClick={onClose} className="text-gray-400 hover:text-white underline">
+                            Maybe Later
+                        </button>
+                    </div>
                 </div>
-                <div className="p-8 pt-0 text-center">
-                    <button onClick={onClose} className="text-gray-400 hover:text-white underline">
-                        Maybe Later
-                    </button>
-                </div>
-                </div>
-                
             </div>
         </div>
     );

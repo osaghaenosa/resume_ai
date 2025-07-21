@@ -1,10 +1,9 @@
 
-import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import { DocumentRequest, PortfolioProject, ResumeTemplate } from '../types';
+import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
+import { DocumentRequest, PortfolioProject, ResumeTemplate, Product, ResumeAnalysis, JobPosting, AnalysisResult, GroundingSource } from '../types';
 
 const getApiKey = (): string | null => {
     try {
-        // This will fail gracefully if process or process.env is not defined in the browser.
         if (process.env.API_KEY && process.env.API_KEY !== "placeholder_api_key") {
             return process.env.API_KEY;
         }
@@ -13,6 +12,35 @@ const getApiKey = (): string | null => {
     }
     return null;
 }
+
+const getImageDataFromStorage = (imageId: string): string | null => {
+    const IMAGES_DB_KEY = 'aiResumeGenImages';
+    try {
+        const imagesJson = localStorage.getItem(IMAGES_DB_KEY);
+        if (!imagesJson) return null;
+        const imagesDb = JSON.parse(imagesJson);
+        return imagesDb[imageId] || null;
+    } catch (e) {
+        console.error("Error reading from image storage", e);
+        return null;
+    }
+};
+
+
+// --- FONT & COLOR HELPERS ---
+const FONTS = ["'Lato', sans-serif", "'Roboto', sans-serif", "'Open Sans', sans-serif", "'Montserrat', sans-serif", "'Merriweather', serif", "'Playfair Display', serif", "'Source Sans Pro', sans-serif", "'Raleway', sans-serif", "'PT Sans', sans-serif", "'Lora', serif"];
+const PALETTES = [
+    { primary: '#0d6efd', bg: '#f8f9fa', text: '#212529', border: '#dee2e6', subtle: '#e9ecef', secondaryText: '#6c757d' }, // Blue
+    { primary: '#198754', bg: '#f2f9f5', text: '#0c2e1e', border: '#d4e9e2', subtle: '#e1f0e9', secondaryText: '#4e6e5e' }, // Green
+    { primary: '#6f42c1', bg: '#f6f3f9', text: '#2a1a4a', border: '#e3d9f1', subtle: '#f0ebf7', secondaryText: '#6a5a88' }, // Purple
+    { primary: '#d63384', bg: '#fbeef3', text: '#4e1230', border: '#f3d7e5', subtle: '#f9e6ef', secondaryText: '#8f5c76' }, // Pink
+    { primary: '#fd7e14', bg: '#fff8f2', text: '#4d2605', border: '#feeada', subtle: '#fff0e5', secondaryText: '#996f4e' }, // Orange
+    { primary: '#20c997', bg: '#f2faf8', text: '#0a3d2c', border: '#d2ede4', subtle: '#e0f5ee', secondaryText: '#558778' }, // Teal
+    { primary: '#dc3545', bg: '#fef3f4', text: '#52141a', border: '#f8d7da', subtle: '#fce8ea', secondaryText: '#9f5b61' }, // Red
+    { primary: '#0dcaf0', bg: '#f2fafc', text: '#053e49', border: '#d2eef5', subtle: '#e0f5fa', secondaryText: '#508998' }, // Cyan
+    { primary: '#6c757d', bg: '#f8f9fa', text: '#212529', border: '#dee2e6', subtle: '#e9ecef', secondaryText: '#495057' }, // Gray
+    { primary: '#343a40', bg: '#f8f9fa', text: '#212529', border: '#dee2e6', subtle: '#e9ecef', secondaryText: '#495057' }, // Dark
+];
 
 // --- RESUME TEMPLATES ---
 const CLASSIC_RESUME_TEMPLATE = (request: DocumentRequest) => `
@@ -39,6 +67,31 @@ const CLASSIC_RESUME_TEMPLATE = (request: DocumentRequest) => `
   </div>
 </div>`;
 
+// --- START GENERATED RESUME TEMPLATES ---
+const createClassicVariant = (font: string, p: typeof PALETTES[0]) => (request: DocumentRequest) => `
+<div style="font-family: ${font}; margin: 0 auto; max-width: 800px; background-color: ${p.bg}; color: ${p.text}; padding: 40px; border: 1px solid ${p.border};">
+  <div style="text-align: center; border-bottom: 2px solid ${p.primary}; padding-bottom: 15px; margin-bottom: 25px;">
+    <h1 style="font-size: 32px; margin: 0; color: ${p.primary}; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">${request.name}</h1>
+    <p style="margin: 10px 0 0; font-size: 14px; color: ${p.secondaryText};">${request.contact}</p>
+  </div>
+  <div style="display: flex; gap: 30px;">
+    <div style="width: 65%;"><h2 style="font-size: 16px; border-bottom: 1px solid ${p.border}; padding-bottom: 5px; margin-bottom:15px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; color:${p.text}">Professional Summary</h2><p style="margin-bottom: 25px; line-height: 1.6; font-size: 14px;"><!-- summary --></p><h2 style="font-size: 16px; border-bottom: 1px solid ${p.border}; padding-bottom: 5px; margin-bottom:15px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; color:${p.text}">Work Experience</h2><div><!-- experience --></div></div>
+    <div style="width: 35%;"><h2 style="font-size: 16px; border-bottom: 1px solid ${p.border}; padding-bottom: 5px; margin-bottom:15px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; color:${p.text}">Skills</h2><div style="margin-bottom: 25px;"><!-- skills --></div><h2 style="font-size: 16px; border-bottom: 1px solid ${p.border}; padding-bottom: 5px; margin-bottom:15px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; color:${p.text}">Education</h2><div><!-- education --></div></div>
+  </div>
+</div>`;
+
+const CLASSIC_RESUME_TEMPLATE_2 = createClassicVariant(FONTS[0], PALETTES[0]);
+const CLASSIC_RESUME_TEMPLATE_3 = createClassicVariant(FONTS[1], PALETTES[1]);
+const CLASSIC_RESUME_TEMPLATE_4 = createClassicVariant(FONTS[2], PALETTES[2]);
+const CLASSIC_RESUME_TEMPLATE_5 = createClassicVariant(FONTS[3], PALETTES[3]);
+const CLASSIC_RESUME_TEMPLATE_6 = createClassicVariant(FONTS[4], PALETTES[4]);
+const CLASSIC_RESUME_TEMPLATE_7 = createClassicVariant(FONTS[5], PALETTES[5]);
+const CLASSIC_RESUME_TEMPLATE_8 = createClassicVariant(FONTS[6], PALETTES[6]);
+const CLASSIC_RESUME_TEMPLATE_9 = createClassicVariant(FONTS[7], PALETTES[7]);
+const CLASSIC_RESUME_TEMPLATE_10 = createClassicVariant(FONTS[8], PALETTES[8]);
+const CLASSIC_RESUME_TEMPLATE_11 = createClassicVariant(FONTS[9], PALETTES[9]);
+// --- END GENERATED RESUME TEMPLATES ---
+
 const MODERN_RESUME_TEMPLATE = (request: DocumentRequest) => `
 <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0 auto; max-width: 800px; background-color: #fff; color: #212121; padding: 40px;">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0D9488; padding-bottom: 20px; margin-bottom: 30px;">
@@ -61,6 +114,37 @@ const MODERN_RESUME_TEMPLATE = (request: DocumentRequest) => `
     </div>
 </div>`;
 
+// --- START GENERATED MODERN TEMPLATES ---
+const createModernVariant = (font: string, p: typeof PALETTES[0]) => (request: DocumentRequest) => `
+<div style="font-family: ${font}; margin: 0 auto; max-width: 800px; background-color: ${p.bg}; color: ${p.text}; padding: 40px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid ${p.primary}; padding-bottom: 20px; margin-bottom: 30px;">
+        <div><h1 style="font-size: 42px; margin: 0; color: ${p.primary}; font-weight: 300;">${request.name}</h1><p style="margin: 5px 0 0; font-size: 18px; color: ${p.secondaryText};">${request.targetJob}</p></div>
+        <p style="font-size: 12px; color: ${p.secondaryText}; text-align: right; line-height: 1.5;">${(request.contact || '').split('|').join('<br>')}</p>
+    </div>
+    <div>
+        <h2 style="font-size: 18px; color: ${p.primary}; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; margin-bottom: 15px;">Summary</h2>
+        <p style="margin-bottom: 30px; line-height: 1.6; font-size: 15px;"><!-- summary --></p>
+        <h2 style="font-size: 18px; color: ${p.primary}; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; margin-bottom: 15px;">Experience</h2>
+        <div style="margin-bottom: 30px;"><!-- experience --></div>
+        <h2 style="font-size: 18px; color: ${p.primary}; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; margin-bottom: 15px;">Education</h2>
+        <div style="margin-bottom: 30px;"><!-- education --></div>
+        <h2 style="font-size: 18px; color: ${p.primary}; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; margin-bottom: 15px;">Skills</h2>
+        <div><!-- skills --></div>
+    </div>
+</div>`;
+const MODERN_RESUME_TEMPLATE_2 = createModernVariant(FONTS[0], PALETTES[0]);
+const MODERN_RESUME_TEMPLATE_3 = createModernVariant(FONTS[1], PALETTES[1]);
+const MODERN_RESUME_TEMPLATE_4 = createModernVariant(FONTS[2], PALETTES[2]);
+const MODERN_RESUME_TEMPLATE_5 = createModernVariant(FONTS[3], PALETTES[3]);
+const MODERN_RESUME_TEMPLATE_6 = createModernVariant(FONTS[4], PALETTES[4]);
+const MODERN_RESUME_TEMPLATE_7 = createModernVariant(FONTS[5], PALETTES[5]);
+const MODERN_RESUME_TEMPLATE_8 = createModernVariant(FONTS[6], PALETTES[6]);
+const MODERN_RESUME_TEMPLATE_9 = createModernVariant(FONTS[7], PALETTES[7]);
+const MODERN_RESUME_TEMPLATE_10 = createModernVariant(FONTS[8], PALETTES[8]);
+const MODERN_RESUME_TEMPLATE_11 = createModernVariant(FONTS[9], PALETTES[9]);
+// --- END GENERATED MODERN TEMPLATES ---
+
+
 const SIMPLE_RESUME_TEMPLATE = (request: DocumentRequest) => `
 <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; margin: 0 auto; max-width: 800px; background-color: #fff; color: #111; padding: 50px; line-height: 1.7;">
   <div style="margin-bottom: 40px;">
@@ -77,52 +161,150 @@ const SIMPLE_RESUME_TEMPLATE = (request: DocumentRequest) => `
   </div>
 </div>`;
 
+// --- START GENERATED SIMPLE TEMPLATES ---
+const createSimpleVariant = (font: string, p: typeof PALETTES[0]) => (request: DocumentRequest) => `
+<div style="font-family: ${font}; margin: 0 auto; max-width: 800px; background-color: ${p.bg}; color: ${p.text}; padding: 50px; line-height: 1.7;">
+  <div style="margin-bottom: 40px;">
+    <h1 style="font-size: 28px; margin: 0; font-weight: 600; color: ${p.primary};">${request.name}</h1>
+    <p style="margin: 5px 0 0; font-size: 16px; color: ${p.secondaryText};">${request.contact}</p>
+  </div>
+  <div>
+    <h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: ${p.secondaryText}; border-bottom: 1px solid ${p.subtle}; padding-bottom: 8px; margin-bottom: 16px;">Professional Experience</h2>
+    <div style="margin-bottom: 30px;"><!-- experience --></div>
+    <h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: ${p.secondaryText}; border-bottom: 1px solid ${p.subtle}; padding-bottom: 8px; margin-bottom: 16px;">Education</h2>
+    <div style="margin-bottom: 30px;"><!-- education --></div>
+    <h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: ${p.secondaryText}; border-bottom: 1px solid ${p.subtle}; padding-bottom: 8px; margin-bottom: 16px;">Skills</h2>
+    <div><!-- skills --></div>
+  </div>
+</div>`;
+const SIMPLE_RESUME_TEMPLATE_2 = createSimpleVariant(FONTS[0], PALETTES[0]);
+const SIMPLE_RESUME_TEMPLATE_3 = createSimpleVariant(FONTS[1], PALETTES[1]);
+const SIMPLE_RESUME_TEMPLATE_4 = createSimpleVariant(FONTS[2], PALETTES[2]);
+const SIMPLE_RESUME_TEMPLATE_5 = createSimpleVariant(FONTS[3], PALETTES[3]);
+const SIMPLE_RESUME_TEMPLATE_6 = createSimpleVariant(FONTS[4], PALETTES[4]);
+const SIMPLE_RESUME_TEMPLATE_7 = createSimpleVariant(FONTS[5], PALETTES[5]);
+const SIMPLE_RESUME_TEMPLATE_8 = createSimpleVariant(FONTS[6], PALETTES[6]);
+const SIMPLE_RESUME_TEMPLATE_9 = createSimpleVariant(FONTS[7], PALETTES[7]);
+const SIMPLE_RESUME_TEMPLATE_10 = createSimpleVariant(FONTS[8], PALETTES[8]);
+const SIMPLE_RESUME_TEMPLATE_11 = createSimpleVariant(FONTS[9], PALETTES[9]);
+// --- END GENERATED SIMPLE TEMPLATES ---
+
 const CREATIVE_RESUME_TEMPLATE = (request: DocumentRequest) => `
-<div style="font-family: 'Poppins', sans-serif; margin: 0 auto; max-width: 800px; background-color: #fff; color: #333; display: flex; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+<div style="font-family: 'Lato', 'Helvetica Neue', sans-serif; margin: 0 auto; max-width: 800px; background-color: #F8F5F2; color: #333; display: flex; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
   <!-- Left Sidebar -->
-  <div style="width: 35%; background-color: #2C3E50; color: #fff; padding: 40px;">
-    ${request.profilePicture ? `<img src="${request.profilePicture}" alt="Profile" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 20px; display: block; border: 4px solid #3498DB;">` : '<div style="width: 120px; height: 120px; border-radius: 50%; background-color: #3498DB; margin: 0 auto 20px;"></div>'}
-    <h2 style="font-size: 16px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #3498DB; padding-bottom: 10px; margin-bottom: 20px;">Contact</h2>
-    <p style="font-size: 13px; line-height: 1.8; word-break: break-word;">${(request.contact || '').split('|').join('<br>')}</p>
-    <h2 style="font-size: 16px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #3498DB; padding-bottom: 10px; margin-top: 30px; margin-bottom: 20px;">Education</h2>
-    <div style="font-size: 13px; line-height: 1.8;"><!-- Generate education --></div>
+  <div style="width: 33%; background-color: #1a2c3f; color: #fff; padding: 40px 30px;">
+    ${request.profilePicture ? `<img src="${request.profilePicture}" alt="Profile" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 25px; display: block; border: 4px solid #c8a46e;">` : '<div style="width: 120px; height: 120px; border-radius: 50%; background-color: #c8a46e; margin: 0 auto 25px;"></div>'}
+    <h2 style="font-family: 'Playfair Display', serif; font-size: 18px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid #c8a46e; padding-bottom: 10px; margin-bottom: 20px; color: #c8a46e;">Contact</h2>
+    <div style="font-size: 13px; line-height: 1.9; word-break: break-word;">${(request.contact || '').split('|').map(item => `<div>${item.trim()}</div>`).join('')}</div>
+    <h2 style="font-family: 'Playfair Display', serif; font-size: 18px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid #c8a46e; padding-bottom: 10px; margin-top: 35px; margin-bottom: 20px; color: #c8a46e;">Education</h2>
+    <div style="font-size: 13px; line-height: 1.9;"><!-- Generate education --></div>
+    <h2 style="font-family: 'Playfair Display', serif; font-size: 18px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid #c8a46e; padding-bottom: 10px; margin-top: 35px; margin-bottom: 20px; color: #c8a46e;">Skills</h2>
+    <div style="font-size: 13px; line-height: 1.9;"><!-- Generate skills --></div>
   </div>
   <!-- Right Content -->
-  <div style="width: 65%; padding: 40px;">
-    <div style="margin-bottom: 30px;">
-        <h1 style="font-size: 40px; margin: 0; color: #2C3E50; font-weight: 700;">${request.name}</h1>
-        <p style="font-size: 18px; margin: 5px 0 0; color: #3498DB; font-weight: 500;">${request.targetJob}</p>
+  <div style="width: 67%; padding: 50px 40px;">
+    <div style="margin-bottom: 40px;">
+        <h1 style="font-family: 'Playfair Display', serif; font-size: 48px; margin: 0; color: #1a2c3f; font-weight: 700; line-height: 1.2;">${request.name}</h1>
+        <p style="font-size: 20px; margin: 8px 0 0; color: #c8a46e; font-weight: 500; font-family: 'Lato', sans-serif;">${request.targetJob}</p>
     </div>
-    <h2 style="font-size: 16px; text-transform: uppercase; letter-spacing: 1px; color: #2C3E50; margin-bottom: 15px;">Summary</h2>
-    <p style="font-size: 14px; line-height: 1.7; margin-bottom: 30px;"><!-- Generate summary --></p>
-    <h2 style="font-size: 16px; text-transform: uppercase; letter-spacing: 1px; color: #2C3E50; margin-bottom: 15px;">Experience</h2>
+    <h2 style="font-family: 'Playfair Display', serif; font-size: 20px; text-transform: uppercase; letter-spacing: 1.5px; color: #1a2c3f; margin-bottom: 15px;">Summary</h2>
+    <p style="font-size: 14px; line-height: 1.8; margin-bottom: 35px; color: #444;"><!-- Generate summary --></p>
+    <h2 style="font-family: 'Playfair Display', serif; font-size: 20px; text-transform: uppercase; letter-spacing: 1.5px; color: #1a2c3f; margin-bottom: 20px;">Experience</h2>
     <div style="margin-bottom: 30px;"><!-- Generate experience --></div>
-    <h2 style="font-size: 16px; text-transform: uppercase; letter-spacing: 1px; color: #2C3E50; margin-bottom: 15px;">Skills</h2>
-    <div><!-- Generate skills, maybe with visual bars --></div>
   </div>
 </div>`;
 
+// --- START GENERATED CREATIVE TEMPLATES ---
+const createCreativeVariant = (font: string, p: typeof PALETTES[0]) => (request: DocumentRequest) => `
+<div style="font-family: ${font}; margin: 0 auto; max-width: 800px; background-color: ${p.bg}; color: ${p.text}; display: flex; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+  <div style="width: 35%; background-color: ${p.primary}; color: ${p.bg}; padding: 40px;">
+    ${request.profilePicture ? `<img src="${request.profilePicture}" alt="Profile" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 20px; display: block; border: 4px solid ${p.bg};">` : `<div style="width: 120px; height: 120px; border-radius: 50%; background-color: ${p.secondaryText}; margin: 0 auto 20px;"></div>`}
+    <h2 style="font-size: 16px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid ${p.subtle}; padding-bottom: 10px; margin-bottom: 20px;">Contact</h2>
+    <p style="font-size: 13px; line-height: 1.8; word-break: break-word;">${(request.contact || '').split('|').join('<br>')}</p>
+    <h2 style="font-size: 16px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid ${p.subtle}; padding-bottom: 10px; margin-top: 30px; margin-bottom: 20px;">Education</h2>
+    <div style="font-size: 13px; line-height: 1.8;"><!-- education --></div>
+  </div>
+  <div style="width: 65%; padding: 40px; background-color: ${p.bg};">
+    <div style="margin-bottom: 30px;">
+        <h1 style="font-size: 40px; margin: 0; color: ${p.text}; font-weight: 700;">${request.name}</h1>
+        <p style="font-size: 18px; margin: 5px 0 0; color: ${p.primary}; font-weight: 500;">${request.targetJob}</p>
+    </div>
+    <h2 style="font-size: 16px; text-transform: uppercase; letter-spacing: 1px; color: ${p.text}; margin-bottom: 15px;">Summary</h2>
+    <p style="font-size: 14px; line-height: 1.7; margin-bottom: 30px;"><!-- summary --></p>
+    <h2 style="font-size: 16px; text-transform: uppercase; letter-spacing: 1px; color: ${p.text}; margin-bottom: 15px;">Experience</h2>
+    <div style="margin-bottom: 30px;"><!-- experience --></div>
+    <h2 style="font-size: 16px; text-transform: uppercase; letter-spacing: 1px; color: ${p.text}; margin-bottom: 15px;">Skills</h2>
+    <div><!-- skills --></div>
+  </div>
+</div>`;
+const CREATIVE_RESUME_TEMPLATE_2 = createCreativeVariant(FONTS[0], PALETTES[0]);
+const CREATIVE_RESUME_TEMPLATE_3 = createCreativeVariant(FONTS[1], PALETTES[1]);
+const CREATIVE_RESUME_TEMPLATE_4 = createCreativeVariant(FONTS[2], PALETTES[2]);
+const CREATIVE_RESUME_TEMPLATE_5 = createCreativeVariant(FONTS[3], PALETTES[3]);
+const CREATIVE_RESUME_TEMPLATE_6 = createCreativeVariant(FONTS[4], PALETTES[4]);
+const CREATIVE_RESUME_TEMPLATE_7 = createCreativeVariant(FONTS[5], PALETTES[5]);
+const CREATIVE_RESUME_TEMPLATE_8 = createCreativeVariant(FONTS[6], PALETTES[6]);
+const CREATIVE_RESUME_TEMPLATE_9 = createCreativeVariant(FONTS[7], PALETTES[7]);
+const CREATIVE_RESUME_TEMPLATE_10 = createCreativeVariant(FONTS[8], PALETTES[8]);
+const CREATIVE_RESUME_TEMPLATE_11 = createCreativeVariant(FONTS[9], PALETTES[9]);
+// --- END GENERATED CREATIVE TEMPLATES ---
+
+
 const TECHNICAL_RESUME_TEMPLATE = (request: DocumentRequest) => `
-<div style="font-family: 'Menlo', 'Monaco', 'Courier New', monospace; margin: 0 auto; max-width: 800px; background-color: #1A1A1A; color: #EAEAEA; padding: 40px;">
-  <div style="text-align: center; margin-bottom: 30px;">
-    <h1 style="font-size: 36px; margin: 0; color: #00FF9B; font-weight: normal;">${request.name}</h1>
-    <p style="margin: 8px 0; font-size: 16px; color: #00FF9B;">&lt;${request.targetJob}&gt;</p>
-    <p style="margin: 8px 0 0; font-size: 14px; color: #999;">${request.contact}</p>
+<div style="font-family: 'IBM Plex Mono', 'Menlo', 'Monaco', monospace; margin: 0 auto; max-width: 850px; background-color: #FDFDFD; color: #333; padding: 50px; border: 1px solid #EAEAEA;">
+  <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #EAEAEA; padding-bottom: 20px; margin-bottom: 30px;">
+    <div>
+        <h1 style="font-size: 28px; margin: 0; color: #111; font-weight: 500;">${request.name}</h1>
+        <p style="margin: 8px 0 0; font-size: 16px; color: #007ACC;">${request.targetJob}</p>
+    </div>
+    <div style="text-align: right; font-size: 12px; color: #555; line-height: 1.6;">${(request.contact || '').split('|').map(item => `<div>${item.trim()}</div>`).join('')}</div>
   </div>
   <div>
-    <h2 style="font-size: 18px; color: #00FF9B; font-weight: normal; border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 15px;">// SUMMARY</h2>
-    <p style="font-size: 14px; line-height: 1.6; margin-bottom: 30px;"><!-- Generate summary --></p>
+    <h2 style="font-size: 14px; color: #007ACC; font-weight: 500; letter-spacing: 1px; margin-bottom: 15px;">SUMMARY</h2>
+    <p style="font-size: 14px; line-height: 1.7; margin-bottom: 30px;"><!-- Generate summary --></p>
     
-    <h2 style="font-size: 18px; color: #00FF9B; font-weight: normal; border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 15px;">// PROFESSIONAL_EXPERIENCE</h2>
+    <h2 style="font-size: 14px; color: #007ACC; font-weight: 500; letter-spacing: 1px; margin-bottom: 15px;">SKILL_MATRIX</h2>
+    <div style="margin-bottom: 30px;"><!-- Generate skills grouped by category (e.g., Languages, Frameworks, Tools) in a clean, structured way --></div>
+
+    <h2 style="font-size: 14px; color: #007ACC; font-weight: 500; letter-spacing: 1px; margin-bottom: 15px;">PROFESSIONAL_EXPERIENCE</h2>
     <div style="margin-bottom: 30px;"><!-- Generate experience --></div>
 
-    <h2 style="font-size: 18px; color: #00FF9B; font-weight: normal; border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 15px;">// SKILL_MATRIX</h2>
-    <div style="margin-bottom: 30px;"><!-- Generate skills grouped by category (e.g., Languages, Frameworks, Tools) --></div>
-
-    <h2 style="font-size: 18px; color: #00FF9B; font-weight: normal; border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 15px;">// EDUCATION</h2>
+    <h2 style="font-size: 14px; color: #007ACC; font-weight: 500; letter-spacing: 1px; margin-bottom: 15px;">EDUCATION</h2>
     <div><!-- Generate education --></div>
   </div>
 </div>`;
+
+// --- START GENERATED TECHNICAL TEMPLATES ---
+const createTechnicalVariant = (font: string, p: {primary: string, bg: string, text: string, border: string, secondaryText: string}) => (request: DocumentRequest) => `
+<div style="font-family: ${font}, 'Courier New', monospace; margin: 0 auto; max-width: 800px; background-color: ${p.bg}; color: ${p.text}; padding: 40px;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 36px; margin: 0; color: ${p.primary}; font-weight: normal;">${request.name}</h1>
+    <p style="margin: 8px 0; font-size: 16px; color: ${p.primary};">/* ${request.targetJob} */</p>
+    <p style="margin: 8px 0 0; font-size: 14px; color: ${p.secondaryText};">${request.contact}</p>
+  </div>
+  <div>
+    <h2 style="font-size: 18px; color: ${p.primary}; font-weight: normal; border-bottom: 1px solid ${p.border}; padding-bottom: 5px; margin-bottom: 15px;">// SUMMARY</h2>
+    <p style="font-size: 14px; line-height: 1.6; margin-bottom: 30px;"><!-- summary --></p>
+    <h2 style="font-size: 18px; color: ${p.primary}; font-weight: normal; border-bottom: 1px solid ${p.border}; padding-bottom: 5px; margin-bottom: 15px;">// EXPERIENCE</h2>
+    <div style="margin-bottom: 30px;"><!-- experience --></div>
+    <h2 style="font-size: 18px; color: ${p.primary}; font-weight: normal; border-bottom: 1px solid ${p.border}; padding-bottom: 5px; margin-bottom: 15px;">// SKILLS</h2>
+    <div style="margin-bottom: 30px;"><!-- skills --></div>
+    <h2 style="font-size: 18px; color: ${p.primary}; font-weight: normal; border-bottom: 1px solid ${p.border}; padding-bottom: 5px; margin-bottom: 15px;">// EDUCATION</h2>
+    <div><!-- education --></div>
+  </div>
+</div>`;
+const TECHNICAL_RESUME_TEMPLATE_2 = createTechnicalVariant("'Source Code Pro'", { primary: '#56b6c2', bg: '#1e1e1e', text: '#d4d4d4', border: '#444444', secondaryText: '#808080' });
+const TECHNICAL_RESUME_TEMPLATE_3 = createTechnicalVariant("'Fira Code'", { primary: '#4ec9b0', bg: '#282c34', text: '#abb2bf', border: '#3b4048', secondaryText: '#5c6370' });
+const TECHNICAL_RESUME_TEMPLATE_4 = createTechnicalVariant("'JetBrains Mono'", { primary: '#ffc600', bg: '#191919', text: '#e6e6e6', border: '#555555', secondaryText: '#777777' });
+const TECHNICAL_RESUME_TEMPLATE_5 = createTechnicalVariant("'Inconsolata'", { primary: '#c586c0', bg: '#252526', text: '#cccccc', border: '#3e3e42', secondaryText: '#858585' });
+const TECHNICAL_RESUME_TEMPLATE_6 = createTechnicalVariant("'Anonymous Pro'", { primary: '#a5c261', bg: '#002b36', text: '#839496', border: '#073642', secondaryText: '#586e75' });
+const TECHNICAL_RESUME_TEMPLATE_7 = createTechnicalVariant("'Cutive Mono'", { primary: '#66d9ef', bg: '#272822', text: '#f8f8f2', border: '#75715e', secondaryText: '#888475' });
+const TECHNICAL_RESUME_TEMPLATE_8 = createTechnicalVariant("'Roboto Mono'", { primary: '#eeffff', bg: '#263238', text: '#babdb6', border: '#37474f', secondaryText: '#78909c' });
+const TECHNICAL_RESUME_TEMPLATE_9 = createTechnicalVariant("'Ubuntu Mono'", { primary: '#ff5555', bg: '#2d2d2d', text: '#d3d3d3', border: '#515151', secondaryText: '#777777' });
+const TECHNICAL_RESUME_TEMPLATE_10 = createTechnicalVariant("'Share Tech Mono'", { primary: '#8be9fd', bg: '#282a36', text: '#f8f8f2', border: '#44475a', secondaryText: '#6272a4' });
+const TECHNICAL_RESUME_TEMPLATE_11 = createTechnicalVariant("'IBM Plex Mono'", { primary: '#00e676', bg: '#1c1c1c', text: '#e0e0e0', border: '#4a4a4a', secondaryText: '#8e8e8e' });
+// --- END GENERATED TECHNICAL TEMPLATES ---
+
 
 const getResumeSystemInstruction = (request: DocumentRequest) => {
     const { resumeTemplate = 'classic' } = request;
@@ -130,10 +312,60 @@ const getResumeSystemInstruction = (request: DocumentRequest) => {
 
     switch (resumeTemplate) {
         case 'classic': populatedTemplate = CLASSIC_RESUME_TEMPLATE(request); break;
+        case 'classic-2': populatedTemplate = CLASSIC_RESUME_TEMPLATE_2(request); break;
+        case 'classic-3': populatedTemplate = CLASSIC_RESUME_TEMPLATE_3(request); break;
+        case 'classic-4': populatedTemplate = CLASSIC_RESUME_TEMPLATE_4(request); break;
+        case 'classic-5': populatedTemplate = CLASSIC_RESUME_TEMPLATE_5(request); break;
+        case 'classic-6': populatedTemplate = CLASSIC_RESUME_TEMPLATE_6(request); break;
+        case 'classic-7': populatedTemplate = CLASSIC_RESUME_TEMPLATE_7(request); break;
+        case 'classic-8': populatedTemplate = CLASSIC_RESUME_TEMPLATE_8(request); break;
+        case 'classic-9': populatedTemplate = CLASSIC_RESUME_TEMPLATE_9(request); break;
+        case 'classic-10': populatedTemplate = CLASSIC_RESUME_TEMPLATE_10(request); break;
+        case 'classic-11': populatedTemplate = CLASSIC_RESUME_TEMPLATE_11(request); break;
         case 'modern': populatedTemplate = MODERN_RESUME_TEMPLATE(request); break;
+        case 'modern-2': populatedTemplate = MODERN_RESUME_TEMPLATE_2(request); break;
+        case 'modern-3': populatedTemplate = MODERN_RESUME_TEMPLATE_3(request); break;
+        case 'modern-4': populatedTemplate = MODERN_RESUME_TEMPLATE_4(request); break;
+        case 'modern-5': populatedTemplate = MODERN_RESUME_TEMPLATE_5(request); break;
+        case 'modern-6': populatedTemplate = MODERN_RESUME_TEMPLATE_6(request); break;
+        case 'modern-7': populatedTemplate = MODERN_RESUME_TEMPLATE_7(request); break;
+        case 'modern-8': populatedTemplate = MODERN_RESUME_TEMPLATE_8(request); break;
+        case 'modern-9': populatedTemplate = MODERN_RESUME_TEMPLATE_9(request); break;
+        case 'modern-10': populatedTemplate = MODERN_RESUME_TEMPLATE_10(request); break;
+        case 'modern-11': populatedTemplate = MODERN_RESUME_TEMPLATE_11(request); break;
         case 'simple': populatedTemplate = SIMPLE_RESUME_TEMPLATE(request); break;
+        case 'simple-2': populatedTemplate = SIMPLE_RESUME_TEMPLATE_2(request); break;
+        case 'simple-3': populatedTemplate = SIMPLE_RESUME_TEMPLATE_3(request); break;
+        case 'simple-4': populatedTemplate = SIMPLE_RESUME_TEMPLATE_4(request); break;
+        case 'simple-5': populatedTemplate = SIMPLE_RESUME_TEMPLATE_5(request); break;
+        case 'simple-6': populatedTemplate = SIMPLE_RESUME_TEMPLATE_6(request); break;
+        case 'simple-7': populatedTemplate = SIMPLE_RESUME_TEMPLATE_7(request); break;
+        case 'simple-8': populatedTemplate = SIMPLE_RESUME_TEMPLATE_8(request); break;
+        case 'simple-9': populatedTemplate = SIMPLE_RESUME_TEMPLATE_9(request); break;
+        case 'simple-10': populatedTemplate = SIMPLE_RESUME_TEMPLATE_10(request); break;
+        case 'simple-11': populatedTemplate = SIMPLE_RESUME_TEMPLATE_11(request); break;
         case 'creative': populatedTemplate = CREATIVE_RESUME_TEMPLATE(request); break;
+        case 'creative-2': populatedTemplate = CREATIVE_RESUME_TEMPLATE_2(request); break;
+        case 'creative-3': populatedTemplate = CREATIVE_RESUME_TEMPLATE_3(request); break;
+        case 'creative-4': populatedTemplate = CREATIVE_RESUME_TEMPLATE_4(request); break;
+        case 'creative-5': populatedTemplate = CREATIVE_RESUME_TEMPLATE_5(request); break;
+        case 'creative-6': populatedTemplate = CREATIVE_RESUME_TEMPLATE_6(request); break;
+        case 'creative-7': populatedTemplate = CREATIVE_RESUME_TEMPLATE_7(request); break;
+        case 'creative-8': populatedTemplate = CREATIVE_RESUME_TEMPLATE_8(request); break;
+        case 'creative-9': populatedTemplate = CREATIVE_RESUME_TEMPLATE_9(request); break;
+        case 'creative-10': populatedTemplate = CREATIVE_RESUME_TEMPLATE_10(request); break;
+        case 'creative-11': populatedTemplate = CREATIVE_RESUME_TEMPLATE_11(request); break;
         case 'technical': populatedTemplate = TECHNICAL_RESUME_TEMPLATE(request); break;
+        case 'technical-2': populatedTemplate = TECHNICAL_RESUME_TEMPLATE_2(request); break;
+        case 'technical-3': populatedTemplate = TECHNICAL_RESUME_TEMPLATE_3(request); break;
+        case 'technical-4': populatedTemplate = TECHNICAL_RESUME_TEMPLATE_4(request); break;
+        case 'technical-5': populatedTemplate = TECHNICAL_RESUME_TEMPLATE_5(request); break;
+        case 'technical-6': populatedTemplate = TECHNICAL_RESUME_TEMPLATE_6(request); break;
+        case 'technical-7': populatedTemplate = TECHNICAL_RESUME_TEMPLATE_7(request); break;
+        case 'technical-8': populatedTemplate = TECHNICAL_RESUME_TEMPLATE_8(request); break;
+        case 'technical-9': populatedTemplate = TECHNICAL_RESUME_TEMPLATE_9(request); break;
+        case 'technical-10': populatedTemplate = TECHNICAL_RESUME_TEMPLATE_10(request); break;
+        case 'technical-11': populatedTemplate = TECHNICAL_RESUME_TEMPLATE_11(request); break;
         default: populatedTemplate = CLASSIC_RESUME_TEMPLATE(request);
     }
 
@@ -145,6 +377,7 @@ const getResumeSystemInstruction = (request: DocumentRequest) => {
 2.  **INLINE CSS:** Use inline CSS (the 'style' attribute) for ALL styling. Do not use <style> tags.
 3.  **NATURAL LANGUAGE:** Avoid robotic language and clichés. Use strong action verbs and quantify achievements with metrics where possible.
 4.  **ADHERE TO TEMPLATE:** Use the exact HTML structure provided below. Populate the content within the specified divs and comments. For the 'creative' template, if a profile picture is not provided, use the placeholder div.
+5.  **PROFILE PICTURE:** If a profile picture placeholder (e.g., {{PROFILE_PICTURE}}) is provided in the user details, you MUST use it as the 'src' for the <img> tag in templates that support it ('creative').
 
 **HTML Template to Follow (Template: ${resumeTemplate}):**
 ${populatedTemplate}
@@ -180,247 +413,57 @@ const getCoverLetterSystemInstruction = (request: DocumentRequest) => `
 </div>
 `;
 
-// --- PORTFOLIO TEMPLATES ---
-const ONYX_TEMPLATE = (request: DocumentRequest) => `
-<div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #111827; color: #D1D5DB;">
-  <!-- HERO -->
-  <div style="text-align: center; padding: 120px 24px 80px 24px;">
-    <h1 style="font-size: 56px; font-weight: 800; color: #FFFFFF; margin: 0;">${request.name || ''}</h1>
-    <p style="font-size: 22px; color: #5EEAD4; margin-top: 8px;">${request.targetJob || ''}</p>
-  </div>
-  <!-- ABOUT -->
-  <div id="about" style="max-width: 768px; margin: 0 auto; padding: 48px 24px;">
-    <h2 style="font-size: 32px; font-weight: 700; color: #FFFFFF; border-bottom: 2px solid #5EEAD4; padding-bottom: 12px; margin-bottom: 24px;">About Me</h2>
-    <p style="font-size: 18px; line-height: 1.7; color: #D1D5DB;">${request.portfolioBio || ''}</p>
-  </div>
-  <!-- PROJECTS -->
-  <div id="projects" style="max-width: 1200px; margin: 0 auto; padding: 48px 24px;">
-    <h2 style="text-align: center; font-size: 32px; font-weight: 700; color: #FFFFFF; margin-bottom: 48px;">My Work</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 32px;">
-      <!-- For each project, generate a card -->
-    </div>
-  </div>
-  <!-- CONTACT -->
-  <div id="contact" style="background-color: #1F2937; padding: 80px 24px; text-align: center; margin-top: 48px;">
-    <h2 style="font-size: 32px; font-weight: 700; color: #FFFFFF;">Get In Touch</h2>
-    <p style="margin-top: 16px; font-size: 18px; color: #D1D5DB; max-width: 512px; margin-left: auto; margin-right: auto;">${request.contact || ''}</p>
-    <div style="margin-top: 32px; display: flex; justify-content: center; gap: 24px;">
-      <!-- Generate social links -->
-    </div>
-  </div>
-</div>
-<!-- Project Card Structure (for AI to follow)
-<div style="background-color: #1F2937; border-radius: 12px; overflow: hidden; border: 1px solid #374151; transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.2)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-    <img src="<-- BASE64 IMAGE -->" alt="Project Title" style="width: 100%; height: 224px; object-fit: cover;">
-    <div style="padding: 24px;">
-        <h3 style="font-size: 20px; font-weight: 600; color: #FFFFFF;">Project Title</h3>
-        <p style="margin-top: 8px; font-size: 14px; line-height: 1.6; color: #9CA3AF;">Project Description</p>
-        <a href="<-- LINK -->" target="_blank" style="display: inline-block; margin-top: 16px; color: #5EEAD4; text-decoration: none; font-weight: 600;" onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">View Project &rarr;</a>
-    </div>
-</div>
--->
-`;
-
-const QUARTZ_TEMPLATE = (request: DocumentRequest) => `
-<div style="font-family: 'Georgia', 'Times New Roman', serif; background-color: #FFFFFF; color: #333333;">
-  <!-- HEADER -->
-  <div style="padding: 48px 24px; border-bottom: 1px solid #E5E7EB; text-align: center;">
-    <h1 style="font-size: 48px; font-weight: 600; color: #111827;">${request.name || ''}</h1>
-    <p style="font-size: 20px; color: #4B5563; margin-top: 8px;">${request.targetJob || ''}</p>
-  </div>
-  <!-- MAIN CONTENT -->
-  <div style="max-width: 1100px; margin: 48px auto; padding: 0 24px; display: grid; grid-template-columns: 1fr 3fr; gap: 48px;">
-    <!-- LEFT SIDEBAR -->
-    <div style="border-right: 1px solid #E5E7EB; padding-right: 24px;">
-      <h2 style="font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #111827;">Contact</h2>
-      <p style="margin-top: 16px; font-size: 16px; line-height: 1.6;">${request.contact || ''}</p>
-      <h2 style="font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #111827; margin-top: 32px;">Links</h2>
-      <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
-        <!-- Generate social links -->
-      </div>
-    </div>
-    <!-- RIGHT CONTENT -->
-    <div>
-      <h2 style="font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #111827;">About Me</h2>
-      <p style="margin-top: 16px; font-size: 16px; line-height: 1.8;">${request.portfolioBio || ''}</p>
-      <h2 style="font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #111827; margin-top: 48px;">Projects</h2>
-      <div style="margin-top: 24px; display: grid; grid-template-columns: 1fr; gap: 32px;">
-        <!-- For each project, generate a card -->
-      </div>
-    </div>
-  </div>
-</div>
-<!-- Project Card Structure
-<div style="display: flex; gap: 24px; border-bottom: 1px solid #E5E7EB; padding-bottom: 32px;">
-    <img src="<-- BASE64 IMAGE -->" alt="Project Title" style="width: 200px; height: 125px; object-fit: cover; border-radius: 4px;">
-    <div>
-        <h3 style="font-size: 22px; font-weight: 600; color: #1F2937;">Project Title</h3>
-        <p style="margin-top: 8px; font-size: 15px; line-height: 1.6; color: #4B5563;">Project Description</p>
-        <a href="<-- LINK -->" target="_blank" style="display: inline-block; margin-top: 12px; color: #2563EB; text-decoration: none; font-weight: 600;" onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">Learn More</a>
-    </div>
-</div>
--->
-`;
-
-const SAPPHIRE_TEMPLATE = (request: DocumentRequest) => `
-<div style="font-family: 'Poppins', 'Helvetica Neue', sans-serif; background-color: #F0F4F8; color: #1E293B;">
-  <!-- HERO -->
-  <div style="background-color: #4F46E5; color: #FFFFFF; padding: 80px 24px;">
-    <div style="max-width: 1024px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 32px;">
-      <div>
-        <h1 style="font-size: 64px; font-weight: 700; line-height: 1.1;">${request.name || ''}</h1>
-        <p style="font-size: 24px; opacity: 0.9; margin-top: 16px;">${request.targetJob || ''}</p>
-      </div>
-      <div style="background: rgba(255,255,255,0.1); padding: 16px; border-radius: 12px;">
-         <p style="font-size: 16px; line-height: 1.7;">${request.portfolioBio || ''}</p>
-      </div>
-    </div>
-  </div>
-  <!-- PROJECTS -->
-  <div id="projects" style="max-width: 1200px; margin: 0 auto; padding: 64px 24px;">
-    <h2 style="font-size: 36px; font-weight: 700; color: #1E293B; text-align: center; margin-bottom: 48px;">Featured Work</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 32px;">
-      <!-- For each project, generate a card -->
-    </div>
-  </div>
-  <!-- CONTACT -->
-  <div id="contact" style="background-color: #1E293B; color: #F0F4F8; padding: 64px 24px; text-align: center;">
-    <h2 style="font-size: 36px; font-weight: 700;">Let's Collaborate</h2>
-    <p style="margin-top: 16px; font-size: 18px; max-width: 512px; margin-left: auto; margin-right: auto; opacity: 0.8;">${request.contact || ''}</p>
-    <div style="margin-top: 32px; display: flex; justify-content: center; gap: 24px;">
-       <!-- Generate social links with white color -->
-    </div>
-  </div>
-</div>
-<!-- Project Card Structure
-<div style="background-color: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)';">
-    <div style="position: relative;">
-        <img src="<-- BASE64 IMAGE -->" alt="Project Title" style="width: 100%; height: 240px; object-fit: cover;">
-        <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); padding: 16px;">
-             <h3 style="font-size: 22px; font-weight: 600; color: #FFFFFF;">Project Title</h3>
-        </div>
-    </div>
-    <div style="padding: 24px;">
-        <p style="font-size: 15px; line-height: 1.6; color: #475569;">Project Description</p>
-        <a href="<-- LINK -->" target="_blank" style="display: inline-block; margin-top: 16px; background-color: #4F46E5; color: #FFFFFF; text-decoration: none; font-weight: 600; padding: 8px 16px; border-radius: 9999px; font-size: 14px; transition: background-color 0.3s;" onmouseover="this.style.backgroundColor='#4338CA';" onmouseout="this.style.backgroundColor='#4F46E5';">View Case Study</a>
-    </div>
-</div>
--->
-`;
-
-const EMERALD_TEMPLATE = (request: DocumentRequest) => `
-<div style="font-family: 'Lato', 'Helvetica Neue', sans-serif; background-color: #F8F9FA; color: #343A40;">
-  <!-- HEADER -->
-  <div style="background-color: #fff; padding: 60px 24px; text-align: center; border-bottom: 1px solid #E9ECEF;">
-    ${request.profilePicture ? `<img src="${request.profilePicture}" alt="Profile" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin: 0 auto 20px; display: block; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 5px solid #28A745;">` : ''}
-    <h1 style="font-size: 48px; font-weight: 700; color: #212529; margin: 0;">${request.name || ''}</h1>
-    <p style="font-size: 22px; color: #6C757D; margin-top: 8px;">${request.targetJob || ''}</p>
-    <div style="margin-top: 24px; display: flex; justify-content: center; gap: 24px;">
-      <!-- Generate social links here with a professional look -->
-    </div>
-  </div>
-  <!-- ABOUT -->
-  <div id="about" style="max-width: 800px; margin: 60px auto; padding: 0 24px; text-align: center;">
-    <h2 style="font-size: 32px; font-weight: 700; color: #28A745; margin-bottom: 16px;">About Me</h2>
-    <p style="font-size: 18px; line-height: 1.8;">${request.portfolioBio || ''}</p>
-  </div>
-  <!-- PROJECTS -->
-  <div id="projects" style="background-color: #FFFFFF; padding: 60px 24px;">
-    <div style="max-width: 1200px; margin: 0 auto;">
-      <h2 style="text-align: center; font-size: 32px; font-weight: 700; color: #28A745; margin-bottom: 48px;">Portfolio</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px;">
-        <!-- For each project, generate a card -->
-      </div>
-    </div>
-  </div>
-  <!-- CONTACT -->
-  <div id="contact" style="background-color: #343A40; color: #F8F9FA; padding: 60px 24px; text-align: center;">
-    <h2 style="font-size: 32px; font-weight: 700;">Contact Me</h2>
-    <p style="margin-top: 16px; font-size: 18px; max-width: 512px; margin-left: auto; margin-right: auto; opacity: 0.9;">${request.contact || ''}</p>
-  </div>
-</div>
-<!-- Project Card Structure for Emerald
-<div style="background-color: #FFFFFF; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.08); overflow: hidden; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)';" onmouseout="this.style.transform='none';">
-    <img src="<-- BASE64 IMAGE -->" alt="Project Title" style="width: 100%; height: 200px; object-fit: cover;">
-    <div style="padding: 24px;">
-        <h3 style="font-size: 20px; font-weight: 700; color: #343A40;">Project Title</h3>
-        <p style="margin-top: 8px; font-size: 15px; line-height: 1.6; color: #6C757D;">Project Description</p>
-        <a href="<-- LINK -->" target="_blank" style="display: inline-block; margin-top: 16px; color: #28A745; text-decoration: none; font-weight: 700;" onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">View Details &rarr;</a>
-    </div>
-</div>
--->
-`;
-
-const RUBY_TEMPLATE = (request: DocumentRequest) => `
-<div style="font-family: 'Playfair Display', serif; background-color: #121212; color: #E0E0E0;">
-  <!-- HERO -->
-  <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px;">
-    <div>
-        ${request.profilePicture ? `<img src="${request.profilePicture}" alt="Profile" style="width: 180px; height: 180px; border-radius: 50%; object-fit: cover; margin: 0 auto 30px; display: block; border: 6px solid #C2185B;">` : ''}
-        <h1 style="font-size: 8vw; font-weight: 700; color: #FFFFFF; line-height: 1; margin: 0;">${request.name || ''}</h1>
-        <p style="font-size: 2.5vw; color: #C2185B; margin-top: 16px; font-family: 'Roboto Condensed', sans-serif; text-transform: uppercase; letter-spacing: 2px;">${request.targetJob || ''}</p>
-    </div>
-  </div>
-  <!-- ABOUT -->
-  <div style="padding: 80px 24px; background-color: #1A1A1A;">
-    <div style="max-width: 800px; margin: 0 auto; text-align: center;">
-      <p style="font-size: 22px; line-height: 1.8; color: #BDBDBD;">${request.portfolioBio || ''}</p>
-    </div>
-  </div>
-  <!-- PROJECTS -->
-  <div id="projects" style="max-width: 1400px; margin: 0 auto; padding: 80px 24px;">
-    <h2 style="text-align: center; font-size: 48px; font-weight: 700; color: #FFFFFF; margin-bottom: 60px;">Selected Work</h2>
-    <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px;">
-      <!-- Generate project cards here, using varied grid-column spans for a masonry effect -->
-    </div>
-  </div>
-  <!-- CONTACT -->
-  <div id="contact" style="background-color: #C2185B; color: #FFFFFF; padding: 80px 24px; text-align: center;">
-    <h2 style="font-size: 48px; font-weight: 700;">Let's Create Together</h2>
-    <p style="margin-top: 16px; font-size: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">${request.contact || ''}</p>
-    <div style="margin-top: 32px; display: flex; justify-content: center; gap: 32px;">
-       <!-- Generate social links here with white color -->
-    </div>
-  </div>
-</div>
-<!-- Project Card Structure for Ruby. Use "grid-column: span X" where X is 4, 6, or 8 to create a dynamic layout.
-<div style="background-color: #1A1A1A; border-radius: 4px; overflow: hidden; grid-column: span 6;">
-    <img src="<-- BASE64 IMAGE -->" alt="Project Title" style="width: 100%; height: auto; display: block;">
-    <div style="padding: 24px;">
-        <h3 style="font-size: 28px; font-weight: 700; color: #FFFFFF;">Project Title</h3>
-        <p style="margin-top: 12px; font-size: 16px; line-height: 1.7; color: #BDBDBD; font-family: 'Roboto Condensed', sans-serif;">Project Description</p>
-        <a href="<-- LINK -->" target="_blank" style="display: inline-block; margin-top: 20px; color: #C2185B; text-decoration: none; font-weight: 700; font-family: 'Roboto Condensed', sans-serif; letter-spacing: 1px;" onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">EXPLORE</a>
-    </div>
-</div>
--->
-`;
-
+// --- PORTFOLIO ---
 
 const getPortfolioSystemInstruction = (request: DocumentRequest) => {
     const { portfolioTemplate = 'onyx' } = request;
-    let populatedTemplate;
-
-    switch (portfolioTemplate) {
-        case 'onyx': populatedTemplate = ONYX_TEMPLATE(request); break;
-        case 'quartz': populatedTemplate = QUARTZ_TEMPLATE(request); break;
-        case 'sapphire': populatedTemplate = SAPPHIRE_TEMPLATE(request); break;
-        case 'emerald': populatedTemplate = EMERALD_TEMPLATE(request); break;
-        case 'ruby': populatedTemplate = RUBY_TEMPLATE(request); break;
-        default: populatedTemplate = ONYX_TEMPLATE(request);
-    }
+    
+    // Define theme properties. This could be expanded.
+    const themes: { [key: string]: any } = {
+        onyx: { primary: '#5EEAD4', bg: '#111827', text: '#D1D5DB', cardBg: '#1F2937', font: "'Inter', sans-serif" },
+        quartz: { primary: '#2563EB', bg: '#FFFFFF', text: '#333333', cardBg: '#F9FAFB', font: "'Georgia', serif" },
+        sapphire: { primary: '#4F46E5', bg: '#F0F4F8', text: '#1E293B', cardBg: '#FFFFFF', font: "'Poppins', sans-serif" },
+        emerald: { primary: '#81B29A', bg: '#F5F5F5', text: '#3D405B', cardBg: '#FFFFFF', font: "'Lato', sans-serif" },
+        ruby: { primary: '#9A1750', bg: '#1a1a1a', text: '#EAEAEA', cardBg: '#222222', font: "'Cormorant Garamond', serif" },
+    };
+    const themeKey = portfolioTemplate.split('-')[0] as keyof typeof themes;
+    const theme = themes[themeKey] || themes.onyx;
 
     return `
-**ROLE & GOAL:** You are a world-class web designer and frontend developer. Your task is to create a stunning, single-file HTML portfolio for a user. The entire output must be a single, self-contained HTML document. It must be visually appealing, responsive, and modern.
+**ROLE & GOAL:** You are an expert frontend developer building a sophisticated, single-file, interactive portfolio website using only HTML, CSS, and vanilla JavaScript. The final output must be a single, self-contained HTML document that functions as a Single Page Application (SPA).
 
-**CRITICAL INSTRUCTIONS:**
-1.  **HTML ONLY:** The entire output MUST be a single HTML string, starting with the outer \`<div>\` and ending with its corresponding \`</div>\`. DO NOT use markdown like \`\`\`html or any text outside the main container.
-2.  **INLINE CSS ONLY:** Use inline CSS (the 'style' attribute) for ALL styling. Do NOT use \`<style>\` tags or external stylesheets. Use Flexbox or Grid for layout to ensure responsiveness.
-3.  **IMAGES:** The user provides Base64 encoded images for their projects and potentially a profile picture. You MUST use the exact Base64 string in the 'src' attribute of the \`<img>\` tag. For example: \`<img src="data:image/jpeg;base64,..." alt="Project Title">\`. DO NOT use placeholder image services. If a profile picture is not provided for a template that supports it, omit the \`<img>\` tag entirely or use the specified placeholder structure.
-4.  **PROJECTS:** The user provides a list of projects. You must iterate through this list and create a project 'card' for each one, using the specific HTML structure for a project card as commented out in the chosen template below. For the 'Ruby' template, you should dynamically assign "grid-column: span X;" (where X is 4, 6, or 8) to create a varied, masonry-style layout.
-5.  **LINKS:** Populate social links and project links where indicated.
+**CRITICAL REQUIREMENTS:**
+1.  **SINGLE FILE SPA:** The entire output MUST be one HTML file. It will use hash-based routing (e.g., \`#/\`, \`#/product/...\`).
+2.  **HTML STRUCTURE:** The file must have a \`<!DOCTYPE html>\`, \`<html>\`, \`<head>\`, and \`<body>\`.
+    -   The \`<head>\` must contain a \`<title>\`, a \`<style>\` tag for all CSS, and any necessary external scripts (like Flutterwave if used).
+    -   The \`<body>\` must contain a single root element, e.g., \`<div id="app-root"></div>\`, where the SPA will be rendered.
+    -   A \`<script>\` tag at the end of the \`<body>\` will contain ALL JavaScript logic.
+3.  **CSS:** All styling MUST be inside the \`<style>\` tag. It must be professional, responsive, and strictly follow the aesthetic of the chosen **'${portfolioTemplate}'** theme. Use the provided theme guidelines below.
+4.  **JAVASCRIPT LOGIC (SPA):** The main \`<script>\` tag must contain all logic for the application:
+    -   **State:** Create a global \`state\` object: \`const state = { user: {...}, projects: [], products: [], cart: [] };\`. You MUST populate this state object with the user, project, and product data provided in the prompt.
+    -   **Routing:** Implement a \`router\` function that reads \`window.location.hash\`. It should handle routes like \`'#/'\` (home), \`'#/product/:id'\`, and \`'#/checkout'\`.
+    -   **Page Rendering:** Create functions to render each page (e.g., \`renderHomePage()\`, \`renderProductPage(id)\`, \`renderCheckoutPage()\`) into the \`#app-root\`. These functions will use the data from the \`state\` object.
+    -   **Component Templates:** Use JavaScript template literals to define the HTML structure for pages and repeatable components (like product cards).
+    -   **Event Handling:** Add event listeners for navigation clicks (which should change the window hash), "Add to Cart" buttons, and checkout actions.
+    -   **Initial Load & Navigation:** Call the \`router\` on the \`DOMContentLoaded\` event and listen for the \`hashchange\` event to re-route and re-render the page.
+5.  **PRODUCT & PAYMENT HANDLING:**
+    -   On the home page, product cards must link to their detail page using a hash route (e.g., \`href="#/product/prod_123"\`).
+    -   On the product detail page, display all product info. The purchase action depends on \`product.paymentMethod\`:
+        -   **'link'**: Render an \`<a>\` button linking to \`product.checkoutLink\`.
+        -   **'bank'**: Render the \`product.bankDetails\` in a pre-formatted, easy-to-copy block.
+        -   **'flutterwave'**: Render a button that, when clicked, triggers the \`FlutterwaveCheckout\` function using the user's details and the \`product.flutterwaveKey\`. You must ensure the Flutterwave script is included in the \`<head>\` if any product uses this method.
+6.  **IMAGE PLACEHOLDERS:** You MUST use the exact image placeholders provided (e.g., \`{{PROJECT_IMAGE_proj123}}\`, \`{{PRODUCT_IMAGE_prod456}}\`, \`{{PROFILE_PICTURE}}\`) in the 'src' attributes for all images. These will be replaced by the system later.
+7.  **TEMPLATE-SPECIFIC IMPLEMENTATION & STYLING:**
+    -   You MUST style the entire SPA according to the **${portfolioTemplate}** theme.
+    -   **Theme Guidelines for '${portfolioTemplate}':**
+        -   **Primary Color:** ${theme.primary}
+        -   **Background Color:** ${theme.bg}
+        -   **Text Color:** ${theme.text}
+        -   **Card/Element Background:** ${theme.cardBg}
+        -   **Font Family:** ${theme.font} (ensure you import it from Google Fonts in the <head> if needed)
+        -   **General Aesthetic:** Create a design that reflects the name '${themeKey}'. For example, 'onyx' should be dark and modern; 'quartz' should be clean and light; 'ruby' should be bold and elegant.
 
-**HTML STRUCTURE TO POPULATE (Template: ${portfolioTemplate}):**
-${populatedTemplate}
+**YOUR TASK:** Generate the complete, single HTML file for the portfolio SPA based on the user's data below and the specified '${portfolioTemplate}' theme. Do not add any commentary. The output must start with \`<!DOCTYPE html>\` and be a valid HTML file.
 `;
 }
 
@@ -448,37 +491,43 @@ const getMockHtmlResume = (request: DocumentRequest) => `
 </div>`;
 
 const getMockHtmlPortfolio = (request: DocumentRequest) => {
-    const projectHtml = (request.portfolioProjects || []).map(p => `
-    <div style="background-color: #1F2937; border-radius: 12px; overflow: hidden; border: 1px solid #374151;">
-        <img src="${p.image || 'https://images.unsplash.com/photo-1517694712202-1428bc38aa5a?q=80&w=800&auto=format&fit=crop'}" alt="${p.title}" style="width: 100%; height: 224px; object-fit: cover;">
-        <div style="padding: 24px;">
-            <h3 style="font-size: 20px; font-weight: 600; color: #FFFFFF;">${p.title} (MOCK)</h3>
-            <p style="margin-top: 8px; font-size: 14px; line-height: 1.6; color: #9CA3AF;">${p.description}</p>
-            ${p.link ? `<a href="${p.link}" target="_blank" style="display: inline-block; margin-top: 16px; color: #5EEAD4; text-decoration: none; font-weight: 600;">View Project &rarr;</a>` : ''}
-        </div>
-    </div>`).join('');
-
     return `
-    <div style="font-family: 'Inter', sans-serif; background-color: #111827; color: #D1D5DB;">
-      <div style="text-align: center; padding: 120px 24px 80px 24px;">
-        <h1 style="font-size: 56px; font-weight: 800; color: #FFFFFF; margin: 0;">${request.name} (MOCK)</h1>
-        <p style="font-size: 22px; color: #5EEAD4; margin-top: 8px;">${request.targetJob}</p>
-      </div>
-      <div style="max-width: 768px; margin: 0 auto; padding: 48px 24px;">
-        <h2 style="font-size: 32px; font-weight: 700; color: #FFFFFF; border-bottom: 2px solid #5EEAD4; padding-bottom: 12px; margin-bottom: 24px;">About Me</h2>
-        <p style="font-size: 18px; line-height: 1.7; color: #D1D5DB;">This is a mock portfolio. Configure your API key to generate a real one. ${request.portfolioBio}</p>
-      </div>
-      <div style="max-width: 1200px; margin: 0 auto; padding: 48px 24px;">
-        <h2 style="text-align: center; font-size: 32px; font-weight: 700; color: #FFFFFF; margin-bottom: 48px;">My Work</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 32px;">
-          ${projectHtml}
-        </div>
-      </div>
-    </div>`;
+    <div style="font-family: sans-serif; padding: 40px; background-color: #111; color: #fff; text-align: center;">
+        <h1 style="font-size: 2em;">Portfolio Generation is an Advanced Feature</h1>
+        <p style="font-size: 1.2em; color: #ccc;">This is a mock response. The interactive portfolio with product pages is a premium feature.</p>
+        <p style="margin-top: 20px;">To enable real AI generation, please set the API_KEY environment variable in your project configuration.</p>
+        <p style="margin-top: 40px; font-size: 0.9em; color: #888;">Request Data Received: ${request.name}, ${request.portfolioTemplate} template.</p>
+    </div>
+    `;
 };
 
 export const generateDocument = async (request: DocumentRequest): Promise<string> => {
     const apiKey = getApiKey();
+
+    // In a real app, this deep copy would be handled more robustly.
+    const resolvedRequest: DocumentRequest = JSON.parse(JSON.stringify(request));
+    
+    // Resolve image IDs to base64 strings if not using mock data
+    if (apiKey) {
+        if (resolvedRequest.profilePicture && resolvedRequest.profilePicture.startsWith('img_')) {
+            resolvedRequest.profilePicture = getImageDataFromStorage(resolvedRequest.profilePicture) || '';
+        }
+        if (resolvedRequest.portfolioProjects) {
+            for (const project of resolvedRequest.portfolioProjects) {
+                if (project.image && project.image.startsWith('img_')) {
+                    project.image = getImageDataFromStorage(project.image) || '';
+                }
+            }
+        }
+        if (resolvedRequest.products) {
+            for (const product of resolvedRequest.products) {
+                if (product.image && product.image.startsWith('img_')) {
+                    product.image = getImageDataFromStorage(product.image) || '';
+                }
+            }
+        }
+    }
+
 
     if (!apiKey) {
         console.warn("API_KEY environment variable not set. Using a mock response.");
@@ -488,64 +537,102 @@ export const generateDocument = async (request: DocumentRequest): Promise<string
         return `<div style="padding: 40px; font-family: Arial, sans-serif;"><h1>Mock Cover Letter for ${request.name}</h1><p>This is a mock response because the API key is not configured.</p></div>`;
     }
 
-    const { docType } = request;
+    const { docType } = resolvedRequest;
     
-    let systemInstruction;
-    let userPrompt;
-    
-    switch (docType) {
-        case 'Portfolio':
-            systemInstruction = getPortfolioSystemInstruction(request);
-            userPrompt = `
-**TASK:** Based on the user details below, generate the full HTML for the Portfolio by populating the template provided in the system instructions. You MUST use the provided Base64 strings for images and create project cards for all projects listed.
-
-**USER DETAILS:**
-- **Name:** ${request.name}
-- **Tagline/Title:** ${request.targetJob}
-- **Profile Picture:** ${request.profilePicture ? 'Provided' : 'Not Provided'}
-- **Bio:** ${request.portfolioBio}
-- **Projects List:** ${JSON.stringify(request.portfolioProjects)}
-- **Contact Info:** ${request.contact}
-- **Social Links:** ${request.portfolioSocialLinks}
-- **Template:** ${request.portfolioTemplate}
-
-Produce only the HTML content as requested.`.trim();
-            break;
-
-        case 'Cover Letter':
-            systemInstruction = getCoverLetterSystemInstruction(request);
-            userPrompt = `
-**TASK:** Based on the user details below, generate the full HTML for the Cover Letter.
-**USER DETAILS:**
-- **Name:** ${request.name}
-- **Contact:** ${request.contact}
-- **Target Job:** ${request.targetJob}
-- **Target Company:** ${request.targetCompany}
-- **Relevant Experience/Skills:** ${request.experience}
-Produce only the HTML content as requested.`.trim();
-            break;
-
-        case 'Resume':
-        default:
-            systemInstruction = getResumeSystemInstruction(request);
-            userPrompt = `
-**TASK:** Based on the user details below, generate the full HTML for the ${docType} by populating the template provided in the system instructions.
-
-**USER DETAILS:**
-- **Work Experience:** ${request.experience}
-- **Education:** ${request.education}
-- **Skills:** ${request.skills}
-- **Target Job Title:** ${request.targetJob}
-- **Target Company:** ${request.targetCompany}
-- **Template:** ${request.resumeTemplate}
-- **Profile Picture:** ${request.profilePicture ? 'Provided' : 'Not Provided'}
-
-Produce only the HTML content as requested.`.trim();
-            break;
-    }
-
     try {
         const ai = new GoogleGenAI({ apiKey });
+        let systemInstruction;
+        let userPrompt;
+        const imagePlaceholderMap: { [key: string]: string } = {};
+    
+        switch (docType) {
+            case 'Portfolio': {
+                let processedProfilePicture = resolvedRequest.profilePicture;
+                if (resolvedRequest.profilePicture) {
+                    const placeholder = `{{PROFILE_PICTURE}}`;
+                    imagePlaceholderMap[placeholder] = resolvedRequest.profilePicture;
+                    processedProfilePicture = placeholder;
+                }
+    
+                const processedProjects = (resolvedRequest.portfolioProjects || []).map(project => {
+                    if (project.image) {
+                        const placeholder = `{{PROJECT_IMAGE_${project.id}}}`;
+                        imagePlaceholderMap[placeholder] = project.image;
+                        return { ...project, image: placeholder };
+                    }
+                    return project;
+                });
+    
+                const processedProducts = (resolvedRequest.products || []).map(product => {
+                    if (product.image) {
+                        const placeholder = `{{PRODUCT_IMAGE_${product.id}}}`;
+                        imagePlaceholderMap[placeholder] = product.image;
+                        return { ...product, image: placeholder };
+                    }
+                    return product;
+                });
+    
+                const requestWithPlaceholders = {
+                    ...resolvedRequest,
+                    profilePicture: processedProfilePicture,
+                    portfolioProjects: processedProjects,
+                    products: processedProducts,
+                };
+    
+                systemInstruction = getPortfolioSystemInstruction(requestWithPlaceholders);
+                // We pass the full data here for the AI to embed in the script tag.
+                // The image fields will contain placeholders.
+                const userDataForPrompt = JSON.stringify(requestWithPlaceholders, null, 2);
+
+                userPrompt = `
+    **TASK:** Based on the user details below, generate the full HTML for the Portfolio SPA by following all rules in the system instructions.
+
+    **USER DETAILS (JSON):**
+    ${userDataForPrompt}
+
+    Produce only the single, complete HTML file as requested.`.trim();
+                break;
+            }
+    
+            case 'Cover Letter':
+                systemInstruction = getCoverLetterSystemInstruction(resolvedRequest);
+                userPrompt = `
+    **TASK:** Based on the user details below, generate the full HTML for the Cover Letter.
+    **USER DETAILS:**
+    - **Name:** ${resolvedRequest.name}
+    - **Contact:** ${resolvedRequest.contact}
+    - **Target Job:** ${resolvedRequest.targetJob}
+    - **Target Company:** ${resolvedRequest.targetCompany}
+    - **Relevant Experience/Skills:** ${resolvedRequest.experience}
+    Produce only the HTML content as requested.`.trim();
+                break;
+    
+            case 'Resume':
+            default: {
+                let processedRequest = { ...resolvedRequest };
+                if (resolvedRequest.profilePicture) {
+                    const placeholder = `{{PROFILE_PICTURE}}`;
+                    imagePlaceholderMap[placeholder] = resolvedRequest.profilePicture;
+                    processedRequest.profilePicture = placeholder;
+                }
+                systemInstruction = getResumeSystemInstruction(processedRequest);
+                userPrompt = `
+    **TASK:** Based on the user details below, generate the full HTML for the ${docType} by populating the template provided in the system instructions.
+    
+    **USER DETAILS:**
+    - **Work Experience:** ${processedRequest.experience}
+    - **Education:** ${processedRequest.education}
+    - **Skills:** ${processedRequest.skills}
+    - **Target Job Title:** ${processedRequest.targetJob}
+    - **Target Company:** ${processedRequest.targetCompany}
+    - **Template:** ${processedRequest.resumeTemplate}
+    - **Profile Picture:** ${processedRequest.profilePicture ? processedRequest.profilePicture : 'Not Provided'}
+    
+    Produce only the HTML content as requested.`.trim();
+                break;
+            }
+        }
+
         const response: GenerateContentResponse = await ai.models.generateContent({
             model: "gemini-2.5-flash",
             contents: userPrompt,
@@ -554,7 +641,17 @@ Produce only the HTML content as requested.`.trim();
             }
         });
 
-        return response.text;
+        let generatedHtml = response.text;
+
+        // Replace placeholders with actual base64 data
+        for (const placeholder in imagePlaceholderMap) {
+            // Escape special characters for regex
+            const escapedPlaceholder = placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            generatedHtml = generatedHtml.replace(new RegExp(escapedPlaceholder, 'g'), imagePlaceholderMap[placeholder]);
+        }
+
+        return generatedHtml;
+
     } catch (error) {
         console.error("Error generating document with Gemini API:", error);
          if (error instanceof Error && error.message.includes('API key not valid')) {
@@ -562,4 +659,132 @@ Produce only the HTML content as requested.`.trim();
         }
         throw new Error("Failed to generate document. The AI service may be temporarily unavailable.");
     }
+};
+
+
+export const analyseResume = async (resumeText: string): Promise<AnalysisResult> => {
+     const apiKey = getApiKey();
+     if (!apiKey) {
+        console.warn("API_KEY environment variable not set. Using a mock response for analysis.");
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return {
+            analysis: {
+                overallFeedback: { score: 75, summary: "This is a mock analysis. The resume shows good potential but could be improved by setting a valid API key." },
+                strengths: ["Clear structure.", "Good use of action verbs."],
+                weaknesses: ["Lacks quantifiable achievements."],
+                corrections: [{ original: "Moked analysis", suggestion: "Mocked analysis", explanation: "Typo." }],
+                aiContentScore: { probability: 50, explanation: "The analysis is mocked." },
+                recommendedRoles: ["Mock Role 1", "Mock Role 2"]
+            },
+            jobs: [{
+                title: "Mock Job: Software Engineer",
+                company: "MockCorp",
+                description: "Develop mock features for a mock application.",
+                requirements: "Experience with mock data and APIs.",
+                datePosted: "Just now",
+                url: "#"
+            }],
+            sources: [{ title: "Mock Source", uri: "#"}]
+        };
+    }
+    const ai = new GoogleGenAI({ apiKey });
+
+    // Step 1: Get the detailed analysis
+    const analysisSchema = {
+        type: Type.OBJECT,
+        properties: {
+            overallFeedback: {
+                type: Type.OBJECT,
+                properties: {
+                    score: { type: Type.INTEGER, description: "Overall score from 0-100." },
+                    summary: { type: Type.STRING, description: "A brief summary of the feedback." }
+                }
+            },
+            strengths: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of strengths." },
+            weaknesses: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of weaknesses." },
+            corrections: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        original: { type: Type.STRING },
+                        suggestion: { type: Type.STRING },
+                        explanation: { type: Type.STRING }
+                    }
+                }
+            },
+            aiContentScore: {
+                type: Type.OBJECT,
+                properties: {
+                    probability: { type: Type.INTEGER, description: "Probability (0-100) it was AI-written." },
+                    explanation: { type: Type.STRING, description: "Reasoning for the score." }
+                }
+            },
+            recommendedRoles: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of suitable job roles." }
+        }
+    };
+
+    const analysisResponse = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: `Analyse the following resume text: \n\n${resumeText}`,
+        config: {
+            systemInstruction: "You are a world-class resume reviewer. Provide a detailed, constructive critique based on the provided text. Adhere strictly to the JSON schema.",
+            responseMimeType: "application/json",
+            responseSchema: analysisSchema,
+        }
+    });
+
+    const analysis: ResumeAnalysis = JSON.parse(analysisResponse.text);
+
+    // Step 2: Search for jobs based on recommended roles
+    if (!analysis.recommendedRoles || analysis.recommendedRoles.length === 0) {
+        return { analysis, jobs: [], sources: [] };
+    }
+    const rolesString = analysis.recommendedRoles.slice(0, 3).join(', '); // Use top 3 roles for search query
+
+    const jobSearchResponse = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: `Find 5 recent job postings in the US for a ${rolesString}. For each job, provide title, company, a short description, key requirements, and posting date. Format EACH job strictly as: '[JOB_START]Title: [title]|Company: [company]|Description: [desc]|Requirements: [reqs]|Date: [date][JOB_END]'`,
+        config: {
+            tools: [{ googleSearch: {} }],
+        }
+    });
+
+    const jobText = jobSearchResponse.text;
+    const sources = (jobSearchResponse.candidates?.[0]?.groundingMetadata?.groundingChunks?.map(c => c.web) || []).filter(s => s) as GroundingSource[];
+    
+    // Step 3: Parse the job search results
+    const jobs: JobPosting[] = [];
+    const jobSegments = jobText.split('[JOB_START]').slice(1);
+
+    for (const segment of jobSegments) {
+        const jobData = segment.split('[JOB_END]')[0];
+        const parts = jobData.split('|').reduce((acc, part) => {
+            const [key, ...value] = part.split(':');
+            if(key && value.length > 0) {
+                acc[key.trim().toLowerCase()] = value.join(':').trim();
+            }
+            return acc;
+        }, {} as Record<string, string>);
+
+        if(parts.title) {
+            jobs.push({
+                title: parts.title,
+                company: parts.company || 'N/A',
+                description: parts.description || 'N/A',
+                requirements: parts.requirements || 'N/A',
+                datePosted: parts.date || 'N/A',
+                url: '#' // Placeholder URL
+            });
+        }
+    }
+    
+    // Attempt to match jobs to sources if possible (simple matching)
+    for (let i = 0; i < jobs.length; i++) {
+        if (sources[i]) {
+            jobs[i].url = sources[i].uri;
+        }
+    }
+
+    return { analysis, jobs, sources };
 };

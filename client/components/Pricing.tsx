@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { CheckIcon } from './Icons';
 import { UserPlan } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { FREE_TOKENS, PRO_TOKENS, PRO_PRICE } from '../config';
 
 export default function Pricing({ onNavigateSignup, onStartUpgrade }: { onNavigateSignup: () => void; onStartUpgrade: () => void; }) {
     const { currentUser } = useAuth();
@@ -13,15 +13,15 @@ export default function Pricing({ onNavigateSignup, onStartUpgrade }: { onNaviga
             price: "0",
             period: "once",
             plan: "Free",
-            features: ["3 Resume/Cover Letter Generations", "Basic Templates", "Standard AI Tone"],
+            features: [`${FREE_TOKENS} Resume/Cover Letter Generations`, "Basic Templates", "Standard AI Tone"],
             isFeatured: false,
         },
         {
             title: "Pro Monthly",
-            price: "29",
+            price: String(PRO_PRICE),
             period: "month",
             plan: "Pro",
-            features: ["100 Generations/Month", "Unlimited Downloads", "Premium Templates", "Human-Like AI Tone", "AI Detector Bypass", "Priority Support"],
+            features: [`${PRO_TOKENS} Generations/Month`, "Unlimited Downloads", "Premium Templates", "Human-Like AI Tone", "AI Detector Bypass", "Priority Support"],
             isFeatured: true,
         },
     ];

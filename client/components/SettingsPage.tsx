@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { CheckIcon } from './Icons';
+import { FREE_TOKENS, PRO_TOKENS } from '../config';
 
 const StatCard: React.FC<{ title: string, value: string | number, className?: string }> = ({ title, value, className }) => (
     <div className={`bg-gray-800 p-4 rounded-lg text-center ${className}`}>
@@ -17,8 +17,8 @@ export default function SettingsPage({ onUpgradeClick }: { onUpgradeClick: () =>
         return null;
     }
     
-    const tokenLimit = currentUser.plan === 'Pro' ? 100 : 3;
-    const tokensPercentage = (currentUser.tokens / tokenLimit) * 100;
+    const tokenLimit = currentUser.plan === 'Pro' ? PRO_TOKENS : FREE_TOKENS;
+    const tokensPercentage = tokenLimit > 0 ? (currentUser.tokens / tokenLimit) * 100 : 0;
 
     return (
         <div className="p-4 sm:p-6 lg:p-8">
@@ -45,7 +45,7 @@ export default function SettingsPage({ onUpgradeClick }: { onUpgradeClick: () =>
                 {currentUser.plan === 'Free' && (
                     <div className="mt-10 p-6 bg-gray-800 rounded-lg border border-cyan-500/30 text-center">
                         <h3 className="text-xl font-bold text-white">Unlock Your Full Potential</h3>
-                        <p className="mt-2 text-gray-400">Upgrade to Pro for 100 monthly tokens, premium features, and priority support.</p>
+                        <p className="mt-2 text-gray-400">Upgrade to Pro for {PRO_TOKENS} monthly tokens, premium features, and priority support.</p>
                         <button
                             onClick={onUpgradeClick}
                             className="mt-4 bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-cyan-400 transition-colors duration-300"

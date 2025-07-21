@@ -4,8 +4,9 @@ import Header from './Header';
 import HomePage from './HomePage';
 import ProfilePage from './ProfilePage';
 import SettingsPage from './SettingsPage';
+import ResumeAnalyserPage from './ResumeAnalyserPage';
 
-type Page = 'home' | 'profile' | 'settings';
+type Page = 'home' | 'analyser' | 'profile' | 'settings';
 
 interface AppLayoutProps {
     onUpgradeClick: () => void;
@@ -16,13 +17,15 @@ export default function AppLayout({ onUpgradeClick }: AppLayoutProps) {
 
     const renderPage = () => {
         switch (page) {
+            case 'analyser':
+                return <ResumeAnalyserPage onUpgradeClick={onUpgradeClick} />;
             case 'profile':
                 return <ProfilePage />;
             case 'settings':
                 return <SettingsPage onUpgradeClick={onUpgradeClick} />;
             case 'home':
             default:
-                return <HomePage />;
+                return <HomePage onUpgradeClick={onUpgradeClick} />;
         }
     };
     

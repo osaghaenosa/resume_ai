@@ -19,7 +19,7 @@ export const DownloadIcon = () => <Icon><path strokeLinecap="round" strokeLinejo
 export const CheckIcon = ({ className }: { className?: string } = {}) => <Icon className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></Icon>;
 export const ClipboardCopyIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></Icon>;
 export const MenuIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16m-7 6h7" /></Icon>;
-export const XIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></Icon>;
+export const XIcon = ({ className }: { className?: string } = {}) => <Icon className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></Icon>;
 export const UserIcon = ({ className }: { className?: string } = {}) => <Icon className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></Icon>;
 export const TrashIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></Icon>;
 export const LoadingSpinner = () => (
@@ -38,4 +38,4 @@ export const BriefcaseIcon = () => <Icon><path strokeLinecap="round" strokeLinej
 export const ShareIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.542l6.363 3.692m-6.363-10.884l6.363 3.692M20.25 12c0 1.933-1.567 3.5-3.5 3.5s-3.5-1.567-3.5-3.5 1.567-3.5 3.5-3.5 3.5 1.567 3.5 3.5zM3.75 12c0 1.933 1.567 3.5 3.5 3.5s3.5-1.567 3.5-3.5-1.567-3.5-3.5-3.5-3.5 1.567-3.5 3.5zM12 3.75c1.933 0 3.5 1.567 3.5 3.5S13.933 10.75 12 10.75 8.5 9.183 8.5 7.25 10.067 3.75 12 3.75z" /></Icon>;
 export const UploadIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></Icon>;
 export const LinkIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></Icon>;
-export const ExternalLinkIcon = () => <Icon><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></Icon>;
+export const ExternalLinkIcon = ({ className }: { className?: string } = {}) => <Icon className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></Icon>;
