@@ -85,7 +85,7 @@ export default function DocumentViewer({ doc, onClose, onEdit, onUpgrade }: Docu
         setIsDownloadingPdf(true);
     
         const clone = elementToCapture.cloneNode(true) as HTMLElement;
-        if (doc.type !== 'Portfolio') {
+        if (doc.sourceRequest?.docType !== 'Portfolio') {
             clone.style.width = '800px';
         }
         clone.style.position = 'absolute';
@@ -101,7 +101,7 @@ export default function DocumentViewer({ doc, onClose, onEdit, onUpgrade }: Docu
             const canvas = await html2canvas(clone, {
                 scale: 2,
                 useCORS: true,
-                backgroundColor: doc.type === 'Portfolio' ? null : '#ffffff',
+                backgroundColor: doc.sourceRequest?.docType === 'Portfolio' ? null : '#ffffff',
             });
     
             document.body.removeChild(clone);
@@ -171,7 +171,7 @@ export default function DocumentViewer({ doc, onClose, onEdit, onUpgrade }: Docu
                 <div className="flex justify-between items-center p-4 border-b border-gray-700 flex-shrink-0">
                     <div>
                         <h2 className="text-xl font-bold text-white">{doc.title}</h2>
-                        <p className="text-sm text-gray-400">{doc.type}</p>
+                        <p className="text-sm text-gray-400">{doc.sourceRequest?.docType}</p>
                     </div>
                     <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                         {canEdit ? (
@@ -185,7 +185,7 @@ export default function DocumentViewer({ doc, onClose, onEdit, onUpgrade }: Docu
                                 <span className="hidden sm:inline ml-2">Upgrade to Edit</span>
                             </button>
                         )}
-                        {doc.type === 'Portfolio' && (
+                        {doc.sourceRequest?.docType === 'Portfolio' && (
                             <>
                                 <button onClick={handleShare} className="flex items-center text-sm p-2 rounded-md text-cyan-400 hover:bg-gray-700 hover:text-cyan-300">
                                     {shareText === 'Link Copied!' ? <CheckIcon/> : <ShareIcon />}
@@ -213,7 +213,7 @@ export default function DocumentViewer({ doc, onClose, onEdit, onUpgrade }: Docu
                         </button>
                     </div>
                 </div>
-                {doc.type === 'Portfolio' && doc.sourceRequest?.products && doc.sourceRequest.products.length > 0 && (
+                {doc.sourceRequest?.docType === 'Portfolio' && doc.sourceRequest?.products && doc.sourceRequest.products.length > 0 && (
                     <PortfolioAnalytics doc={doc} />
                 )}
                 <div className="flex-grow overflow-y-auto p-6 bg-gray-600">
