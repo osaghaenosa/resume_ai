@@ -5,14 +5,14 @@ import { Document } from '../types';
 import { LoadingSpinner, BrainIcon, ShieldCheckIcon } from './Icons';
 
 interface SharePageProps {
-  docId: string;
+    docId: string;
 }
 
 export default function SharePage({ docId }: SharePageProps) {
-  const { getPublicDocument } = useAuth();
-  const [doc, setDoc] = useState<Document | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+    const { getPublicDocument } = useAuth();
+    const [doc, setDoc] = useState<Document | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         try {
@@ -61,7 +61,6 @@ export default function SharePage({ docId }: SharePageProps) {
     }
 
 
-  if (loading) {
     return (
         <div className="bg-gray-800">
              <div dangerouslySetInnerHTML={{ __html: doc.content }} />
