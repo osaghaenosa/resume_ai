@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { CheckCircleIcon } from './Icons';
+import { PRO_TOKENS } from '../config';
 
 interface PaymentSuccessPageProps {
     onComplete: () => void;
@@ -15,7 +16,7 @@ export default function PaymentSuccessPage({ onComplete }: PaymentSuccessPagePro
                 </div>
                 <h1 className="text-3xl font-bold text-white">Upgrade Successful!</h1>
                 <p className="text-gray-300 mt-4">
-                    Welcome to the Pro plan! You now have access to all premium features, including 100 monthly generation tokens.
+                    Welcome to the Pro plan! You now have access to all premium features, including {PRO_TOKENS} monthly generation tokens.
                 </p>
                 <button
                     onClick={onComplete}

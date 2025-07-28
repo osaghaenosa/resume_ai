@@ -1,11 +1,9 @@
 import React, {
-  createContext, useState, useContext, ReactNode, useEffect
+  createContext, useState, useContext, ReactNode, useEffect, useCallback,
 } from 'react';
 import axios from 'axios';
 import {
-  User, Document,
-  SignupCredentials, LoginCredentials,
-  DocumentRequest
+  User, Document, SignupCredentials, LoginCredentials, DocumentRequest
 } from '../types';
 
 const API = import.meta.env.VITE_API_URL;
@@ -17,14 +15,8 @@ interface AuthContextType {
   logout: () => void;
   consumeToken: () => Promise<void>;
   upgradePlan: () => Promise<void>;
-  addDocument: (
-    doc: Omit<Document, 'id' | 'createdAt' | 'isPublic'>,
-    request: DocumentRequest
-  ) => Promise<Document>;
-  updateDocument: (
-    doc: Document,
-    request: DocumentRequest
-  ) => Promise<Document>;
+  addDocument: (doc: Omit<Document, 'id' | 'createdAt' | 'isPublic'>, request: DocumentRequest) => Promise<Document>;
+  updateDocument: (doc: Document, request: DocumentRequest) => Promise<Document>;
   deleteDocument: (docId: string) => Promise<void>;
   publishDocument: (docId: string) => Promise<void>;
   getPublicDocument: (docId: string) => Promise<Document | null>;
@@ -39,12 +31,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [generationCompleted, setGenerationCompleted] = useState(false);
 
+  const authHeaders = () => {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('No token found');
+    return { Authorization: `Bearer ${token}` };
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      axios.get(`${API}/user/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      }).then(res => setCurrentUser(res.data.user))
+      axios.get(`${API}/user/me`, { headers: authHeaders() })
+        .then(res => setCurrentUser(res.data.user))
         .catch(() => logout());
     }
   }, []);
@@ -70,12 +67,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setCurrentUser(null);
   };
 
-  const authHeaders = () => {
-    const token = localStorage.getItem('token');
-    if (!token) throw new Error("No token found");
-    return { Authorization: `Bearer ${token}` };
-  };
-
   const consumeToken = async () => {
     const res = await axios.post(`${API}/user/consumeToken`, {}, { headers: authHeaders() });
     setCurrentUser(res.data.user);
@@ -86,67 +77,80 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setCurrentUser(res.data.user);
   };
 
-  const addDocument = async (doc: Omit<Document, 'id' | 'createdAt' | 'isPublic'>, request: DocumentRequest) => {
-    const res = await axios.post(`${API}/user/documents`, { ...doc, sourceRequest: request }, { headers: authHeaders() });
+  const addDocument = async (
+    doc: Omit<Document, 'id' | 'createdAt' | 'isPublic'>,
+    request: DocumentRequest
+  ): Promise<Document> => {
+    const res = await axios.post(
+      `${API}/user/documents`,
+      { ...doc, sourceRequest: request },
+      { headers: authHeaders() }
+    );
     setCurrentUser(res.data.user);
     return res.data.document;
   };
 
-  const updateDocument = async (doc: Document, request: DocumentRequest) => {
-    if (!doc.id) throw new Error("Missing document ID for update");
+  const updateDocument = async (
+    doc: Document,
+    request: DocumentRequest
+  ): Promise<Document> => {
+    if (!doc.id) throw new Error("Missing document ID");
 
-    const res = await axios.put(`${API}/user/documents/${doc.id}`, {
-      title: doc.title,
-      content: doc.content,
-      sourceRequest: request
-    }, { headers: authHeaders() });
-
+    const res = await axios.put(
+      `${API}/user/documents/${doc.id}`,
+      {
+        title: doc.title,
+        content: doc.content,
+        sourceRequest: request
+      },
+      { headers: authHeaders() }
+    );
     setCurrentUser(res.data.user);
     return res.data.document;
   };
-
-
 
   const deleteDocument = async (docId: string) => {
-    const res = await axios.delete(`${API}/user/documents/${docId}`, { headers: authHeaders() });
+    const res = await axios.delete(`${API}/user/documents/${docId}`, {
+      headers: authHeaders()
+    });
     setCurrentUser(res.data.user);
   };
 
   const publishDocument = async (docId: string) => {
-    const res = await axios.post(`${API}/user/documents/${docId}/publish`, {}, { headers: authHeaders() });
+    const res = await axios.post(`${API}/user/documents/${docId}/publish`, {}, {
+      headers: authHeaders()
+    });
     setCurrentUser(res.data.user);
   };
 
-  
   const getPublicDocument = async (docId: string): Promise<Document | null> => {
     try {
-        const res = await fetch(`/api/user/share/${docId}`);
-        if (!res.ok) return null;
-        const data = await res.json();
-        return {
-            id: data.id,
-            title: data.title,
-            content: data.content,
-            type: data.type,
-            createdAt: data.createdAt,
-        };
+      const res = await axios.get(`${API}/document/public/${docId}`);
+      return res.data;
     } catch (err) {
-        console.error("Error fetching public doc:", err);
-        return null;
+      console.error('Error fetching public doc:', err);
+      return null;
     }
-};
-  
+  };
 
   const markGenerationCompleted = () => setGenerationCompleted(true);
   const clearGenerationCompleted = () => setGenerationCompleted(false);
 
   return (
     <AuthContext.Provider value={{
-      currentUser, login, signup, logout,
-      consumeToken, upgradePlan,
-      addDocument, updateDocument, deleteDocument,
-      publishDocument, getPublicDocument,
-      generationCompleted, markGenerationCompleted,
+      currentUser,
+      login,
+      signup,
+      logout,
+      consumeToken,
+      upgradePlan,
+      addDocument,
+      updateDocument,
+      deleteDocument,
+      publishDocument,
+      getPublicDocument,
+      generationCompleted,
+      markGenerationCompleted,
       clearGenerationCompleted
     }}>
       {children}

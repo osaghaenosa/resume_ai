@@ -11,7 +11,7 @@ export default function Footer() {
                     <a href="#" className="hover:text-cyan-400">Privacy Policy</a>
                     <a href="#" className="hover:text-cyan-400">Terms of Service</a>
                 </div>
-                <p>&copy; {currentYear} AIResumeGen. All rights reserved.</p>
+                <p>&copy; {currentYear} AI Resume Gen. All rights reserved.</p>
             </div>
         </footer>
     );

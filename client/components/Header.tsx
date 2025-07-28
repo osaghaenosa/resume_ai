@@ -10,7 +10,7 @@ const NavLink: React.FC<{ href: string; children: React.ReactNode; onClick?: () 
 );
 
 interface HeaderProps {
-    onNavigate: (page: 'home' | 'profile' | 'settings') => void;
+    onNavigate: (page: 'home' | 'analyser' | 'profile' | 'settings') => void;
     isApp: boolean;
     onNavigateToLogin?: () => void;
     onNavigateToSignup?: () => void;
@@ -51,8 +51,9 @@ export default function Header({ onNavigate, isApp, onNavigateToLogin, onNavigat
         { href: "#contact", text: "Contact" },
     ];
 
-    const appNavLinks: { text: string; page: 'home' | 'profile' | 'settings' }[] = [
+    const appNavLinks: { text: string; page: 'home' | 'analyser' | 'profile' | 'settings' }[] = [
         { text: "Home", page: "home" },
+        { text: "Analyser", page: "analyser" },
         { text: "Profile", page: "profile" },
         { text: "Settings", page: "settings" },
     ];
@@ -66,7 +67,7 @@ export default function Header({ onNavigate, isApp, onNavigateToLogin, onNavigat
         }
     }
 
-    const AppNavButton: React.FC<{ page: 'home' | 'profile' | 'settings', children: React.ReactNode, isMobile?: boolean }> = ({ page, children, isMobile }) => (
+    const AppNavButton: React.FC<{ page: 'home' | 'analyser' | 'profile' | 'settings', children: React.ReactNode, isMobile?: boolean }> = ({ page, children, isMobile }) => (
         <button 
             onClick={() => { onNavigate(page); if(isMobile) setIsMenuOpen(false); }}
             className={isMobile ? "w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700" : "text-gray-300 hover:text-cyan-400 transition-colors duration-300 px-3 py-2 rounded-md text-sm font-medium"}
@@ -81,7 +82,7 @@ export default function Header({ onNavigate, isApp, onNavigateToLogin, onNavigat
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center">
                         <a href="#" onClick={handleLogoClick} className="text-xl font-bold text-white flex items-center">
-                           <span className="text-cyan-400">Nosentix AI</span>ResumeGen
+                           <span className="text-cyan-400">AI</span>&nbsp;Resume Gen
                         </a>
                     </div>
                     <div className="hidden md:flex items-center">

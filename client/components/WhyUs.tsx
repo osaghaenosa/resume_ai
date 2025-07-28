@@ -7,7 +7,7 @@ export default function WhyUs() {
         <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="md:w-1/2">
                 <div className="relative">
-                    <img src="https://picsum.photos/seed/techhuman/600/400" alt="Professional working on a laptop" className="rounded-lg shadow-2xl w-full" />
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800&auto=format&fit=crop" alt="Data analytics dashboard" className="rounded-lg shadow-2xl w-full" />
                     <div className="absolute -bottom-4 -right-4 bg-cyan-500 p-4 rounded-lg shadow-lg">
                         <ShieldCheckIcon className="h-10 w-10 text-white" />
                     </div>

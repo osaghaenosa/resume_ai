@@ -3,19 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nosentix AI Resume Generator</title>
+    <title>AI Resume Gen: AI-Powered Resume & Portfolio Builder</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://checkout.flutterwave.com/v3.js"></script>
     <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@^19.1.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
-    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@18.2.0",
+    "react/": "https://esm.sh/react@18.2.0/",
+    "react-dom": "https://esm.sh/react-dom@18.2.0",
+    "react-dom/": "https://esm.sh/react-dom@18.2.0/",
     "@google/genai": "https://esm.sh/@google/genai",
     "jspdf": "https://esm.sh/jspdf@2.5.1",
     "html2canvas": "https://esm.sh/html2canvas@1.4.1",
-    "@stripe/stripe-js": "https://esm.sh/@stripe/stripe-js@^3.5.0",
-    "@stripe/react-stripe-js": "https://esm.sh/@stripe/react-stripe-js@^2.7.1"
+    "mammoth": "https://esm.sh/mammoth@1.8.0",
+    "pdfjs-dist": "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.178/build/pdf.mjs"
   }
 }
 </script>
@@ -23,6 +25,61 @@
       /* For a smooth scrolling experience */
       html {
         scroll-behavior: smooth;
+      }
+      /* For hero animations */
+      @keyframes blink {
+        50% { opacity: 0; }
+      }
+      .animate-blink {
+        animation: blink 1.2s infinite steps(1, start);
+      }
+      @keyframes fadeInUp {
+          from {
+              opacity: 0;
+              transform: translateY(20px);
+          }
+          to {
+              opacity: 1;
+              transform: translateY(0);
+          }
+      }
+      .animate-fade-in-up {
+          animation: fadeInUp 0.6s ease-out forwards;
+          opacity: 0; /* Start hidden */
+      }
+      /* For success modal */
+      @keyframes zoomInFade {
+          from {
+              opacity: 0;
+              transform: scale(0.9);
+          }
+          to {
+              opacity: 1;
+              transform: scale(1);
+          }
+      }
+      .animate-zoom-in-fade {
+          animation: zoomInFade 0.3s ease-out forwards;
+      }
+      @keyframes emoji-pop {
+        0% { transform: scale(1) rotate(0deg); }
+        30% { transform: scale(1.25) rotate(-10deg); }
+        60% { transform: scale(1.1) rotate(5deg); }
+        100% { transform: scale(1) rotate(0deg); }
+      }
+      .animate-emoji-pop {
+        animation: emoji-pop 0.6s ease-in-out;
+      }
+      @keyframes confetti-fall {
+        0% { transform: translateY(-20px) rotateZ(0deg); opacity: 1; }
+        100% { transform: translateY(100vh) rotateZ(720deg); opacity: 0; }
+      }
+
+      .confetti-piece {
+        position: absolute;
+        top: -20px; /* Start above the modal */
+        opacity: 0;
+        animation: confetti-fall 5s linear infinite;
       }
     </style>
   <link rel="stylesheet" href="/index.css">
