@@ -418,7 +418,6 @@ const getCoverLetterSystemInstruction = (request: DocumentRequest) => `
 const getPortfolioSystemInstruction = (request: DocumentRequest) => {
     const { portfolioTemplate = 'onyx' } = request;
     
-    // Define theme properties
     const themes: { [key: string]: any } = {
         onyx: { primary: '#5EEAD4', bg: '#111827', text: '#D1D5DB', cardBg: '#1F2937', font: "'Inter', sans-serif" },
         quartz: { primary: '#2563EB', bg: '#FFFFFF', text: '#333333', cardBg: '#F9FAFB', font: "'Georgia', serif" },
@@ -430,87 +429,131 @@ const getPortfolioSystemInstruction = (request: DocumentRequest) => {
     const theme = themes[themeKey] || themes.onyx;
 
     return `
-**ROLE & GOAL:** You are an expert frontend developer creating a clean, professional portfolio website using only vanilla JavaScript (no frameworks or dependencies). The output must be a single HTML file with built-in navigation between sections.
+**ROLE & GOAL:** You are an expert frontend developer creating a clean, professional portfolio website using only vanilla JavaScript (no frameworks or dependencies). The output must be a single HTML file with proper navigation between sections.
 
-**CRITICAL REQUIREMENTS:**
-1. **SINGLE FILE SPA:** The entire portfolio must be one self-contained HTML file with:
-   - Hash-based navigation (e.g., #home, #projects, #contact)
-   - No page reloads when navigating between sections
-   - Smooth transitions between views
+**CRITICAL REQUIREMENTS FOR ERROR-FREE OUTPUT:**
+1. **STRUCTURE VALIDATION:**
+   - Must start with \`<!DOCTYPE html>\` and include complete HTML structure
+   - All CSS must be properly escaped and contained within \`<style>\` tags
+   - All JavaScript must be properly escaped and contained within \`<script>\` tags
 
-2. **STRUCTURE:**
-   <!DOCTYPE html>
-   <html>
-   <head>
-     <title>Portfolio</title>
-     <style>
-       /* All CSS goes here */
-     </style>
-     <!-- Only allowed external resources are Google Fonts -->
-   </head>
-   <body>
-     <div id="app-root"></div>
-     <script>
-       // All JavaScript goes here
-     </script>
-   </body>
-   </html>
+2. **NAVIGATION SYSTEM:**
+   - Must implement proper hash-based routing (e.g., #home, #about)
+   - Must include these core sections:
+     * Home (default view)
+     * About
+     * Projects
+     * Contact
+   - Must handle these edge cases:
+     * Invalid hash routes should redirect to home
+     * Empty hash should redirect to home
+     * Navigation should work on initial page load
 
-3. **NAVIGATION SYSTEM:**
-   - Implement a router that handles these minimum routes:
-     * #home (default view)
-     * #projects
-     * #about
-     * #contact
-   - Use window.addEventListener('hashchange') to detect navigation changes
-   - Create render functions for each section:
-     * renderHome()
-     * renderProjects()
-     * renderAbout()
-     * renderContact()
+3. **STATE MANAGEMENT:**
+   - Must initialize with complete state object containing:
+     * User profile data
+     * Projects array
+     * Current view tracking
+   - Must include proper data validation and escaping
 
-4. **STATE MANAGEMENT:**
-   const state = {
-     user: { /* user data from prompt */ },
-     projects: [ /* project data from prompt */ ],
-     currentView: 'home' // Track active view
-   };
+4. **COMPONENT RENDERING:**
+   - Must use template literals for all components
+   - Must properly escape all dynamic content
+   - Must include smooth transitions between views
+   - Must maintain active navigation state
 
-5. **COMPONENTS:**
-   - Create reusable components using template literals:
-     * Navigation bar with links to all sections
-     * Project cards
-     * Contact form
-     * About section
-   - All links must use hash navigation (e.g., <a href="#projects">)
+5. **ERROR PREVENTION:**
+   - Must include null checks for DOM elements
+   - Must handle missing data gracefully
+   - Must prevent XSS vulnerabilities through proper escaping
+   - Must ensure all event listeners are properly attached/detached
 
 6. **STYLING:**
-   - Strictly follow the ${portfolioTemplate} theme:
-     * Primary Color: ${theme.primary}
+   - Must follow ${portfolioTemplate} theme:
+     * Primary: ${theme.primary}
      * Background: ${theme.bg}
-     * Text Color: ${theme.text}
-     * Card Background: ${theme.cardBg}
-     * Font Family: ${theme.font}
-   - Make fully responsive (mobile-first approach)
-   - Include smooth transitions between views
+     * Text: ${theme.text}
+     * Cards: ${theme.cardBg}
+     * Font: ${theme.font}
+   - Must be fully responsive
+   - Must include proper vendor prefixes
 
-7. **IMAGE HANDLING:**
-   - Use provided placeholders: {{PROFILE_PICTURE}}, {{PROJECT_IMAGE_1}}, etc.
-   - Include appropriate alt text
+**PROHIBITED TO PREVENT ERRORS:**
+- No React, Vue, or other frameworks
+- No external dependencies
+- No ES6+ features without polyfills
+- No inline event handlers
+- No document.write or other unsafe practices
 
-8. **INTERACTIONS:**
-   - Contact form with basic validation
-   - Project filtering/categorization if applicable
-   - Smooth scrolling for anchor links
+**OUTPUT VALIDATION:**
+The generated code must:
+1. Be valid HTML5 that passes W3C validation
+2. Have no JavaScript syntax errors
+3. Have no undefined variable references
+4. Have proper null checks for DOM elements
+5. Include proper error handling for:
+   - Missing data
+   - Invalid routes
+   - Form validation
 
-**PROHIBITED:**
-- No React, Vue, or any JS frameworks
-- No external CSS or JS files
-- No jQuery or other libraries
-- No server-side code
+**TEMPLATE FOR CONSISTENCY:**
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Portfolio</title>
+  <style>
+    /* All CSS here with proper escaping */
+  </style>
+</head>
+<body>
+  <div id="app-root"></div>
+  <script>
+    // State initialization with all required fields
+    const state = {
+      user: { /* complete profile */ },
+      projects: [ /* complete projects */ ],
+      currentView: 'home'
+    };
 
-**OUTPUT FORMAT:**
-Provide the complete HTML file starting with <!DOCTYPE html> with all CSS and JavaScript embedded. The portfolio should work immediately when opened in a browser with no additional setup.
+    // DOM utility functions
+    function escapeHTML(str) { /* implementation */ }
+
+    // Component render functions
+    function renderNav() { /* implementation */ }
+    function renderHome() { /* implementation */ }
+    /* other render functions */
+
+    // Router implementation
+    function handleRoute() { 
+      // Must handle:
+      // - Initial load
+      // - Hash changes
+      // - Invalid routes
+    }
+
+    // Initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      // Must:
+      // - Set up initial view
+      // - Attach event listeners
+      // - Handle any initial data loading
+    });
+
+    // Event listeners
+    window.addEventListener('hashchange', handleRoute);
+  </script>
+</body>
+</html>
+
+**SPECIFIC FIXES FROM PREVIOUS OUTPUT:**
+1. Ensure all template literals are properly closed
+2. Add null checks for DOM element selection
+3. Validate all data before rendering
+4. Properly escape all dynamic content
+5. Handle missing image placeholders gracefully
+6. Ensure all event listeners are properly attached
+7. Include proper error handling for form submission
+8. Validate CSS properties for browser compatibility
 `;
 }
 
