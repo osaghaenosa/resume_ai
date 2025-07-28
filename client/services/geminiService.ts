@@ -418,260 +418,54 @@ const getCoverLetterSystemInstruction = (request: DocumentRequest) => `
 const getPortfolioSystemInstruction = (request: DocumentRequest) => {
     const { portfolioTemplate = 'onyx' } = request;
     
-    // Enhanced theme properties with more detailed styling
+    // Define theme properties. This could be expanded.
     const themes: { [key: string]: any } = {
-        onyx: { 
-            primary: '#5EEAD4', 
-            bg: '#111827', 
-            text: '#D1D5DB', 
-            cardBg: '#1F2937', 
-            font: "'Inter', sans-serif",
-            secondary: '#374151',
-            accent: '#10B981',
-            shadow: 'rgba(0, 0, 0, 0.5)',
-            borderRadius: '12px'
-        },
-        quartz: { 
-            primary: '#2563EB', 
-            bg: '#FFFFFF', 
-            text: '#333333', 
-            cardBg: '#F9FAFB', 
-            font: "'Georgia', serif",
-            secondary: '#F3F4F6',
-            accent: '#1D4ED8',
-            shadow: 'rgba(0, 0, 0, 0.1)',
-            borderRadius: '8px'
-        },
-        sapphire: { 
-            primary: '#4F46E5', 
-            bg: '#F0F4F8', 
-            text: '#1E293B', 
-            cardBg: '#FFFFFF', 
-            font: "'Poppins', sans-serif",
-            secondary: '#E2E8F0',
-            accent: '#3730A3',
-            shadow: 'rgba(79, 70, 229, 0.1)',
-            borderRadius: '10px'
-        },
-        emerald: { 
-            primary: '#81B29A', 
-            bg: '#F5F5F5', 
-            text: '#3D405B', 
-            cardBg: '#FFFFFF', 
-            font: "'Lato', sans-serif",
-            secondary: '#E8F5E8',
-            accent: '#059669',
-            shadow: 'rgba(129, 178, 154, 0.2)',
-            borderRadius: '15px'
-        },
-        ruby: { 
-            primary: '#9A1750', 
-            bg: '#1a1a1a', 
-            text: '#EAEAEA', 
-            cardBg: '#222222', 
-            font: "'Cormorant Garamond', serif",
-            secondary: '#2D2D2D',
-            accent: '#BE185D',
-            shadow: 'rgba(154, 23, 80, 0.3)',
-            borderRadius: '6px'
-        },
-        // New themes
-        diamond: {
-            primary: '#06B6D4',
-            bg: '#F8FAFC',
-            text: '#0F172A',
-            cardBg: '#FFFFFF',
-            font: "'Nunito Sans', sans-serif",
-            secondary: '#E2E8F0',
-            accent: '#0891B2',
-            shadow: 'rgba(6, 182, 212, 0.15)',
-            borderRadius: '16px'
-        },
-        obsidian: {
-            primary: '#F59E0B',
-            bg: '#0C0C0C',
-            text: '#F3F4F6',
-            cardBg: '#1C1C1C',
-            font: "'JetBrains Mono', monospace",
-            secondary: '#262626',
-            accent: '#F97316',
-            shadow: 'rgba(245, 158, 11, 0.2)',
-            borderRadius: '4px'
-        }
+        onyx: { primary: '#5EEAD4', bg: '#111827', text: '#D1D5DB', cardBg: '#1F2937', font: "'Inter', sans-serif" },
+        quartz: { primary: '#2563EB', bg: '#FFFFFF', text: '#333333', cardBg: '#F9FAFB', font: "'Georgia', serif" },
+        sapphire: { primary: '#4F46E5', bg: '#F0F4F8', text: '#1E293B', cardBg: '#FFFFFF', font: "'Poppins', sans-serif" },
+        emerald: { primary: '#81B29A', bg: '#F5F5F5', text: '#3D405B', cardBg: '#FFFFFF', font: "'Lato', sans-serif" },
+        ruby: { primary: '#9A1750', bg: '#1a1a1a', text: '#EAEAEA', cardBg: '#222222', font: "'Cormorant Garamond', serif" },
     };
-    
     const themeKey = portfolioTemplate.split('-')[0] as keyof typeof themes;
     const theme = themes[themeKey] || themes.onyx;
 
-    // Enhanced system instruction with better structure and more detailed requirements
     return `
-**ROLE & GOAL:** You are an expert frontend developer building a sophisticated, single-file, interactive portfolio website using only HTML, CSS, and vanilla JavaScript. The final output must be a single, self-contained HTML document that functions as a Single Page Application (SPA) with modern design principles and excellent user experience.
+**ROLE & GOAL:** You are an expert frontend developer building a sophisticated, single-file, interactive portfolio website using only HTML, CSS, and vanilla JavaScript. The final output must be a single, self-contained HTML document that functions as a Single Page Application (SPA).
 
 **CRITICAL REQUIREMENTS:**
+1.  **SINGLE FILE SPA:** The entire output MUST be one HTML file. It will use hash-based routing (e.g., \`#/\`, \`#/product/...\`).
+2.  **HTML STRUCTURE:** The file must have a \`<!DOCTYPE html>\`, \`<html>\`, \`<head>\`, and \`<body>\`.
+    -   The \`<head>\` must contain a \`<title>\`, a \`<style>\` tag for all CSS, and any necessary external scripts (like Flutterwave if used).
+    -   The \`<body>\` must contain a single root element, e.g., \`<div id="app-root"></div>\`, where the SPA will be rendered.
+    -   A \`<script>\` tag at the end of the \`<body>\` will contain ALL JavaScript logic.
+3.  **CSS:** All styling MUST be inside the \`<style>\` tag. It must be professional, responsive, and strictly follow the aesthetic of the chosen **'${portfolioTemplate}'** theme. Use the provided theme guidelines below.
+4.  **JAVASCRIPT LOGIC (SPA):** The main \`<script>\` tag must contain all logic for the application:
+    -   **State:** Create a global \`state\` object: \`const state = { user: {...}, projects: [], products: [], cart: [] };\`. You MUST populate this state object with the user, project, and product data provided in the prompt.
+    -   **Routing:** Implement a \`router\` function that reads \`window.location.hash\`. It should handle routes like \`'#/'\` (home), \`'#/product/:id'\`, and \`'#/checkout'\`.
+    -   **Page Rendering:** Create functions to render each page (e.g., \`renderHomePage()\`, \`renderProductPage(id)\`, \`renderCheckoutPage()\`) into the \`#app-root\`. These functions will use the data from the \`state\` object.
+    -   **Component Templates:** Use JavaScript template literals to define the HTML structure for pages and repeatable components (like product cards).
+    -   **Event Handling:** Add event listeners for navigation clicks (which should change the window hash), "Add to Cart" buttons, and checkout actions.
+    -   **Initial Load & Navigation:** Call the \`router\` on the \`DOMContentLoaded\` event and listen for the \`hashchange\` event to re-route and re-render the page.
+5.  **PRODUCT & PAYMENT HANDLING:**
+    -   On the home page, product cards must link to their detail page using a hash route (e.g., \`href="#/product/prod_123"\`).
+    -   On the product detail page, display all product info. The purchase action depends on \`product.paymentMethod\`:
+        -   **'link'**: Render an \`<a>\` button linking to \`product.checkoutLink\`.
+        -   **'bank'**: Render the \`product.bankDetails\` in a pre-formatted, easy-to-copy block.
+        -   **'flutterwave'**: Render a button that, when clicked, triggers the \`FlutterwaveCheckout\` function using the user's details and the \`product.flutterwaveKey\`. You must ensure the Flutterwave script is included in the \`<head>\` if any product uses this method.
+6.  **IMAGE PLACEHOLDERS:** You MUST use the exact image placeholders provided (e.g., \`{{PROJECT_IMAGE_proj123}}\`, \`{{PRODUCT_IMAGE_prod456}}\`, \`{{PROFILE_PICTURE}}\`) in the 'src' attributes for all images. These will be replaced by the system later.
+7.  **TEMPLATE-SPECIFIC IMPLEMENTATION & STYLING:**
+    -   You MUST style the entire SPA according to the **${portfolioTemplate}** theme.
+    -   **Theme Guidelines for '${portfolioTemplate}':**
+        -   **Primary Color:** ${theme.primary}
+        -   **Background Color:** ${theme.bg}
+        -   **Text Color:** ${theme.text}
+        -   **Card/Element Background:** ${theme.cardBg}
+        -   **Font Family:** ${theme.font} (ensure you import it from Google Fonts in the <head> if needed)
+        -   **General Aesthetic:** Create a design that reflects the name '${themeKey}'. For example, 'onyx' should be dark and modern; 'quartz' should be clean and light; 'ruby' should be bold and elegant.
 
-### 1. FILE STRUCTURE & ARCHITECTURE
-- **SINGLE FILE SPA:** The entire output MUST be one HTML file with hash-based routing
-- **HTML STRUCTURE:** Must include proper DOCTYPE, semantic HTML5 elements, and accessibility features
-- **HEAD SECTION:** Include title, meta tags, Google Fonts import, and conditional scripts
-- **BODY SECTION:** Single root element \`<div id="app-root"></div>\` for SPA rendering
-- **SCRIPT ORGANIZATION:** All JavaScript logic in a single script tag with proper module organization
-
-### 2. ENHANCED CSS REQUIREMENTS
-All styling MUST be inside the \`<style>\` tag and follow these guidelines:
-- **Theme Consistency:** Strictly follow the **'${portfolioTemplate}'** theme aesthetic
-- **Color Palette:**
-  - Primary: ${theme.primary}
-  - Background: ${theme.bg}
-  - Text: ${theme.text}
-  - Card Background: ${theme.cardBg}
-  - Secondary: ${theme.secondary}
-  - Accent: ${theme.accent}
-- **Typography:** Use ${theme.font} with proper font weights and sizes
-- **Design Elements:**
-  - Border Radius: ${theme.borderRadius}
-  - Box Shadows: ${theme.shadow}
-  - Smooth transitions and hover effects
-  - Responsive design with mobile-first approach
-- **Modern CSS Features:**
-  - CSS Grid and Flexbox for layouts
-  - CSS Custom Properties (variables)
-  - Smooth animations and micro-interactions
-  - Progressive enhancement
-
-### 3. ENHANCED JAVASCRIPT ARCHITECTURE
-Create a well-structured SPA with these components:
-
-\`\`\`javascript
-// State Management
-const state = {
-    user: {...}, // User data from request
-    projects: [...], // Portfolio projects
-    products: [...], // Products for sale
-    cart: [], // Shopping cart items
-    currentPage: 'home',
-    loading: false,
-    error: null
-};
-
-// Router with better error handling
-const router = () => {
-    // Hash-based routing logic
-    // Error boundaries for failed routes
-    // Loading states
-};
-
-// Component system
-const components = {
-    navbar: () => { /* Enhanced navbar with active states */ },
-    hero: () => { /* Hero section with animations */ },
-    projectCard: (project) => { /* Project card component */ },
-    productCard: (product) => { /* Product card component */ },
-    footer: () => { /* Footer component */ }
-};
-
-// Page renderers with better UX
-const pages = {
-    home: () => { /* Home page with smooth scrolling sections */ },
-    product: (id) => { /* Product detail with image gallery */ },
-    checkout: () => { /* Enhanced checkout with validation */ },
-    notFound: () => { /* 404 page with helpful navigation */ }
-};
-\`\`\`
-
-### 4. ENHANCED FEATURES & FUNCTIONALITY
-- **Navigation:** Smooth scrolling, sticky header, mobile hamburger menu
-- **Image Handling:** Lazy loading, proper alt texts, responsive images
-- **Cart System:** Local state management, quantity controls, total calculations
-- **Payment Integration:** Enhanced UI for all payment methods
-- **Form Validation:** Client-side validation with user feedback
-- **Error Handling:** Graceful error states and user feedback
-- **Performance:** Optimized rendering and minimal reflows
-
-### 5. ACCESSIBILITY & SEO
-- **Semantic HTML:** Proper heading hierarchy, landmarks, and ARIA labels
-- **Keyboard Navigation:** Tab order, focus management, keyboard shortcuts
-- **Screen Reader Support:** Descriptive text, skip links, live regions
-- **Meta Tags:** Proper Open Graph and Twitter Card tags
-- **Performance:** Fast loading, optimized images, minimal JavaScript
-
-### 6. RESPONSIVE DESIGN BREAKPOINTS
-\`\`\`css
-/* Mobile First Approach */
-/* Base styles: 320px+ */
-@media (min-width: 480px) { /* Small tablets */ }
-@media (min-width: 768px) { /* Tablets */ }
-@media (min-width: 1024px) { /* Desktops */ }
-@media (min-width: 1440px) { /* Large screens */ }
-\`\`\`
-
-### 7. ENHANCED PAYMENT HANDLING
-Implement sophisticated payment UI based on \`product.paymentMethod\`:
-- **'link':** Styled call-to-action buttons with security indicators
-- **'bank':** Formatted bank details with copy-to-clipboard functionality
-- **'flutterwave':** Professional payment modal with proper error handling
-- **Cart system:** Quantity management, total calculations, tax handling
-
-### 8. IMAGE OPTIMIZATION
-- Use provided placeholders: \`{{PROFILE_PICTURE}}\`, \`{{PROJECT_IMAGE_id}}\`, \`{{PRODUCT_IMAGE_id}}\`
-- Implement lazy loading and proper aspect ratios
-- Add loading states and error fallbacks
-
-### 9. THEME-SPECIFIC ENHANCEMENTS
-Based on the **${themeKey}** theme, implement:
-- Theme-appropriate animations and transitions
-- Consistent visual hierarchy and spacing
-- Brand-aligned iconography and graphics
-- Theme-specific interactive elements
-
-**OUTPUT REQUIREMENTS:**
-Generate a complete, single HTML file that:
-1. Starts with \`<!DOCTYPE html>\`
-2. Is fully functional without external dependencies (except Google Fonts and payment scripts)
-3. Provides excellent user experience across all devices
-4. Follows modern web development best practices
-5. Is production-ready and performant
-
-**QUALITY STANDARDS:**
-- Clean, maintainable code structure
-- Consistent naming conventions
-- Comprehensive error handling
-- Smooth user interactions
-- Professional visual design
-- Accessible to all users
+**YOUR TASK:** Generate the complete, single HTML file for the portfolio SPA based on the user's data below and the specified '${portfolioTemplate}' theme. Do not add any commentary. The output must start with \`<!DOCTYPE html>\` and be a valid HTML file.
 `;
-};
-
-// Enhanced error handling and validation
-const validateDocumentRequest = (request: DocumentRequest): string[] => {
-    const errors: string[] = [];
-    
-    if (!request.name?.trim()) {
-        errors.push("Name is required");
-    }
-    
-    if (!request.contact?.trim()) {
-        errors.push("Contact information is required");
-    }
-    
-    if (request.docType === 'Portfolio') {
-        if (!request.portfolioBio?.trim()) {
-            errors.push("Portfolio bio is required");
-        }
-        
-        if (request.products?.length) {
-            request.products.forEach((product, index) => {
-                if (!product.title?.trim()) {
-                    errors.push(`Product ${index + 1}: Title is required`);
-                }
-                if (!product.price || product.price <= 0) {
-                    errors.push(`Product ${index + 1}: Valid price is required`);
-                }
-            });
-        }
-    }
-    
-    return errors;
-};
+}
 
 
 const getMockHtmlResume = (request: DocumentRequest) => `
