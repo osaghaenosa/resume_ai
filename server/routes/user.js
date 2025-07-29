@@ -173,26 +173,37 @@ router.post('/documents/:id/publish', auth, async (req, res, next) => {
 // Public route to access a shared portfolio
 router.get('/share/:id', async (req, res, next) => {
   try {
-    const user = await User.findOne({ "documents._id": req.params.id });
-    if (!user) return res.status(404).json({ message: "User or document not found" });
+    const id = req.params.id;
+    console.log('Requested Share ID:', id);
 
-    const doc = user.documents.find(d => d._id == req.params.id || d.id == req.params.id);
-    const docType = doc?.type?.toLowerCase().trim();
-
-    if (!doc || !doc.isPublic || docType !== PORTFOLIO_TYPE) {
-      return res.status(404).json({ message: "Portfolio not shared or invalid type" });
+    // Find user with the matching document ID
+    const user = await User.findOne({ "documents._id": id });
+    if (!user) {
+      return res.status(404).json({ message: "User not found with document ID" });
     }
 
+    // Find the actual document
+    const doc = user.documents.find(d => d._id === id);
+    if (!doc) {
+      return res.status(404).json({ message: "Document not found in user's list" });
+    }
+
+    // Return the document in a format expected by the frontend
     res.json({
       id: doc._id,
       title: doc.title,
       content: doc.content,
-      createdAt: doc.createdAt,
       type: doc.type,
+      isPublic: doc.isPublic ?? false,
+      createdAt: doc.createdAt ?? null,
+      updatedAt: doc.updatedAt ?? null,
     });
   } catch (err) {
+    console.error('Error in /share/:id:', err);
     next(err);
   }
 });
+
+
 
 export default router;

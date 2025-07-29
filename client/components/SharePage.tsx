@@ -16,15 +16,15 @@ export default function SharePage({ docId }: SharePageProps) {
 
     useEffect(() => {
     const fetchDoc = async () => {
-        alert('📡 Connecting to server...');
+       
         setLoading(true);
         try {
             const publicDoc = await getPublicDocument(docId);
-            alert("📥 Server responded with: " + JSON.stringify(publicDoc));
+            
 
             if (publicDoc) {
                 setDoc(publicDoc);
-                alert('✅ Document fetched successfully!');
+                
             } else {
                 alert('⚠️ Document not found or is not public.');
                 setError("This document could not be found or is not public.");

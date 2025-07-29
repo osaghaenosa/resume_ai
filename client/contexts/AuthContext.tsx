@@ -6,7 +6,8 @@ import {
   User, Document, SignupCredentials, LoginCredentials, DocumentRequest
 } from '../types';
 
-const API = import.meta.env.VITE_API_URL;
+const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const shareAPI = import.meta.env.VITE_SHARE_API_URL || 'http://localhost:5000/share';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -125,11 +126,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const getPublicDocument = async (docId: string): Promise<Document | null> => {
   try {
-    const res = await axios.get(`${API}/share/${docId}`);
+    const res = await axios.get(`${shareAPI}/${docId}`);
     return res.data;
   } catch (err) {
-    alert('❌ Failed to fetch document from server');
-    console.error('Error fetching public doc:', err);
+    
+    console.error('Error fetching document public doc:', err);
     return null;
   }
 };
