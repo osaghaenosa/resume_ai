@@ -19,6 +19,7 @@ app.use(express.json());
 app.use('/api/upload', uploadRoutes);
 
 // Routes
+app.use('/', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 
