@@ -15,19 +15,30 @@ export default function SharePage({ docId }: SharePageProps) {
     const [error, setError] = useState('');
 
     useEffect(() => {
+    const fetchDoc = async () => {
+        alert('📡 Connecting to server...');
+        setLoading(true);
         try {
-            const publicDoc = getPublicDocument(docId);
+            const publicDoc = await getPublicDocument(docId);
+            alert("📥 Server responded with: " + JSON.stringify(publicDoc));
+
             if (publicDoc) {
                 setDoc(publicDoc);
+                alert('✅ Document fetched successfully!');
             } else {
+                alert('⚠️ Document not found or is not public.');
                 setError("This document could not be found or is not public.");
             }
         } catch (e) {
+            alert('❌ Error fetching document from server.');
             setError("An error occurred while trying to load this document.");
         } finally {
             setLoading(false);
         }
-    }, [docId, getPublicDocument]);
+    };
+
+    fetchDoc();
+}, [docId, getPublicDocument]);
 
     if (loading) {
         return (

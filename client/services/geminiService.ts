@@ -417,7 +417,7 @@ const getCoverLetterSystemInstruction = (request: DocumentRequest) => `
 
 const getPortfolioSystemInstruction = (request: DocumentRequest) => {
     const { portfolioTemplate = 'onyx' } = request;
-    
+
     const themes: { [key: string]: any } = {
         onyx: { primary: '#5EEAD4', bg: '#111827', text: '#D1D5DB', cardBg: '#1F2937', font: "'Inter', sans-serif" },
         quartz: { primary: '#2563EB', bg: '#FFFFFF', text: '#333333', cardBg: '#F9FAFB', font: "'Georgia', serif" },
@@ -429,134 +429,230 @@ const getPortfolioSystemInstruction = (request: DocumentRequest) => {
     const theme = themes[themeKey] || themes.onyx;
 
     return `
-**ROLE & GOAL:** You are an expert frontend developer creating a clean, professional portfolio website using only vanilla JavaScript (no frameworks or dependencies). The output must be a single HTML file with proper navigation between sections.
+**CRITICAL REQUIREMENTS FOR REACT-COMPATIBLE PORTFOLIO:**
+1. **PURE HTML OUTPUT:**
+   - MUST start with \`<!DOCTYPE html>\` with NO Markdown wrappers
+   - MUST be a complete, self-contained HTML file
+   - MUST NOT contain \`\`\`html\`\`\` code blocks
 
-**CRITICAL REQUIREMENTS FOR ERROR-FREE OUTPUT:**
-1. **STRUCTURE VALIDATION:**
-   - Must start with \`<!DOCTYPE html>\` and include complete HTML structure
-   - All CSS must be properly escaped and contained within \`<style>\` tags
-   - All JavaScript must be properly escaped and contained within \`<script>\` tags
+2. **REACT INJECTION SAFETY:**
+   - MUST use a root container with class: \`portfolio-container\`
+   - MUST scope all CSS under \`.portfolio-container\`
+   - MUST use data attributes for navigation instead of URL hashes
+   - MUST NOT rely on window.location or history API
 
-2. **NAVIGATION SYSTEM:**
-   - Must implement proper hash-based routing (e.g., #home, #about)
-   - Must include these core sections:
-     * Home (default view)
-     * About
-     * Projects
-     * Contact
-   - Must handle these edge cases:
-     * Invalid hash routes should redirect to home
-     * Empty hash should redirect to home
-     * Navigation should work on initial page load
+3. **NAVIGATION SYSTEM:**
+   - Implement SIMPLE tab-based navigation using data attributes
+   - Required sections: home, about, projects, contact, products
+   - Products section must list products (use placeholder product data)
+   - Clicking a product shows a single product detail view
+   - Buy button must go to a given external URL (placeholder for now)
 
-3. **STATE MANAGEMENT:**
-   - Must initialize with complete state object containing:
-     * User profile data
-     * Projects array
-     * Current view tracking
-   - Must include proper data validation and escaping
-
-4. **COMPONENT RENDERING:**
-   - Must use template literals for all components
-   - Must properly escape all dynamic content
-   - Must include smooth transitions between views
-   - Must maintain active navigation state
+4. **RESPONSIVE DESIGN:**
+   - Use CSS media queries for layout adaptability
+   - Use flex/grid layout for product cards
 
 5. **ERROR PREVENTION:**
-   - Must include null checks for DOM elements
-   - Must handle missing data gracefully
-   - Must prevent XSS vulnerabilities through proper escaping
-   - Must ensure all event listeners are properly attached/detached
+   - Add null checks for ALL DOM elements
+   - Include XSS prevention via content escaping
+   - Handle missing data gracefully
+   - Validate form inputs with user feedback
 
-6. **STYLING:**
-   - Must follow ${portfolioTemplate} theme:
-     * Primary: ${theme.primary}
+6. **THEME IMPLEMENTATION:**
+   - Use these theme properties in CSS:
+     * Primary Color: ${theme.primary}
      * Background: ${theme.bg}
-     * Text: ${theme.text}
-     * Cards: ${theme.cardBg}
-     * Font: ${theme.font}
-   - Must be fully responsive
-   - Must include proper vendor prefixes
+     * Text Color: ${theme.text}
+     * Card Background: ${theme.cardBg}
+     * Font Family: ${theme.font}
 
-**PROHIBITED TO PREVENT ERRORS:**
-- No React, Vue, or other frameworks
-- No external dependencies
-- No ES6+ features without polyfills
-- No inline event handlers
-- No document.write or other unsafe practices
-
-**OUTPUT VALIDATION:**
-The generated code must:
-1. Be valid HTML5 that passes W3C validation
-2. Have no JavaScript syntax errors
-3. Have no undefined variable references
-4. Have proper null checks for DOM elements
-5. Include proper error handling for:
-   - Missing data
-   - Invalid routes
-   - Form validation
-
-**TEMPLATE FOR CONSISTENCY:**
+**HTML TEMPLATE STARTS HERE:**
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Portfolio</title>
   <style>
-    /* All CSS here with proper escaping */
+    .portfolio-container {
+      background: ${theme.bg};
+      color: ${theme.text};
+      font-family: ${theme.font};
+      padding: 1rem;
+    }
+    .portfolio-container nav {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .portfolio-container nav a {
+      color: ${theme.primary};
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .portfolio-section {
+      display: none;
+    }
+    .portfolio-section.active {
+      display: block;
+    }
+    .product-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .product-card {
+      background: ${theme.cardBg};
+      padding: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .product-detail {
+      background: ${theme.cardBg};
+      padding: 1rem;
+      border-radius: 8px;
+    }
+    .buy-button {
+      display: inline-block;
+      margin-top: 1rem;
+      background-color: ${theme.primary};
+      color: ${theme.bg};
+      padding: 0.5rem 1rem;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    @media (max-width: 600px) {
+      .product-list {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
-  <div id="app-root"></div>
+  <div class="portfolio-container">
+    <nav>
+      <a data-section="home">Home</a>
+      <a data-section="about">About</a>
+      <a data-section="projects">Projects</a>
+      <a data-section="products">Products</a>
+      <a data-section="contact">Contact</a>
+    </nav>
+
+    <section id="home-section" class="portfolio-section active">
+      <h2>Welcome</h2>
+      <p>This is the home section.</p>
+    </section>
+
+    <section id="about-section" class="portfolio-section">
+      <h2>About Me</h2>
+      <p>Details about me.</p>
+    </section>
+
+    <section id="projects-section" class="portfolio-section">
+      <h2>Projects</h2>
+      <p>Project list goes here.</p>
+    </section>
+
+    <section id="products-section" class="portfolio-section">
+      <h2>Products</h2>
+      <div class="product-list" id="product-list"></div>
+      <div id="product-detail" class="product-detail" style="display:none;"></div>
+    </section>
+
+    <section id="contact-section" class="portfolio-section">
+      <h2>Contact</h2>
+      <form id="contact-form">
+        <input type="text" placeholder="Your Name" required><br>
+        <input type="email" placeholder="Your Email" required><br>
+        <textarea placeholder="Your Message" required></textarea><br>
+        <button type="submit">Send</button>
+      </form>
+    </section>
+  </div>
+
   <script>
-    // State initialization with all required fields
-    const state = {
-      user: { /* complete profile */ },
-      projects: [ /* complete projects */ ],
-      currentView: 'home'
-    };
+    document.addEventListener('DOMContentLoaded', function () {
+      const container = document.querySelector('.portfolio-container');
+      if (!container) return;
 
-    // DOM utility functions
-    function escapeHTML(str) { /* implementation */ }
+      const products = [
+        { id: 1, name: "Product One", description: "This is the first product.", link: "https://example.com/product1" },
+        { id: 2, name: "Product Two", description: "This is the second product.", link: "https://example.com/product2" },
+        { id: 3, name: "Product Three", description: "This is the third product.", link: "https://example.com/product3" }
+      ];
 
-    // Component render functions
-    function renderNav() { /* implementation */ }
-    function renderHome() { /* implementation */ }
-    /* other render functions */
+      const productList = document.getElementById('product-list');
+      const productDetail = document.getElementById('product-detail');
 
-    // Router implementation
-    function handleRoute() { 
-      // Must handle:
-      // - Initial load
-      // - Hash changes
-      // - Invalid routes
-    }
+      function escapeHTML(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
 
-    // Initialization
-    document.addEventListener('DOMContentLoaded', () => {
-      // Must:
-      // - Set up initial view
-      // - Attach event listeners
-      // - Handle any initial data loading
+      function renderProductList() {
+        if (!productList) return;
+        productDetail.style.display = 'none';
+        productList.innerHTML = '';
+        products.forEach(product => {
+          const card = document.createElement('div');
+          card.className = 'product-card';
+          card.setAttribute('data-id', product.id);
+          card.innerHTML = \`<h3>\${escapeHTML(product.name)}</h3><p>\${escapeHTML(product.description.slice(0, 50))}...</p>\`;
+          productList.appendChild(card);
+        });
+      }
+
+      function showProductDetail(id) {
+        const product = products.find(p => p.id === parseInt(id));
+        if (!product || !productDetail) return;
+        productList.innerHTML = '';
+        productDetail.style.display = 'block';
+        productDetail.innerHTML = \`
+          <h3>\${escapeHTML(product.name)}</h3>
+          <p>\${escapeHTML(product.description)}</p>
+          <a class="buy-button" href="\${product.link}" target="_blank">Buy Now</a>
+        \`;
+      }
+
+      if (productList) {
+        productList.addEventListener('click', function (e) {
+          const card = e.target.closest('.product-card');
+          if (card) {
+            const id = card.getAttribute('data-id');
+            showProductDetail(id);
+          }
+        });
+      }
+
+      container.addEventListener('click', function (e) {
+        if (e.target.matches('[data-section]')) {
+          e.preventDefault();
+          const sectionId = e.target.getAttribute('data-section');
+          document.querySelectorAll('.portfolio-section').forEach(s => s.classList.remove('active'));
+          const section = document.getElementById(sectionId + '-section');
+          if (section) section.classList.add('active');
+
+          if (sectionId === 'products') {
+            renderProductList();
+          }
+        }
+      });
+
+      const form = container.querySelector('#contact-form');
+      if (form) {
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          alert('Form submitted!');
+        });
+      }
     });
-
-    // Event listeners
-    window.addEventListener('hashchange', handleRoute);
   </script>
 </body>
 </html>
-
-**SPECIFIC FIXES FROM PREVIOUS OUTPUT:**
-1. Ensure all template literals are properly closed
-2. Add null checks for DOM element selection
-3. Validate all data before rendering
-4. Properly escape all dynamic content
-5. Handle missing image placeholders gracefully
-6. Ensure all event listeners are properly attached
-7. Include proper error handling for form submission
-8. Validate CSS properties for browser compatibility
 `;
-}
-
+};
 
 const getMockHtmlResume = (request: DocumentRequest) => `
 <div style="font-family: 'Georgia', 'Times New Roman', serif; margin: 0 auto; max-width: 800px; background-color: #fff; color: #333; padding: 40px; border: 1px solid #ddd;">
