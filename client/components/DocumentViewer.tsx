@@ -164,6 +164,36 @@ export default function DocumentViewer({ doc, onClose, onEdit, onUpgrade }: Docu
     };
     
     const canEdit = currentUser ? currentUser.plan === 'Pro' || currentUser.tokens > 0 : false;
+    
+    
+
+const PortfolioViewer = ({ doc }: { doc: { bodyHtml: string; scriptJs: string; styleCss?: string } }) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Inject CSS (if needed)
+    if (doc.styleCss) {
+      const style = document.createElement('style');
+      style.textContent = doc.styleCss;
+      contentRef.current?.appendChild(style);
+    }
+
+    // Inject and run JS
+    const script = document.createElement('script');
+    script.textContent = doc.scriptJs;
+    contentRef.current?.appendChild(script);
+
+    return () => {
+      script.remove();
+    };
+  }, [doc]);
+
+  return (
+    <div ref={contentRef}>
+      <div dangerouslySetInnerHTML={{ __html: doc.bodyHtml }} />
+    </div>
+  );
+};
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
@@ -218,7 +248,16 @@ export default function DocumentViewer({ doc, onClose, onEdit, onUpgrade }: Docu
                 )}
                 <div className="flex-grow overflow-y-auto p-6 bg-gray-600">
                     <div ref={contentRef}>
-                        <div dangerouslySetInnerHTML={{ __html: doc.content }} />
+                        {doc.sourceRequest?.docType === 'Portfolio' && (
+                            <div dangerouslySetInnerHTML={{ __html: doc.bodyHtml }} />
+                        )}
+                        {doc.sourceRequest?.docType === 'Resume' && (
+                            <div dangerouslySetInnerHTML={{ __html: doc.content }} />
+                        )}
+                        {doc.sourceRequest?.docType === 'Cover Letter' && (
+                            <div dangerouslySetInnerHTML={{ __html: doc.content }} />
+                        )}
+                        
                     </div>
                 </div>
             </div>

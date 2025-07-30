@@ -415,9 +415,9 @@ const getCoverLetterSystemInstruction = (request: DocumentRequest) => `
 
 // --- PORTFOLIO ---
 
-const getPortfolioSystemInstruction = (request: DocumentRequest) => {
+const getPortfolioSystemInstruction = (request: DocumentRequest): DocumentTemplate => {
     const { portfolioTemplate = 'onyx' } = request;
-
+    
     const themes: { [key: string]: any } = {
         onyx: { primary: '#5EEAD4', bg: '#111827', text: '#D1D5DB', cardBg: '#1F2937', font: "'Inter', sans-serif" },
         quartz: { primary: '#2563EB', bg: '#FFFFFF', text: '#333333', cardBg: '#F9FAFB', font: "'Georgia', serif" },
@@ -425,233 +425,267 @@ const getPortfolioSystemInstruction = (request: DocumentRequest) => {
         emerald: { primary: '#81B29A', bg: '#F5F5F5', text: '#3D405B', cardBg: '#FFFFFF', font: "'Lato', sans-serif" },
         ruby: { primary: '#9A1750', bg: '#1a1a1a', text: '#EAEAEA', cardBg: '#222222', font: "'Cormorant Garamond', serif" },
     };
+    
     const themeKey = portfolioTemplate.split('-')[0] as keyof typeof themes;
     const theme = themes[themeKey] || themes.onyx;
-
-    return `
-**CRITICAL REQUIREMENTS FOR REACT-COMPATIBLE PORTFOLIO:**
-1. **PURE HTML OUTPUT:**
-   - MUST start with \`<!DOCTYPE html>\` with NO Markdown wrappers
-   - MUST be a complete, self-contained HTML file
-   - MUST NOT contain \`\`\`html\`\`\` code blocks
-
-2. **REACT INJECTION SAFETY:**
-   - MUST use a root container with class: \`portfolio-container\`
-   - MUST scope all CSS under \`.portfolio-container\`
-   - MUST use data attributes for navigation instead of URL hashes
-   - MUST NOT rely on window.location or history API
-
-3. **NAVIGATION SYSTEM:**
-   - Implement SIMPLE tab-based navigation using data attributes
-   - Required sections: home, about, projects, contact, products
-   - Products section must list products (use placeholder product data)
-   - Clicking a product shows a single product detail view
-   - Buy button must go to a given external URL (placeholder for now)
-
-4. **RESPONSIVE DESIGN:**
-   - Use CSS media queries for layout adaptability
-   - Use flex/grid layout for product cards
-
-5. **ERROR PREVENTION:**
-   - Add null checks for ALL DOM elements
-   - Include XSS prevention via content escaping
-   - Handle missing data gracefully
-   - Validate form inputs with user feedback
-
-6. **THEME IMPLEMENTATION:**
-   - Use these theme properties in CSS:
-     * Primary Color: ${theme.primary}
-     * Background: ${theme.bg}
-     * Text Color: ${theme.text}
-     * Card Background: ${theme.cardBg}
-     * Font Family: ${theme.font}
-
-**HTML TEMPLATE STARTS HERE:**
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Portfolio</title>
-  <style>
-    .portfolio-container {
-      background: ${theme.bg};
-      color: ${theme.text};
-      font-family: ${theme.font};
-      padding: 1rem;
-    }
-    .portfolio-container nav {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-    }
-    .portfolio-container nav a {
-      color: ${theme.primary};
-      text-decoration: none;
-      cursor: pointer;
-    }
-    .portfolio-section {
-      display: none;
-    }
-    .portfolio-section.active {
-      display: block;
-    }
-    .product-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-    }
-    .product-card {
-      background: ${theme.cardBg};
-      padding: 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .product-detail {
-      background: ${theme.cardBg};
-      padding: 1rem;
-      border-radius: 8px;
-    }
-    .buy-button {
-      display: inline-block;
-      margin-top: 1rem;
-      background-color: ${theme.primary};
-      color: ${theme.bg};
-      padding: 0.5rem 1rem;
-      text-decoration: none;
-      border-radius: 4px;
-    }
-    @media (max-width: 600px) {
-      .product-list {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="portfolio-container">
+    
+    return {
+        bodyHtml: `
+<div class="portfolio-container">
     <nav>
-      <a data-section="home">Home</a>
-      <a data-section="about">About</a>
-      <a data-section="projects">Projects</a>
-      <a data-section="products">Products</a>
-      <a data-section="contact">Contact</a>
+        <a href="#" data-section="home" class="active">Home</a>
+        <a href="#" data-section="about">About</a>
+        <a href="#" data-section="projects">Projects</a>
+        <a href="#" data-section="products">Products</a>
+        <a href="#" data-section="contact">Contact</a>
     </nav>
 
     <section id="home-section" class="portfolio-section active">
-      <h2>Welcome</h2>
-      <p>This is the home section.</p>
+        <img src="${request.profilePicture || '#'}" alt="Profile" class="profile-img">
+        <h1>${request.name}</h1>
+        <p>${request.portfolioBio || 'Welcome to my portfolio'}</p>
     </section>
 
     <section id="about-section" class="portfolio-section">
-      <h2>About Me</h2>
-      <p>Details about me.</p>
+        <h2>About Me</h2>
+        <p>${request.portfolioBio || ''}</p>
+        <p>${request.contact}</p>
+        <div class="skills">${request.skills}</div>
     </section>
 
     <section id="projects-section" class="portfolio-section">
-      <h2>Projects</h2>
-      <p>Project list goes here.</p>
+        <h2>Projects</h2>
+        <div class="projects-grid">
+            ${(request.portfolioProjects || []).map(project => `
+                <div class="project-card" data-id="${project.id}">
+                    <img src="${project.image}" alt="${project.title}">
+                    <h3>${project.title}</h3>
+                    <p>${project.description}</p>
+                </div>
+            `).join('')}
+        </div>
     </section>
 
     <section id="products-section" class="portfolio-section">
-      <h2>Products</h2>
-      <div class="product-list" id="product-list"></div>
-      <div id="product-detail" class="product-detail" style="display:none;"></div>
+        <h2>Products</h2>
+        <div class="product-list" id="product-list">
+            ${(request.products || []).map(product => `
+                <div class="product-card" data-id="${product.id}">
+                    <img src="${product.image}" alt="${product.title}">
+                    <h3>${product.title}</h3>
+                    <p>$${product.price}</p>
+                </div>
+            `).join('')}
+        </div>
+        <div id="product-detail" class="product-detail"></div>
     </section>
 
     <section id="contact-section" class="portfolio-section">
-      <h2>Contact</h2>
-      <form id="contact-form">
-        <input type="text" placeholder="Your Name" required><br>
-        <input type="email" placeholder="Your Email" required><br>
-        <textarea placeholder="Your Message" required></textarea><br>
-        <button type="submit">Send</button>
-      </form>
+        <h2>Contact Me</h2>
+        <form id="contact-form">
+            <input type="text" placeholder="Name" required>
+            <input type="email" placeholder="Email" required>
+            <textarea placeholder="Message" required></textarea>
+            <button type="submit">Send</button>
+        </form>
     </section>
-  </div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const container = document.querySelector('.portfolio-container');
-      if (!container) return;
-
-      const products = [
-        { id: 1, name: "Product One", description: "This is the first product.", link: "https://example.com/product1" },
-        { id: 2, name: "Product Two", description: "This is the second product.", link: "https://example.com/product2" },
-        { id: 3, name: "Product Three", description: "This is the third product.", link: "https://example.com/product3" }
-      ];
-
-      const productList = document.getElementById('product-list');
-      const productDetail = document.getElementById('product-detail');
-
-      function escapeHTML(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-      }
-
-      function renderProductList() {
-        if (!productList) return;
-        productDetail.style.display = 'none';
-        productList.innerHTML = '';
-        products.forEach(product => {
-          const card = document.createElement('div');
-          card.className = 'product-card';
-          card.setAttribute('data-id', product.id);
-          card.innerHTML = \`<h3>\${escapeHTML(product.name)}</h3><p>\${escapeHTML(product.description.slice(0, 50))}...</p>\`;
-          productList.appendChild(card);
-        });
-      }
-
-      function showProductDetail(id) {
-        const product = products.find(p => p.id === parseInt(id));
-        if (!product || !productDetail) return;
-        productList.innerHTML = '';
-        productDetail.style.display = 'block';
-        productDetail.innerHTML = \`
-          <h3>\${escapeHTML(product.name)}</h3>
-          <p>\${escapeHTML(product.description)}</p>
-          <a class="buy-button" href="\${product.link}" target="_blank">Buy Now</a>
-        \`;
-      }
-
-      if (productList) {
-        productList.addEventListener('click', function (e) {
-          const card = e.target.closest('.product-card');
-          if (card) {
+</div>
+        `,
+        
+        scriptJs: `
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.querySelector('.portfolio-container');
+    if (!container) return;
+    
+    // Navigation handling
+    container.addEventListener('click', function(e) {
+        if (e.target.matches('[data-section]')) {
+            e.preventDefault();
+            const section = e.target.getAttribute('data-section');
+            showSection(section);
+        }
+        if (e.target.closest('.project-card')) {
+            const card = e.target.closest('.project-card');
+            const id = card.getAttribute('data-id');
+            showProjectDetail(id);
+        }
+        if (e.target.closest('.product-card')) {
+            const card = e.target.closest('.product-card');
             const id = card.getAttribute('data-id');
             showProductDetail(id);
-          }
-        });
-      }
-
-      container.addEventListener('click', function (e) {
-        if (e.target.matches('[data-section]')) {
-          e.preventDefault();
-          const sectionId = e.target.getAttribute('data-section');
-          document.querySelectorAll('.portfolio-section').forEach(s => s.classList.remove('active'));
-          const section = document.getElementById(sectionId + '-section');
-          if (section) section.classList.add('active');
-
-          if (sectionId === 'products') {
-            renderProductList();
-          }
         }
-      });
-
-      const form = container.querySelector('#contact-form');
-      if (form) {
-        form.addEventListener('submit', function (e) {
-          e.preventDefault();
-          alert('Form submitted!');
-        });
-      }
     });
-  </script>
-</body>
-</html>
-`;
+    
+    // Form handling
+    const contactForm = container.querySelector('#contact-form');
+    if (contactForm) {
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Form submitted successfully!');
+            contactForm.reset();
+        });
+    }
+    
+    function showSection(sectionId) {
+        // Hide all sections
+        document.querySelectorAll('.portfolio-section').forEach(s => {
+            s.classList.remove('active');
+        });
+        
+        // Show requested section
+        const section = document.getElementById(sectionId + '-section');
+        if (section) section.classList.add('active');
+    }
+    
+    function showProjectDetail(projectId) {
+        // In a real implementation, this would fetch project details
+        alert('Showing project details for ID: ' + projectId);
+    }
+    
+    function showProductDetail(productId) {
+        // In a real implementation, this would fetch product details
+        const productDetail = document.getElementById('product-detail');
+        if (productDetail) {
+            productDetail.innerHTML = \`
+                <h3>Product Details</h3>
+                <p>Showing details for product ID: \${productId}</p>
+                <button class="buy-button">Buy Now</button>
+            \`;
+            productDetail.style.display = 'block';
+        }
+    }
+});
+        `,
+        
+        styleCss: `
+.portfolio-container {
+    background: ${theme.bg};
+    color: ${theme.text};
+    font-family: ${theme.font};
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.portfolio-container nav {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.portfolio-container nav a {
+    color: ${theme.primary};
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.portfolio-container nav a.active,
+.portfolio-container nav a:hover {
+    background-color: ${theme.primary};
+    color: ${theme.bg};
+}
+
+.portfolio-section {
+    display: none;
+    padding: 20px;
+    background: ${theme.cardBg};
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.portfolio-section.active {
+    display: block;
+}
+
+.profile-img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 20px;
+    border: 3px solid ${theme.primary};
+}
+
+.projects-grid, .product-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.project-card, .product-card {
+    background: ${theme.cardBg};
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.project-card:hover, .product-card:hover {
+    transform: translateY(-5px);
+}
+
+.project-card img, .product-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.product-detail {
+    background: ${theme.cardBg};
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+    display: none;
+}
+
+.buy-button {
+    background: ${theme.primary};
+    color: ${theme.bg};
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 15px;
+}
+
+#contact-form input,
+#contact-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid ${theme.text}40;
+    border-radius: 5px;
+    background: ${theme.cardBg};
+    color: ${theme.text};
+}
+
+#contact-form button {
+    background: ${theme.primary};
+    color: ${theme.bg};
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .portfolio-container nav {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .projects-grid, .product-list {
+        grid-template-columns: 1fr;
+    }
+}
+        `
+    };
 };
 
 const getMockHtmlResume = (request: DocumentRequest) => `

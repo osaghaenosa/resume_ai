@@ -40,8 +40,9 @@ export interface Document {
   title: string;
   type: DocumentType;
   content: string;
-  createdAt: string; // ISO string
-  sourceRequest?: DocumentRequest; // To enable editing
+  structuredContent?: DocumentTemplate; // For portfolio documents
+  createdAt: string;
+  sourceRequest?: DocumentRequest;
   isPublic?: boolean;
 }
 
@@ -63,6 +64,12 @@ export interface DocumentRequest {
   portfolioSocialLinks?: string;
   portfolioTemplate?: PortfolioTemplate;
   products?: Product[];
+}
+
+export interface DocumentTemplate {
+  bodyHtml: string; // ONLY the inner HTML from <body>
+  scriptJs: string; // The JS code (currently inside <script>)
+  styleCss: string; // Optional, CSS only if you want to insert style manually
 }
 
 export type UserPlan = 'Free' | 'Pro';
