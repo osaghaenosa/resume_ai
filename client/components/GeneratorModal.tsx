@@ -167,9 +167,19 @@ const PORTFOLIO_TEMPLATES: { name: PortfolioTemplate, description: string, isPro
 ];
 
 
-const ImagePreview: React.FC<{ imageId: string, className: string, alt: string, placeholder: React.ReactNode }> = ({ imageId, className, alt, placeholder }) => {
-    const imageUrl = useImageUrl(imageId);
-    return imageUrl ? <img src={imageUrl} alt={alt} className={className} /> : <>{placeholder}</>;
+const ImagePreview: React.FC<{ 
+  imageId: string, 
+  className: string, 
+  alt: string, 
+  placeholder: React.ReactNode 
+}> = ({ imageId, className, alt, placeholder }) => {
+  // If it's already a URL (from server), use it directly
+  if (imageId?.startsWith('/uploads/') || imageId?.startsWith('http')) {
+    return <img src={imageId} alt={alt} className={className} />;
+  }
+  
+  // Otherwise, show placeholder
+  return <>{placeholder}</>;
 };
 
 export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: GeneratorModalProps) {
@@ -213,28 +223,35 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
         }));
     };
 
-    const handleFileChange = (file: File, field: 'profilePicture' | 'projectImage' | 'productImage', itemId?: string) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const base64String = reader.result as string;
-            const imageId = saveImage(base64String);
-
-            if (field === 'profilePicture') {
-                setFormData(prev => ({...prev, profilePicture: imageId}));
-            } else if (field === 'projectImage' && itemId) {
-                setFormData(prev => ({
-                    ...prev,
-                    portfolioProjects: (prev.portfolioProjects || []).map(p => p.id === itemId ? { ...p, image: imageId } : p)
-                }));
-            } else if (field === 'productImage' && itemId) {
-                setFormData(prev => ({
-                    ...prev,
-                    products: (prev.products || []).map(p => p.id === itemId ? { ...p, image: imageId } : p)
-                }));
-            }
-        };
-        reader.readAsDataURL(file);
-    };
+    const handleFileChange = async (file: File, field: 'profilePicture' | 'projectImage' | 'productImage', itemId?: string) => {
+  try {
+    setIsLoading(true);
+    const imageUrl = await saveImage(file); // This now uploads to server and returns URL
+    
+    if (field === 'profilePicture') {
+      setFormData(prev => ({...prev, profilePicture: imageUrl}));
+    } else if (field === 'projectImage' && itemId) {
+      setFormData(prev => ({
+        ...prev,
+        portfolioProjects: (prev.portfolioProjects || []).map(p => 
+          p.id === itemId ? { ...p, image: imageUrl } : p
+        )
+      }));
+    } else if (field === 'productImage' && itemId) {
+      setFormData(prev => ({
+        ...prev,
+        products: (prev.products || []).map(p => 
+          p.id === itemId ? { ...p, image: imageUrl } : p
+        )
+      }));
+    }
+  } catch (error) {
+    console.error('Error handling file change:', error);
+    setError('Failed to upload image');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
     const addProject = () => {
         setFormData(prev => ({

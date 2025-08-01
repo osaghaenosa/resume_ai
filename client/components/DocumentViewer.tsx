@@ -248,8 +248,14 @@ const PortfolioViewer = ({ doc }: { doc: { bodyHtml: string; scriptJs: string; s
                 )}
                 <div className="flex-grow overflow-y-auto p-6 bg-gray-600">
                     <div ref={contentRef}>
+                        // In DocumentViewer.tsx
                         {doc.sourceRequest?.docType === 'Portfolio' && (
-                            <div dangerouslySetInnerHTML={{ __html: doc.bodyHtml }} />
+                          <iframe 
+                            srcDoc={doc.content}
+                            sandbox="allow-scripts allow-same-origin"
+                            style={{ width: '100%', height: '100%', border: 'none' }}
+                            title="Portfolio"
+                          />
                         )}
                         {doc.sourceRequest?.docType === 'Resume' && (
                             <div dangerouslySetInnerHTML={{ __html: doc.content }} />

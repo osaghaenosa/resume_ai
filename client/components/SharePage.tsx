@@ -74,7 +74,12 @@ export default function SharePage({ docId }: SharePageProps) {
 
     return (
         <div className="bg-gray-800">
-             <div dangerouslySetInnerHTML={{ __html: doc.content }} />
+             <iframe 
+                            srcDoc={doc.content}
+                            sandbox="allow-scripts allow-same-origin"
+                            style={{ width: '100%', height: '100vh', border: 'none' }}
+                            title="Portfolio"
+                          />
              <footer className="text-center p-4 bg-gray-900 text-gray-500 text-sm">
                  <p>
                     This portfolio was created with 

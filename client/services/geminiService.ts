@@ -415,7 +415,7 @@ const getCoverLetterSystemInstruction = (request: DocumentRequest) => `
 
 // --- PORTFOLIO ---
 
-const getPortfolioSystemInstruction = (request: DocumentRequest): DocumentTemplate => {
+const getPortfolioSystemInstruction = (request: DocumentRequest): string => {
     const { portfolioTemplate = 'onyx' } = request;
     
     const themes: { [key: string]: any } = {
@@ -429,264 +429,282 @@ const getPortfolioSystemInstruction = (request: DocumentRequest): DocumentTempla
     const themeKey = portfolioTemplate.split('-')[0] as keyof typeof themes;
     const theme = themes[themeKey] || themes.onyx;
     
-    return {
-        bodyHtml: `
-<div class="portfolio-container">
-    <nav>
-        <a href="#" data-section="home" class="active">Home</a>
-        <a href="#" data-section="about">About</a>
-        <a href="#" data-section="projects">Projects</a>
-        <a href="#" data-section="products">Products</a>
-        <a href="#" data-section="contact">Contact</a>
-    </nav>
-
-    <section id="home-section" class="portfolio-section active">
-        <img src="${request.profilePicture || '#'}" alt="Profile" class="profile-img">
-        <h1>${request.name}</h1>
-        <p>${request.portfolioBio || 'Welcome to my portfolio'}</p>
-    </section>
-
-    <section id="about-section" class="portfolio-section">
-        <h2>About Me</h2>
-        <p>${request.portfolioBio || ''}</p>
-        <p>${request.contact}</p>
-        <div class="skills">${request.skills}</div>
-    </section>
-
-    <section id="projects-section" class="portfolio-section">
-        <h2>Projects</h2>
-        <div class="projects-grid">
-            ${(request.portfolioProjects || []).map(project => `
-                <div class="project-card" data-id="${project.id}">
-                    <img src="${project.image}" alt="${project.title}">
-                    <h3>${project.title}</h3>
-                    <p>${project.description}</p>
-                </div>
-            `).join('')}
-        </div>
-    </section>
-
-    <section id="products-section" class="portfolio-section">
-        <h2>Products</h2>
-        <div class="product-list" id="product-list">
-            ${(request.products || []).map(product => `
-                <div class="product-card" data-id="${product.id}">
-                    <img src="${product.image}" alt="${product.title}">
-                    <h3>${product.title}</h3>
-                    <p>$${product.price}</p>
-                </div>
-            `).join('')}
-        </div>
-        <div id="product-detail" class="product-detail"></div>
-    </section>
-
-    <section id="contact-section" class="portfolio-section">
-        <h2>Contact Me</h2>
-        <form id="contact-form">
-            <input type="text" placeholder="Name" required>
-            <input type="email" placeholder="Email" required>
-            <textarea placeholder="Message" required></textarea>
-            <button type="submit">Send</button>
-        </form>
-    </section>
-</div>
-        `,
+    // Return a complete HTML document with embedded CSS and JS
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${request.name}'s Portfolio</title>
+    <style>
+        .portfolio-container {
+            background: ${theme.bg};
+            color: ${theme.text};
+            font-family: ${theme.font};
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
         
-        scriptJs: `
-document.addEventListener('DOMContentLoaded', function() {
-    const container = document.querySelector('.portfolio-container');
-    if (!container) return;
+        .portfolio-container nav {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .portfolio-container nav a {
+            color: ${theme.primary};
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .portfolio-container nav a.active,
+        .portfolio-container nav a:hover {
+            background-color: ${theme.primary};
+            color: ${theme.bg};
+        }
+        
+        .portfolio-section {
+            display: none;
+            padding: 20px;
+            background: ${theme.cardBg};
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .portfolio-section.active {
+            display: block;
+        }
+        
+        .profile-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+            border: 3px solid ${theme.primary};
+        }
+        
+        .projects-grid, .product-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .project-card, .product-card {
+            background: ${theme.cardBg};
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .project-card:hover, .product-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .project-card img, .product-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .product-detail {
+            background: ${theme.cardBg};
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .buy-button {
+            background: ${theme.primary};
+            color: ${theme.bg};
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        
+        #contact-form input,
+        #contact-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid ${theme.text}40;
+            border-radius: 5px;
+            background: ${theme.cardBg};
+            color: ${theme.text};
+        }
+        
+        #contact-form button {
+            background: ${theme.primary};
+            color: ${theme.bg};
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 768px) {
+            .portfolio-container nav {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .projects-grid, .product-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="portfolio-container">
+        <nav>
+            <a href="#" data-section="home" class="active">Home</a>
+            <a href="#" data-section="about">About</a>
+            <a href="#" data-section="projects">Projects</a>
+            <a href="#" data-section="products">Products</a>
+            <a href="#" data-section="contact">Contact</a>
+        </nav>
+
+        <section id="home-section" class="portfolio-section active">
+            <img src="${request.profilePicture || '#'}" alt="Profile" class="profile-img">
+            <h1>${request.name}</h1>
+            <p>${request.portfolioBio || 'Welcome to my portfolio'}</p>
+        </section>
+
+        <section id="about-section" class="portfolio-section">
+            <h2>About Me</h2>
+            <p>${request.portfolioBio || ''}</p>
+            <p>${request.contact}</p>
+            <div class="skills">${request.skills}</div>
+        </section>
+
+        <section id="projects-section" class="portfolio-section">
+            <h2>Projects</h2>
+            <div class="projects-grid">
+                ${(request.portfolioProjects || []).map(project => `
+                    <div class="project-card" data-id="${project.id}">
+                        <img src="${project.image}" alt="${project.title}">
+                        <h3>${project.title}</h3>
+                        <p>${project.description}</p>
+                    </div>
+                `).join('')}
+            </div>
+        </section>
+
+        <section id="products-section" class="portfolio-section">
+            <h2>Products</h2>
+            <div class="product-list" id="product-list">
+                ${(request.products || []).map(product => `
+                    <div class="product-card" data-id="${product.id}">
+                        <img src="${product.image}" alt="${product.title}">
+                        <h3>${product.title}</h3>
+                        <p>$${product.price}</p>
+                    </div>
+                `).join('')}
+            </div>
+            <div id="product-detail" class="product-detail"></div>
+        </section>
+
+        <section id="contact-section" class="portfolio-section">
+            <h2>Contact Me</h2>
+            <form id="contact-form">
+                <input type="text" placeholder="Name" required>
+                <input type="email" placeholder="Email" required>
+                <textarea placeholder="Message" required></textarea>
+                <button type="submit">Send</button>
+            </form>
+        </section>
+    </div>
     
-    // Navigation handling
-    container.addEventListener('click', function(e) {
-        if (e.target.matches('[data-section]')) {
-            e.preventDefault();
-            const section = e.target.getAttribute('data-section');
-            showSection(section);
-        }
-        if (e.target.closest('.project-card')) {
-            const card = e.target.closest('.project-card');
-            const id = card.getAttribute('data-id');
-            showProjectDetail(id);
-        }
-        if (e.target.closest('.product-card')) {
-            const card = e.target.closest('.product-card');
-            const id = card.getAttribute('data-id');
-            showProductDetail(id);
-        }
-    });
-    
-    // Form handling
-    const contactForm = container.querySelector('#contact-form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Form submitted successfully!');
-            contactForm.reset();
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.portfolio-container');
+            if (!container) return;
+            
+            // Navigation handling
+            container.addEventListener('click', function(e) {
+                if (e.target.matches('[data-section]')) {
+                    e.preventDefault();
+                    const section = e.target.getAttribute('data-section');
+                    showSection(section);
+                }
+                if (e.target.closest('.project-card')) {
+                    const card = e.target.closest('.project-card');
+                    const id = card.getAttribute('data-id');
+                    showProjectDetail(id);
+                }
+                if (e.target.closest('.product-card')) {
+                    const card = e.target.closest('.product-card');
+                    const id = card.getAttribute('data-id');
+                    showProductDetail(id);
+                }
+            });
+            
+            // Form handling
+            const contactForm = container.querySelector('#contact-form');
+            if (contactForm) {
+                contactForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    alert('Form submitted successfully!');
+                    contactForm.reset();
+                });
+            }
+            
+            function showSection(sectionId) {
+                // Hide all sections
+                document.querySelectorAll('.portfolio-section').forEach(s => {
+                    s.classList.remove('active');
+                });
+                
+                // Show requested section
+                const section = document.getElementById(sectionId + '-section');
+                if (section) section.classList.add('active');
+            }
+            
+            function showProjectDetail(projectId) {
+                alert('Showing project details for ID: ' + projectId);
+            }
+            
+            function showProductDetail(productId) {
+                const productDetail = document.getElementById('product-detail');
+                if (productDetail) {
+                    productDetail.innerHTML = \`
+                        <h3>Product Details</h3>
+                        <p>Showing details for product ID: \${productId}</p>
+                        <button class="buy-button">Buy Now</button>
+                    \`;
+                    productDetail.style.display = 'block';
+                }
+            }
         });
-    }
-    
-    function showSection(sectionId) {
-        // Hide all sections
-        document.querySelectorAll('.portfolio-section').forEach(s => {
-            s.classList.remove('active');
-        });
-        
-        // Show requested section
-        const section = document.getElementById(sectionId + '-section');
-        if (section) section.classList.add('active');
-    }
-    
-    function showProjectDetail(projectId) {
-        // In a real implementation, this would fetch project details
-        alert('Showing project details for ID: ' + projectId);
-    }
-    
-    function showProductDetail(productId) {
-        // In a real implementation, this would fetch product details
-        const productDetail = document.getElementById('product-detail');
-        if (productDetail) {
-            productDetail.innerHTML = \`
-                <h3>Product Details</h3>
-                <p>Showing details for product ID: \${productId}</p>
-                <button class="buy-button">Buy Now</button>
-            \`;
-            productDetail.style.display = 'block';
-        }
-    }
-});
-        `,
-        
-        styleCss: `
-.portfolio-container {
-    background: ${theme.bg};
-    color: ${theme.text};
-    font-family: ${theme.font};
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.portfolio-container nav {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
-}
-
-.portfolio-container nav a {
-    color: ${theme.primary};
-    text-decoration: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-}
-
-.portfolio-container nav a.active,
-.portfolio-container nav a:hover {
-    background-color: ${theme.primary};
-    color: ${theme.bg};
-}
-
-.portfolio-section {
-    display: none;
-    padding: 20px;
-    background: ${theme.cardBg};
-    border-radius: 10px;
-    margin-bottom: 20px;
-}
-
-.portfolio-section.active {
-    display: block;
-}
-
-.profile-img {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-bottom: 20px;
-    border: 3px solid ${theme.primary};
-}
-
-.projects-grid, .product-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-}
-
-.project-card, .product-card {
-    background: ${theme.cardBg};
-    padding: 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.3s;
-}
-
-.project-card:hover, .product-card:hover {
-    transform: translateY(-5px);
-}
-
-.project-card img, .product-card img {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 5px;
-    margin-bottom: 10px;
-}
-
-.product-detail {
-    background: ${theme.cardBg};
-    padding: 20px;
-    border-radius: 10px;
-    margin-top: 20px;
-    display: none;
-}
-
-.buy-button {
-    background: ${theme.primary};
-    color: ${theme.bg};
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 15px;
-}
-
-#contact-form input,
-#contact-form textarea {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid ${theme.text}40;
-    border-radius: 5px;
-    background: ${theme.cardBg};
-    color: ${theme.text};
-}
-
-#contact-form button {
-    background: ${theme.primary};
-    color: ${theme.bg};
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-@media (max-width: 768px) {
-    .portfolio-container nav {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .projects-grid, .product-list {
-        grid-template-columns: 1fr;
-    }
-}
-        `
-    };
+    </script>
+</body>
+</html>
+    `;
 };
+
+// Add this helper function for retries
+const withRetry = async <T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> => {
+    try {
+        return await fn();
+    } catch (error) {
+        if (retries <= 0) throw error;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return withRetry(fn, retries - 1, delay * 2);
+    }
+};
+
 
 const getMockHtmlResume = (request: DocumentRequest) => `
 <div style="font-family: 'Georgia', 'Times New Roman', serif; margin: 0 auto; max-width: 800px; background-color: #fff; color: #333; padding: 40px; border: 1px solid #ddd;">
@@ -748,7 +766,6 @@ export const generateDocument = async (request: DocumentRequest): Promise<string
         }
     }
 
-
     if (!apiKey) {
         console.warn("API_KEY environment variable not set. Using a mock response.");
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -761,59 +778,18 @@ export const generateDocument = async (request: DocumentRequest): Promise<string
     
     try {
         const ai = new GoogleGenAI({ apiKey });
+        let generatedHtml = '';
+
+        // Handle portfolio differently - no AI generation needed
+        if (docType === 'Portfolio') {
+            return getPortfolioSystemInstruction(resolvedRequest);
+        }
+
         let systemInstruction;
         let userPrompt;
         const imagePlaceholderMap: { [key: string]: string } = {};
-    
+
         switch (docType) {
-            case 'Portfolio': {
-                let processedProfilePicture = resolvedRequest.profilePicture;
-                if (resolvedRequest.profilePicture) {
-                    const placeholder = `{{PROFILE_PICTURE}}`;
-                    imagePlaceholderMap[placeholder] = resolvedRequest.profilePicture;
-                    processedProfilePicture = placeholder;
-                }
-    
-                const processedProjects = (resolvedRequest.portfolioProjects || []).map(project => {
-                    if (project.image) {
-                        const placeholder = `{{PROJECT_IMAGE_${project.id}}}`;
-                        imagePlaceholderMap[placeholder] = project.image;
-                        return { ...project, image: placeholder };
-                    }
-                    return project;
-                });
-    
-                const processedProducts = (resolvedRequest.products || []).map(product => {
-                    if (product.image) {
-                        const placeholder = `{{PRODUCT_IMAGE_${product.id}}}`;
-                        imagePlaceholderMap[placeholder] = product.image;
-                        return { ...product, image: placeholder };
-                    }
-                    return product;
-                });
-    
-                const requestWithPlaceholders = {
-                    ...resolvedRequest,
-                    profilePicture: processedProfilePicture,
-                    portfolioProjects: processedProjects,
-                    products: processedProducts,
-                };
-    
-                systemInstruction = getPortfolioSystemInstruction(requestWithPlaceholders);
-                // We pass the full data here for the AI to embed in the script tag.
-                // The image fields will contain placeholders.
-                const userDataForPrompt = JSON.stringify(requestWithPlaceholders, null, 2);
-
-                userPrompt = `
-    **TASK:** Based on the user details below, generate the full HTML for the Portfolio SPA by following all rules in the system instructions.
-
-    **USER DETAILS (JSON):**
-    ${userDataForPrompt}
-
-    Produce only the single, complete HTML file as requested.`.trim();
-                break;
-            }
-    
             case 'Cover Letter':
                 systemInstruction = getCoverLetterSystemInstruction(resolvedRequest);
                 userPrompt = `
@@ -853,15 +829,18 @@ export const generateDocument = async (request: DocumentRequest): Promise<string
             }
         }
 
-        const response: GenerateContentResponse = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: userPrompt,
-            config: {
-                systemInstruction: systemInstruction,
-            }
-        });
+        // Use retry mechanism with exponential backoff
+        const response: GenerateContentResponse = await withRetry(async () => {
+            return ai.models.generateContent({
+                model: "gemini-1.5-flash",  // Use 1.5-flash for better context handling
+                contents: userPrompt,
+                config: {
+                    systemInstruction: systemInstruction,
+                }
+            });
+        }, 3, 1000);
 
-        let generatedHtml = response.text;
+        generatedHtml = response.text;
 
         // Replace placeholders with actual base64 data
         for (const placeholder in imagePlaceholderMap) {
@@ -874,8 +853,13 @@ export const generateDocument = async (request: DocumentRequest): Promise<string
 
     } catch (error) {
         console.error("Error generating document with Gemini API:", error);
-         if (error instanceof Error && error.message.includes('API key not valid')) {
-            throw new Error("The configured API key is not valid. Please check your configuration.");
+        if (error instanceof Error) {
+            if (error.message.includes('API key not valid')) {
+                throw new Error("The configured API key is not valid. Please check your configuration.");
+            }
+            if (error.message.includes('quota')) {
+                throw new Error("API quota exceeded. Please check your usage limits.");
+            }
         }
         throw new Error("Failed to generate document. The AI service may be temporarily unavailable.");
     }

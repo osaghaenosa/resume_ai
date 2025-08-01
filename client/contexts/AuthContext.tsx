@@ -24,6 +24,7 @@ interface AuthContextType {
   generationCompleted: boolean;
   markGenerationCompleted: () => void;
   clearGenerationCompleted: () => void;
+  saveImage: (file: File) => Promise<string>; // Add this line
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,6 +47,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .catch(() => logout());
     }
   }, []);
+  
+  const saveImage = async (file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append('image', file);
+  
+  try {
+    const response = await axios.post(`${API}/upload`, formData, {
+      headers: {
+        ...authHeaders(),
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    
+    return response.data.imageUrl; // Should return something like "/uploads/filename.jpg"
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    throw error;
+  }
+};
 
   const signup = async (credentials: SignupCredentials) => {
     const res = await axios.post(`${API}/auth/signup`, credentials);
@@ -153,7 +173,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       getPublicDocument,
       generationCompleted,
       markGenerationCompleted,
-      clearGenerationCompleted
+      clearGenerationCompleted,
+      saveImage
     }}>
       {children}
     </AuthContext.Provider>
