@@ -8,6 +8,7 @@ import {
 
 const API = import.meta.env.VITE_API_URL;
 const SHARE_API = import.meta.env.VITE_SHARE_API_URL;
+const BASE_API = import.meta.env.VITE_LOCAL_API_URL;
 
 interface AuthContextType {
   currentUser: User | null;
@@ -53,7 +54,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   formData.append('image', file);
   
   try {
-    const response = await axios.post(`${API}/upload`, formData, {
+    const response = await axios.post(`${BASE_API}/upload`, formData, {
       headers: {
         ...authHeaders(),
         'Content-Type': 'multipart/form-data',
