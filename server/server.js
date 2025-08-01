@@ -1,10 +1,10 @@
-// server/server.js
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs'; // Add this import
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -26,6 +26,7 @@ app.use(express.json());
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
+  console.log('Created uploads directory at:', uploadDir);
 }
 
 // Serve static files
@@ -49,6 +50,7 @@ mongoose.connect(process.env.MONGO_URI)
     console.log('✅ MongoDB connected');
     app.listen(process.env.PORT, () => {
       console.log(`🚀 Server running on port ${process.env.PORT}`);
+      console.log(`📁 Upload directory: ${uploadDir}`);
     });
   })
   .catch((err) => {
