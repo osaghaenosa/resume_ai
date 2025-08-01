@@ -253,7 +253,7 @@ const PortfolioViewer = ({ doc }: { doc: { bodyHtml: string; scriptJs: string; s
                           <iframe 
                             srcDoc={doc.content}
                             sandbox="allow-scripts allow-same-origin"
-                            style={{ width: '100%', height: '100%', border: 'none' }}
+                            style={{ width: '100%', height: '80vh', border: 'none' }}
                             title="Portfolio"
                           />
                         )}
