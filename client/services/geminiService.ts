@@ -305,6 +305,20 @@ const TECHNICAL_RESUME_TEMPLATE_10 = createTechnicalVariant("'Share Tech Mono'",
 const TECHNICAL_RESUME_TEMPLATE_11 = createTechnicalVariant("'IBM Plex Mono'", { primary: '#00e676', bg: '#1c1c1c', text: '#e0e0e0', border: '#4a4a4a', secondaryText: '#8e8e8e' });
 // --- END GENERATED TECHNICAL TEMPLATES ---
 
+// Add this helper function to load templates
+const loadTemplate = async (templateName: string): Promise<string> => {
+  try {
+    const response = await fetch(`/templates/portfolio/${templateName}.html`);
+    if (!response.ok) throw new Error('Template not found');
+    return await response.text();
+  } catch (error) {
+    console.error(`Error loading template ${templateName}:`, error);
+    // Fallback to default template
+    const defaultResponse = await fetch('/templates/portfolio/onyx.html');
+    return await defaultResponse.text();
+  }
+};
+
 
 const getResumeSystemInstruction = (request: DocumentRequest) => {
     const { resumeTemplate = 'classic' } = request;
@@ -414,6 +428,43 @@ const getCoverLetterSystemInstruction = (request: DocumentRequest) => `
 `;
 
 // --- PORTFOLIO ---
+// New function to generate portfolio HTML
+const generatePortfolioHtml = async (request: DocumentRequest): Promise<string> => {
+  const templateName = request.portfolioTemplate?.split('-')[0] || 'onyx';
+  let templateHtml = await loadTemplate(templateName);
+  
+  // Replace placeholders with actual data
+  return templateHtml
+    .replace(/{{name}}/g, request.name || '')
+    .replace(/{{targetJob}}/g, request.targetJob || '')
+    .replace(/{{contact}}/g, request.contact || '')
+    .replace(/{{profilePicture}}/g, request.profilePicture || '')
+    .replace(/{{portfolioBio}}/g, request.portfolioBio || '')
+    .replace(/{{socialLinks}}/g, (request.portfolioSocialLinks || '')
+        .split(',')
+        .map(link => `<a href="${link.trim()}">${link.trim()}</a>`)
+        .join('<br>'))
+    .replace(/{{projects}}/g, (request.portfolioProjects || [])
+        .map(project => `
+          <div class="project-card">
+            <img src="${project.image}" alt="${project.title}">
+            <h3>${project.title}</h3>
+            <p>${project.description}</p>
+            ${project.link ? `<a href="${project.link}">View Project</a>` : ''}
+          </div>
+        `).join(''))
+    .replace(/{{products}}/g, (request.products || [])
+        .map(product => `
+          <div class="product-card">
+            <img src="${product.image}" alt="${product.title}">
+            <h3>${product.title}</h3>
+            <p>${product.description}</p>
+            <p><strong>Price:</strong> $${product.price}</p>
+          </div>
+        `).join(''));
+};
+
+//delete the getPortfolioSystemInstruction
 
 const getPortfolioSystemInstruction = (request: DocumentRequest): string => {
     const { portfolioTemplate = 'onyx' } = request;
@@ -781,8 +832,9 @@ export const generateDocument = async (request: DocumentRequest): Promise<string
         let generatedHtml = '';
 
         // Handle portfolio differently - no AI generation needed
+          // Handle portfolio generation
         if (docType === 'Portfolio') {
-            return getPortfolioSystemInstruction(resolvedRequest);
+          return generatePortfolioHtml(request);
         }
 
         let systemInstruction;

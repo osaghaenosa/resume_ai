@@ -199,6 +199,28 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
             setDocType(docToEdit.type);
         }
     }, [docToEdit]);
+    
+    useEffect(() => {
+        // Reset wizard step when docType changes
+        setWizardStep(1);
+    }, [docType]);
+
+    useEffect(() => {
+        if (docToEdit) {
+            const { docType: savedDocType, ...savedData } = docToEdit.sourceRequest;
+            setFormData({
+                ...DEFAULT_FORM_DATA,
+                ...savedData
+            });
+            setDocType(savedDocType);
+        } else {
+            setFormData({
+                ...DEFAULT_FORM_DATA,
+                name: currentUser?.name || 'Alex Doe'
+            });
+            setDocType('Resume');
+        }
+    }, [docToEdit, currentUser]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;

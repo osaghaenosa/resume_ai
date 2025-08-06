@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{name}}'s Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Georgia', serif;
+            background-color: #FFFFFF;
+            color: #333333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .portfolio-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .sidebar {
+            width: 30%;
+            padding: 20px;
+            background-color: #F9FAFB;
+            border-right: 1px solid #eaeaea;
+        }
+        .main-content {
+            width: 70%;
+            padding: 20px;
+        }
+        .profile-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+            border: 3px solid #2563EB;
+        }
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .project-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .project-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .section-title {
+            color: #2563EB;
+            border-bottom: 2px solid #2563EB;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .contact-info {
+            margin-top: 20px;
+        }
+        .social-links a {
+            display: block;
+            margin-bottom: 8px;
+            color: #2563EB;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="portfolio-container">
+        <div class="sidebar">
+            <img src="{{profilePicture}}" alt="Profile" class="profile-img">
+            <h1>{{name}}</h1>
+            <p>{{targetJob}}</p>
+            
+            <div class="contact-info">
+                <h3 class="section-title">Contact</h3>
+                <p>{{contact}}</p>
+            </div>
+            
+            <div class="social-links">
+                <h3 class="section-title">Social Links</h3>
+                {{#each socialLinks}}
+                <a href="{{this}}">{{this}}</a>
+                {{/each}}
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div>
+                <h2 class="section-title">About Me</h2>
+                <p>{{portfolioBio}}</p>
+            </div>
+            
+            <div>
+                <h2 class="section-title">Projects</h2>
+                <div class="projects-grid">
+                    {{#each portfolioProjects}}
+                    <div class="project-card">
+                        <img src="{{image}}" alt="{{title}}">
+                        <h3>{{title}}</h3>
+                        <p>{{description}}</p>
+                        <a href="{{link}}">View Project</a>
+                    </div>
+                    {{/each}}
+                </div>
+            </div>
+            
+            <div>
+                <h2 class="section-title">Products</h2>
+                <div class="projects-grid">
+                    {{#each products}}
+                    <div class="project-card">
+                        <img src="{{image}}" alt="{{title}}">
+                        <h3>{{title}}</h3>
+                        <p>{{description}}</p>
+                        <p><strong>Price:</strong> ${{price}}</p>
+                    </div>
+                    {{/each}}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
