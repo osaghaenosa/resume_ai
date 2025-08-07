@@ -384,7 +384,7 @@ const getResumeSystemInstruction = (request: DocumentRequest) => {
     }
 
     return `
-**ROLE & GOAL:** You are an expert career coach and professional writer. Your goal is to create a Resume that is a single, self-contained, and professionally styled HTML document. It MUST bypass AI detection tools by using varied, natural language. It must adhere strictly to the provided HTML structure for the chosen template.
+***ROLE & GOAL:** You are an expert career coach and professional writer. Your goal is to create a Resume that is a single, self-contained, and professionally styled HTML document. It MUST bypass AI detection tools by using varied, natural language. It must adhere strictly to the provided HTML structure for the chosen template.
 
 **CRITICAL INSTRUCTIONS:**
 1.  **HTML ONLY:** The entire output MUST be a single HTML string. Do not use markdown like \`\`\`html or any text outside of the main \`<div>\` container.
@@ -392,6 +392,20 @@ const getResumeSystemInstruction = (request: DocumentRequest) => {
 3.  **NATURAL LANGUAGE:** Avoid robotic language and clichés. Use strong action verbs and quantify achievements with metrics where possible.
 4.  **ADHERE TO TEMPLATE:** Use the exact HTML structure provided below. Populate the content within the specified divs and comments. For the 'creative' template, if a profile picture is not provided, use the placeholder div.
 5.  **PROFILE PICTURE:** If a profile picture placeholder (e.g., {{PROFILE_PICTURE}}) is provided in the user details, you MUST use it as the 'src' for the <img> tag in templates that support it ('creative').
+6.  **INCLUDE PROJECTS & CERTIFICATIONS:** You MUST include the user's projects and certifications in the resume where appropriate. Projects should be listed under a "Projects" section and certifications under a "Certifications" section.
+
+**USER'S PROJECTS:**
+${(request.projects || []).map(proj => 
+`- Title: ${proj.title || 'N/A'}
+  Description: ${proj.description || 'N/A'}
+  Technologies: ${proj.technologies || 'N/A'}
+  Link: ${proj.link || 'N/A'}`).join('\n') || 'No projects provided'}
+
+**USER'S CERTIFICATIONS:**
+${(request.certifications || []).map(cert => 
+`- Name: ${cert.name || 'N/A'}
+  Issuer: ${cert.issuer || 'N/A'}
+  Date: ${cert.date || 'N/A'}`).join('\n') || 'No certifications provided'}
 
 **HTML Template to Follow (Template: ${resumeTemplate}):**
 ${populatedTemplate}
@@ -834,7 +848,7 @@ export const generateDocument = async (request: DocumentRequest): Promise<string
         // Handle portfolio differently - no AI generation needed
           // Handle portfolio generation
         if (docType === 'Portfolio') {
-          return generatePortfolioHtml(request);
+          return generatePortfolioHtml(resolvedRequest);
         }
 
         let systemInstruction;
@@ -864,22 +878,24 @@ export const generateDocument = async (request: DocumentRequest): Promise<string
                     processedRequest.profilePicture = placeholder;
                 }
                 systemInstruction = getResumeSystemInstruction(processedRequest);
-                userPrompt = `
-    **TASK:** Based on the user details below, generate the full HTML for the ${docType} by populating the template provided in the system instructions.
-    
-    **USER DETAILS:**
-    - **Work Experience:** ${processedRequest.experience}
-    - **Education:** ${processedRequest.education}
-    - **Skills:** ${processedRequest.skills}
-    - **Target Job Title:** ${processedRequest.targetJob}
-    - **Target Company:** ${processedRequest.targetCompany}
-    - **Template:** ${processedRequest.resumeTemplate}
-    - **Profile Picture:** ${processedRequest.profilePicture ? processedRequest.profilePicture : 'Not Provided'}
-    
-    Produce only the HTML content as requested.`.trim();
-                break;
-            }
+            userPrompt = `
+**TASK:** Based on the user details below, generate the full HTML for the ${docType} by populating the template provided in the system instructions. Include projects and certifications where appropriate.
+
+**USER DETAILS:**
+- **Work Experience:** ${processedRequest.experience}
+- **Education:** ${processedRequest.education}
+- **Skills:** ${processedRequest.skills}
+- **Target Job Title:** ${processedRequest.targetJob}
+- **Target Company:** ${processedRequest.targetCompany}
+- **Template:** ${processedRequest.resumeTemplate}
+- **Profile Picture:** ${processedRequest.profilePicture ? processedRequest.profilePicture : 'Not Provided'}
+- **Projects:** ${(processedRequest.projects || []).map(p => p.title).join(', ') || 'None'}
+- **Certifications:** ${(processedRequest.certifications || []).map(c => c.name).join(', ') || 'None'}
+
+Produce only the HTML content as requested.`.trim();
+            break;
         }
+    }
 
         // Use retry mechanism with exponential backoff
         const response: GenerateContentResponse = await withRetry(async () => {

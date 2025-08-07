@@ -1,5 +1,5 @@
-
-import React, { useState, useRef, useEffect } from 'react';
+// src/components/DocumentViewer.tsx
+import React, { useState, useEffect } from 'react';
 import { Document } from '../types';
 import { XIcon, ClipboardCopyIcon, CheckIcon, TrashIcon, DownloadIcon, LoadingSpinner, PencilIcon, ShareIcon, LockClosedIcon } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
@@ -52,22 +52,25 @@ export default function DocumentViewer({ doc, onClose, onEdit, onUpgrade }: Docu
     const [isCopied, setIsCopied] = useState(false);
     const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
     const [shareText, setShareText] = useState('Share');
-    const contentRef = useRef<HTMLDivElement>(null);
-
+    
     useEffect(() => {
         setShareText('Share');
     }, [doc]);
 
     if (!doc) return null;
 
+    const getContentAsText = (htmlContent: string): string => {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent;
+        return tempDiv.innerText || tempDiv.textContent || '';
+    };
+    
     const handleCopyText = () => {
-        if (contentRef.current) {
-            const contentElement = contentRef.current.firstChild as HTMLElement;
-            if (contentElement) {
-                navigator.clipboard.writeText(contentElement.innerText);
-                setIsCopied(true);
-                setTimeout(() => setIsCopied(false), 2000);
-            }
+        if (doc.content) {
+            const textToCopy = getContentAsText(doc.content);
+            navigator.clipboard.writeText(textToCopy);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
         }
     };
 
@@ -79,72 +82,95 @@ export default function DocumentViewer({ doc, onClose, onEdit, onUpgrade }: Docu
     };
     
     const handleDownloadPdf = async () => {
-        const elementToCapture = contentRef.current?.firstChild as HTMLElement | null;
-        if (!elementToCapture) return;
+        if (!doc.content) return;
     
         setIsDownloadingPdf(true);
-    
-        const clone = elementToCapture.cloneNode(true) as HTMLElement;
-        if (doc.sourceRequest?.docType !== 'Portfolio') {
-            clone.style.width = '800px';
-        }
-        clone.style.position = 'absolute';
-        clone.style.left = '-9999px';
-        clone.style.top = '0';
-        clone.style.height = 'auto';
-        clone.style.margin = '0';
-        clone.style.padding = '0';
-
-        document.body.appendChild(clone);
-    
+        const container = document.createElement('div');
+        
         try {
-            const canvas = await html2canvas(clone, {
-                scale: 2,
+            // Configure temporary container
+            container.style.position = 'fixed';
+            container.style.left = '0';
+            container.style.top = '0';
+            container.style.width = '800px';
+            container.style.zIndex = '-1000';
+            container.style.overflow = 'visible';
+            container.style.backgroundColor = doc.sourceRequest?.docType === 'Portfolio' 
+                ? 'transparent' 
+                : '#ffffff';
+            container.innerHTML = doc.content;
+            document.body.appendChild(container);
+
+            const elementToCapture = container.children[0] as HTMLElement;
+            if (!elementToCapture) throw new Error("Could not find content element");
+
+            // Dynamic scaling based on content size
+            const contentHeight = elementToCapture.scrollHeight;
+            const scale = contentHeight > 5000 ? 1 : contentHeight > 3000 ? 1.5 : 2;
+
+            // Generate canvas from content
+            const canvas = await html2canvas(elementToCapture, {
+                scale,
                 useCORS: true,
-                backgroundColor: doc.sourceRequest?.docType === 'Portfolio' ? null : '#ffffff',
+                backgroundColor: doc.sourceRequest?.docType !== 'Portfolio' ? '#ffffff' : null,
+                logging: false,
             });
-    
-            document.body.removeChild(clone);
-    
-            const imgData = canvas.toDataURL('image/png');
+
+            // Create PDF
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
-    
-            const canvasAspectRatio = canvas.height / canvas.width;
-            const pageHeightForWidth = pdfWidth * canvasAspectRatio;
-    
-            let currentPosition = 0;
-    
-            pdf.addImage(imgData, 'PNG', 0, currentPosition, pdfWidth, pageHeightForWidth);
-            let heightLeft = pageHeightForWidth - pdfHeight;
-    
-            while (heightLeft > 0) {
-                currentPosition -= pdfHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, currentPosition, pdfWidth, pageHeightForWidth);
-                heightLeft -= pdfHeight;
+            
+            // Calculate image dimensions
+            const imgWidth = pdfWidth;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            // Add pages with content
+            let position = 0;
+            let remainingHeight = imgHeight;
+
+            while (remainingHeight > 0) {
+                const pageHeight = Math.min(remainingHeight, pdfHeight);
+                pdf.addImage(
+                    canvas.toDataURL('image/png', 1.0),
+                    'PNG',
+                    0,
+                    position,
+                    imgWidth,
+                    imgHeight,
+                    undefined,
+                    'FAST'
+                );
+                
+                remainingHeight -= pdfHeight;
+                position -= pdfHeight;
+                
+                if (remainingHeight > 0) {
+                    pdf.addPage();
+                }
             }
-    
+
             pdf.save(`${doc.title.replace(/ /g, '_')}.pdf`);
-        } catch (err) {
-            if (clone.parentNode === document.body) {
-                document.body.removeChild(clone);
-            }
-            console.error("Failed to download PDF", err);
-            alert("Sorry, there was an error creating the PDF. Please try again.");
+        } catch (error) {
+            console.error('PDF generation failed:', error);
+            alert('Error generating PDF. Please try again or use HTML export.');
         } finally {
+            // Clean up temporary elements
+            if (container.parentNode === document.body) {
+                document.body.removeChild(container);
+            }
             setIsDownloadingPdf(false);
         }
     };
     
     const handleEdit = () => {
-        // Always open the modal for any edit. The modal will handle token logic.
         onEdit(doc);
     };
 
     const handleShare = () => {
-        publishDocument(doc.id);
+        if (!doc.isPublic) {
+            publishDocument(doc.id);
+        }
         const shareUrl = `${window.location.origin}/share/${doc.id}`;
         navigator.clipboard.writeText(shareUrl);
         setShareText('Link Copied!');
@@ -165,36 +191,6 @@ export default function DocumentViewer({ doc, onClose, onEdit, onUpgrade }: Docu
     
     const canEdit = currentUser ? currentUser.plan === 'Pro' || currentUser.tokens > 0 : false;
     
-    
-
-const PortfolioViewer = ({ doc }: { doc: { bodyHtml: string; scriptJs: string; styleCss?: string } }) => {
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Inject CSS (if needed)
-    if (doc.styleCss) {
-      const style = document.createElement('style');
-      style.textContent = doc.styleCss;
-      contentRef.current?.appendChild(style);
-    }
-
-    // Inject and run JS
-    const script = document.createElement('script');
-    script.textContent = doc.scriptJs;
-    contentRef.current?.appendChild(script);
-
-    return () => {
-      script.remove();
-    };
-  }, [doc]);
-
-  return (
-    <div ref={contentRef}>
-      <div dangerouslySetInnerHTML={{ __html: doc.bodyHtml }} />
-    </div>
-  );
-};
-
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-[#111827] rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
@@ -236,7 +232,7 @@ const PortfolioViewer = ({ doc }: { doc: { bodyHtml: string; scriptJs: string; s
                             <span className="hidden sm:inline ml-2">{isCopied ? 'Copied!' : 'Text'}</span>
                         </button>
                         <button onClick={handleDelete} className="p-2 rounded-full hover:bg-red-500/10 text-red-500 hover:text-red-400">
-                        <TrashIcon />
+                            <TrashIcon />
                         </button>
                         <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-700 text-gray-400 hover:text-white ml-2">
                             <XIcon />
@@ -246,25 +242,14 @@ const PortfolioViewer = ({ doc }: { doc: { bodyHtml: string; scriptJs: string; s
                 {doc.sourceRequest?.docType === 'Portfolio' && doc.sourceRequest?.products && doc.sourceRequest.products.length > 0 && (
                     <PortfolioAnalytics doc={doc} />
                 )}
-                <div className="flex-grow overflow-y-auto p-6 bg-gray-600">
-                    <div ref={contentRef}>
-                        // In DocumentViewer.tsx
-                        {doc.sourceRequest?.docType === 'Portfolio' && (
-                          <iframe 
-                            srcDoc={doc.content}
-                            sandbox="allow-scripts allow-same-origin"
-                            style={{ width: '100%', height: '80vh', border: 'none' }}
-                            title="Portfolio"
-                          />
-                        )}
-                        {doc.sourceRequest?.docType === 'Resume' && (
-                            <div dangerouslySetInnerHTML={{ __html: doc.content }} />
-                        )}
-                        {doc.sourceRequest?.docType === 'Cover Letter' && (
-                            <div dangerouslySetInnerHTML={{ __html: doc.content }} />
-                        )}
-                        
-                    </div>
+                <div className="flex-grow overflow-y-auto bg-gray-600">
+                   <iframe
+                        key={doc.id}
+                        srcDoc={doc.content}
+                        title={doc.title}
+                        sandbox="allow-scripts allow-same-origin"
+                        style={{ width: '100%', height: '80vh', border: 'none' }}
+                    />
                 </div>
             </div>
         </div>

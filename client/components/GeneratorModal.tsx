@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { DocumentType, DocumentRequest, PortfolioProject, Document, PortfolioTemplate, ResumeTemplate, UserPlan, Product } from '../types';
 import { generateDocument } from '../services/geminiService';
@@ -20,7 +19,6 @@ const useImageUrl = (imageId: string | null | undefined): string | null => {
             const data = getImage(imageId);
             setImageUrl(data);
         } else if (imageId) {
-            // This case handles a fresh upload where the value might be a base64 string temporarily
             setImageUrl(imageId);
         } else {
             setImageUrl(null);
@@ -101,6 +99,22 @@ const emptyProduct: Product = {
     flutterwaveKey: '',
 };
 
+// Define types for Projects and Certifications
+interface Project {
+    id: string;
+    title: string;
+    description: string;
+    technologies?: string;
+    link?: string;
+}
+
+interface Certification {
+    id: string;
+    name: string;
+    issuer: string;
+    date: string;
+}
+
 const DEFAULT_FORM_DATA: Omit<DocumentRequest, 'docType'> = {
     name: 'Alex Doe',
     contact: 'alex.doe@email.com | (555) 123-4567 | San Francisco, CA',
@@ -116,6 +130,24 @@ const DEFAULT_FORM_DATA: Omit<DocumentRequest, 'docType'> = {
     portfolioSocialLinks: `https://github.com/alex, https://linkedin.com/in/alex`,
     portfolioTemplate: 'onyx',
     products: [],
+    // Add projects and certifications
+    projects: [
+        {
+            id: `proj_${Date.now()}`,
+            title: 'E-commerce Website',
+            description: 'Built a full-featured online store with payment integration',
+            technologies: 'React, Node.js, MongoDB',
+            link: 'https://example.com'
+        }
+    ],
+    certifications: [
+        {
+            id: `cert_${Date.now()}`,
+            name: 'AWS Certified Solutions Architect',
+            issuer: 'Amazon Web Services',
+            date: '2023-05-15'
+        }
+    ],
 };
 
 // --- Template Definitions ---
@@ -173,12 +205,10 @@ const ImagePreview: React.FC<{
   alt: string, 
   placeholder: React.ReactNode 
 }> = ({ imageId, className, alt, placeholder }) => {
-  // If it's already a URL (from server), use it directly
   if (imageId?.startsWith('/uploads/') || imageId?.startsWith('http')) {
     return <img src={imageId} alt={alt} className={className} />;
   }
   
-  // Otherwise, show placeholder
   return <>{placeholder}</>;
 };
 
@@ -201,7 +231,6 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
     }, [docToEdit]);
     
     useEffect(() => {
-        // Reset wizard step when docType changes
         setWizardStep(1);
     }, [docType]);
 
@@ -245,10 +274,30 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
         }));
     };
 
+    // Add handlers for resume projects
+    const handleResumeProjectChange = (projectId: string, field: keyof Project, value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            projects: (prev.projects || []).map(p => 
+                p.id === projectId ? { ...p, [field]: value } : p
+            )
+        }));
+    };
+    
+    // Add handlers for certifications
+    const handleCertificationChange = (certId: string, field: keyof Certification, value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            certifications: (prev.certifications || []).map(c => 
+                c.id === certId ? { ...c, [field]: value } : c
+            )
+        }));
+    };
+
     const handleFileChange = async (file: File, field: 'profilePicture' | 'projectImage' | 'productImage', itemId?: string) => {
   try {
     setIsLoading(true);
-    const imageUrl = await saveImage(file); // This now uploads to server and returns URL
+    const imageUrl = await saveImage(file);
     
     if (field === 'profilePicture') {
       setFormData(prev => ({...prev, profilePicture: imageUrl}));
@@ -303,6 +352,47 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
         }));
     };
 
+    // Add functions for resume projects
+    const addResumeProject = () => {
+        setFormData(prev => ({
+            ...prev,
+            projects: [...(prev.projects || []), { 
+                id: `res_proj_${Date.now()}`, 
+                title: '', 
+                description: '', 
+                technologies: '',
+                link: '' 
+            }]
+        }));
+    };
+    
+    const removeResumeProject = (id: string) => {
+        setFormData(prev => ({
+            ...prev,
+            projects: (prev.projects || []).filter(p => p.id !== id)
+        }));
+    };
+
+    // Add functions for certifications
+    const addCertification = () => {
+        setFormData(prev => ({
+            ...prev,
+            certifications: [...(prev.certifications || []), { 
+                id: `cert_${Date.now()}`, 
+                name: '', 
+                issuer: '',
+                date: '' 
+            }]
+        }));
+    };
+    
+    const removeCertification = (id: string) => {
+        setFormData(prev => ({
+            ...prev,
+            certifications: (prev.certifications || []).filter(c => c.id !== id)
+        }));
+    };
+
     const hasTokens = currentUser ? currentUser.tokens > 0 : false;
     const canPerformAction = currentUser ? currentUser.plan === 'Pro' || hasTokens : false;
     const isFormDisabled = isLoading || !currentUser;
@@ -330,7 +420,7 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
                 addDocument({ title: docTitle, type: docType, content: result }, request);
                 markGenerationCompleted();
             }
-            consumeToken(); // Consume a token for both new generation and updates
+            consumeToken();
             onClose();
         } catch (err: any) {
             setError(err.message || 'An unexpected error occurred.');
@@ -417,7 +507,7 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
     );
     
     const renderResumeWizard = () => {
-        const maxSteps = 2;
+        const maxSteps = 3; // Changed from 2 to 3
         return (<div>
             <div className="flex justify-center items-center mb-4">
                 <span className="text-sm text-gray-400">Step {wizardStep} of {maxSteps}</span>
@@ -435,6 +525,119 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
                 </div>
             )}
             {wizardStep === 2 && (
+                <div className="animate-fade-in">
+                    <h3 className="text-lg font-semibold text-white text-center">Projects & Certifications</h3>
+                    <p className="text-center text-gray-400 text-sm mb-4">
+                        Highlight your key projects and certifications
+                    </p>
+                    
+                    {/* Projects Section */}
+                    <div className="mb-8">
+                        <h4 className="text-md font-semibold text-white mb-3">Projects</h4>
+                        <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+                            {(formData.projects || []).map((proj, index) => (
+                                <div key={proj.id} className="p-4 bg-gray-900/50 border border-gray-700 rounded-lg space-y-3 relative">
+                                    <FormInput 
+                                        label={`Project ${index + 1} Title`} 
+                                        name="title" 
+                                        value={proj.title} 
+                                        onChange={e => handleResumeProjectChange(proj.id, 'title', e.target.value)} 
+                                        disabled={isFormDisabled} 
+                                    />
+                                    <FormTextarea 
+                                        label="Description" 
+                                        name="description" 
+                                        value={proj.description} 
+                                        onChange={e => handleResumeProjectChange(proj.id, 'description', e.target.value)} 
+                                        rows={2} 
+                                        disabled={isFormDisabled} 
+                                    />
+                                    <FormInput 
+                                        label="Technologies Used" 
+                                        name="technologies" 
+                                        value={proj.technologies || ''} 
+                                        onChange={e => handleResumeProjectChange(proj.id, 'technologies', e.target.value)} 
+                                        disabled={isFormDisabled}
+                                        placeholder="React, Node.js, MongoDB"
+                                    />
+                                    <FormInput 
+                                        label="Project Link (Optional)" 
+                                        name="link" 
+                                        value={proj.link || ''} 
+                                        onChange={e => handleResumeProjectChange(proj.id, 'link', e.target.value)} 
+                                        disabled={isFormDisabled}
+                                        icon={<LinkIcon />}
+                                        placeholder="https://example.com"
+                                    />
+                                    <button 
+                                        type="button" 
+                                        onClick={() => removeResumeProject(proj.id)} 
+                                        className="absolute top-2 right-2 p-1 text-gray-500 hover:text-red-500 hover:bg-gray-700 rounded-full"
+                                    >
+                                        <TrashIcon />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        <button 
+                            type="button" 
+                            onClick={addResumeProject} 
+                            className="mt-3 w-full text-cyan-400 font-semibold py-2 px-4 rounded-md border-2 border-dashed border-gray-600 hover:bg-gray-800 transition-colors"
+                        >
+                            + Add Another Project
+                        </button>
+                    </div>
+                    
+                    {/* Certifications Section */}
+                    <div>
+                        <h4 className="text-md font-semibold text-white mb-3">Certifications</h4>
+                        <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+                            {(formData.certifications || []).map((cert, index) => (
+                                <div key={cert.id} className="p-4 bg-gray-900/50 border border-gray-700 rounded-lg space-y-3 relative">
+                                    <FormInput 
+                                        label={`Certification ${index + 1} Name`} 
+                                        name="name" 
+                                        value={cert.name} 
+                                        onChange={e => handleCertificationChange(cert.id, 'name', e.target.value)} 
+                                        disabled={isFormDisabled} 
+                                    />
+                                    <FormInput 
+                                        label="Issuing Organization" 
+                                        name="issuer" 
+                                        value={cert.issuer} 
+                                        onChange={e => handleCertificationChange(cert.id, 'issuer', e.target.value)} 
+                                        disabled={isFormDisabled} 
+                                    />
+                                    <FormInput 
+                                        label="Date Earned" 
+                                        name="date" 
+                                        value={cert.date} 
+                                        onChange={e => handleCertificationChange(cert.id, 'date', e.target.value)} 
+                                        disabled={isFormDisabled}
+                                        placeholder="YYYY-MM-DD"
+                                        type="date"
+                                    />
+                                    <button 
+                                        type="button" 
+                                        onClick={() => removeCertification(cert.id)} 
+                                        className="absolute top-2 right-2 p-1 text-gray-500 hover:text-red-500 hover:bg-gray-700 rounded-full"
+                                    >
+                                        <TrashIcon />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        <button 
+                            type="button" 
+                            onClick={addCertification} 
+                            className="mt-3 w-full text-cyan-400 font-semibold py-2 px-4 rounded-md border-2 border-dashed border-gray-600 hover:bg-gray-800 transition-colors"
+                        >
+                            + Add Another Certification
+                        </button>
+                    </div>
+                </div>
+            )}
+            {wizardStep === 3 && (
                 <div className="animate-fade-in">
                      <h3 className="text-lg font-semibold text-white text-center">Choose a Template</h3>
                      <p className="text-center text-gray-400 text-sm mb-4">Select a style for your resume. Pro templates require an upgrade.</p>
