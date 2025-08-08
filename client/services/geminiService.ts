@@ -443,39 +443,85 @@ const getCoverLetterSystemInstruction = (request: DocumentRequest) => `
 
 // --- PORTFOLIO ---
 // New function to generate portfolio HTML
+
 const generatePortfolioHtml = async (request: DocumentRequest): Promise<string> => {
   const templateName = request.portfolioTemplate?.split('-')[0] || 'onyx';
   let templateHtml = await loadTemplate(templateName);
   
-  // Replace placeholders with actual data
+  // Helper function to safely escape HTML
+  const escapeHtml = (str: string) => {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  };
+
+  // Create project HTML cards with proper escaping
+  const projectsHtml = (request.portfolioProjects || [])
+    .map(project => {
+      const safeImage = escapeHtml(project.image || '');
+      const safeTitle = escapeHtml(project.title || '');
+      const safeDescription = escapeHtml(project.description || '');
+      const safeLink = escapeHtml(project.link || '');
+      const safeId = escapeHtml(project.id || '');
+      
+      return `
+        <div class="project-card" data-id="${safeId}">
+          ${safeImage ? `<img src="${safeImage}" alt="${safeTitle}">` : ''}
+          <h3>${safeTitle}</h3>
+          <p>${safeDescription}</p>
+          ${safeLink ? `<a href="${safeLink}" target="_blank">View Project</a>` : ''}
+        </div>
+      `;
+    }).join('');
+
+  // Create product HTML cards with proper escaping
+  const productsHtml = (request.products || [])
+    .map(product => {
+      const safeImage = escapeHtml(product.image || '');
+      const safeTitle = escapeHtml(product.title || '');
+      const safeDescription = escapeHtml(product.description || '');
+      const safePrice = escapeHtml(product.price?.toString() || '');
+      const safeId = escapeHtml(product.id || '');
+      
+      return `
+        <div class="product-card" data-id="${safeId}">
+          ${safeImage ? `<img src="${safeImage}" alt="${safeTitle}">` : ''}
+          <h3>${safeTitle}</h3>
+          <p>${safeDescription}</p>
+          <p><strong>Price:</strong> $${safePrice}</p>
+        </div>
+      `;
+    }).join('');
+
+  // Escape all user content
+  const safeName = escapeHtml(request.name || '');
+  const safeJob = escapeHtml(request.targetJob || '');
+  const safeContact = escapeHtml(request.contact || '');
+  const safeProfilePic = escapeHtml(request.profilePicture || '');
+  const safeBio = escapeHtml(request.portfolioBio || '');
+  
+  // Prepare social links with escaping
+  const socialLinks = (request.portfolioSocialLinks || '')
+    .split(',')
+    .map(link => {
+      const trimmed = link.trim();
+      if (!trimmed) return '';
+      return `<a href="${escapeHtml(trimmed)}" target="_blank">${escapeHtml(trimmed)}</a>`;
+    })
+    .join('<br>');
+
+  // Replace placeholders with safely escaped data
   return templateHtml
-    .replace(/{{name}}/g, request.name || '')
-    .replace(/{{targetJob}}/g, request.targetJob || '')
-    .replace(/{{contact}}/g, request.contact || '')
-    .replace(/{{profilePicture}}/g, request.profilePicture || '')
-    .replace(/{{portfolioBio}}/g, request.portfolioBio || '')
-    .replace(/{{socialLinks}}/g, (request.portfolioSocialLinks || '')
-        .split(',')
-        .map(link => `<a href="${link.trim()}">${link.trim()}</a>`)
-        .join('<br>'))
-    .replace(/{{projects}}/g, (request.portfolioProjects || [])
-        .map(project => `
-          <div class="project-card">
-            <img src="${project.image}" alt="${project.title}">
-            <h3>${project.title}</h3>
-            <p>${project.description}</p>
-            ${project.link ? `<a href="${project.link}">View Project</a>` : ''}
-          </div>
-        `).join(''))
-    .replace(/{{products}}/g, (request.products || [])
-        .map(product => `
-          <div class="product-card">
-            <img src="${product.image}" alt="${product.title}">
-            <h3>${product.title}</h3>
-            <p>${product.description}</p>
-            <p><strong>Price:</strong> $${product.price}</p>
-          </div>
-        `).join(''));
+    .replace(/{{name}}/g, safeName)
+    .replace(/{{targetJob}}/g, safeJob)
+    .replace(/{{contact}}/g, safeContact)
+    .replace(/{{profilePicture}}/g, safeProfilePic)
+    .replace(/{{portfolioBio}}/g, safeBio)
+    .replace(/{{socialLinks}}/g, socialLinks)
+    .replace(/{{projects}}/g, projectsHtml)
+    .replace(/{{products}}/g, productsHtml);
 };
 
 //delete the getPortfolioSystemInstruction
