@@ -4,6 +4,8 @@ import { generateDocument } from '../services/geminiService';
 import { XIcon, LoadingSpinner, TrashIcon, UploadIcon, LinkIcon, ArrowLeftIcon, ArrowRightIcon, LockClosedIcon, UserIcon as ProfileIcon } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 
+const VITE_LOCAL_API_URL = import.meta.env.VITE_LOCAL_API_URL || 'http://localhost:5000';
+
 interface GeneratorModalProps {
     onClose: () => void;
     docToEdit?: Document | null;
@@ -205,8 +207,15 @@ const ImagePreview: React.FC<{
   alt: string, 
   placeholder: React.ReactNode 
 }> = ({ imageId, className, alt, placeholder }) => {
-  if (imageId?.startsWith('/uploads/') || imageId?.startsWith('http')) {
+  // Handle absolute URLs (http/https) and local uploads
+  if (imageId.startsWith('http')) {
     return <img src={imageId} alt={alt} className={className} />;
+  }
+
+  // Prepend localhost:5000 to upload paths
+  if (imageId.startsWith('/uploads/')) {
+    const fullUrl = `${VITE_LOCAL_API_URL}${imageId}`;
+    return <img src={fullUrl} alt={alt} className={className} />;
   }
   
   return <>{placeholder}</>;
@@ -416,6 +425,7 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
 
             if(docToEdit) {
                  updateDocument({ ...docToEdit, title: docTitle, content: result }, request);
+                 markGenerationCompleted();
             } else {
                 addDocument({ title: docTitle, type: docType, content: result }, request);
                 markGenerationCompleted();
