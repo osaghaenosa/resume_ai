@@ -193,7 +193,7 @@ const CREATIVE_RESUME_TEMPLATE = (request: DocumentRequest) => `
 <div style="font-family: 'Lato', 'Helvetica Neue', sans-serif; margin: 0 auto; max-width: 800px; background-color: #F8F5F2; color: #333; display: flex; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
   <!-- Left Sidebar -->
   <div style="width: 33%; background-color: #1a2c3f; color: #fff; padding: 40px 30px;">
-    ${request.profilePicture ? `<img src="${process.env.VITE_LOCAL_API_URL + request.profilePicture}" alt="Profile" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 25px; display: block; border: 4px solid #c8a46e;">` : '<div style="width: 120px; height: 120px; border-radius: 50%; background-color: #c8a46e; margin: 0 auto 25px;"></div>'}
+    ${request.profilePicture ? `<img src="${process.env.VITE_UPLOAD_URL + request.profilePicture}" alt="Profile" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 25px; display: block; border: 4px solid #c8a46e;">` : '<div style="width: 120px; height: 120px; border-radius: 50%; background-color: #c8a46e; margin: 0 auto 25px;"></div>'}
     <h2 style="font-family: 'Playfair Display', serif; font-size: 18px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid #c8a46e; padding-bottom: 10px; margin-bottom: 20px; color: #c8a46e;">Contact</h2>
     <div style="font-size: 13px; line-height: 1.9; word-break: break-word;">${(request.contact || '').split('|').map(item => `<div>${item.trim()}</div>`).join('')}</div>
     <h2 style="font-family: 'Playfair Display', serif; font-size: 18px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid #c8a46e; padding-bottom: 10px; margin-top: 35px; margin-bottom: 20px; color: #c8a46e;">Education</h2>
@@ -218,7 +218,7 @@ const CREATIVE_RESUME_TEMPLATE = (request: DocumentRequest) => `
 const createCreativeVariant = (font: string, p: typeof PALETTES[0]) => (request: DocumentRequest) => `
 <div style="font-family: ${font}; margin: 0 auto; max-width: 800px; background-color: ${p.bg}; color: ${p.text}; display: flex; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
   <div style="width: 35%; background-color: ${p.primary}; color: ${p.bg}; padding: 40px;">
-    ${request.profilePicture ? `<img src="${process.env.VITE_LOCAL_API_URL + request.profilePicture}" alt="Profile" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 20px; display: block; border: 4px solid ${p.bg};">` : `<div style="width: 120px; height: 120px; border-radius: 50%; background-color: ${p.secondaryText}; margin: 0 auto 20px;"></div>`}
+    ${request.profilePicture ? `<img src="${process.env.VITE_UPLOAD_URL + request.profilePicture}" alt="Profile" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 20px; display: block; border: 4px solid ${p.bg};">` : `<div style="width: 120px; height: 120px; border-radius: 50%; background-color: ${p.secondaryText}; margin: 0 auto 20px;"></div>`}
     <h2 style="font-size: 16px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid ${p.subtle}; padding-bottom: 10px; margin-bottom: 20px;">Contact</h2>
     <p style="font-size: 13px; line-height: 1.8; word-break: break-word;">${(request.contact || '').split('|').join('<br>')}</p>
     <h2 style="font-size: 16px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid ${p.subtle}; padding-bottom: 10px; margin-top: 30px; margin-bottom: 20px;">Education</h2>
@@ -448,7 +448,7 @@ const generatePortfolioHtml = async (request: DocumentRequest): Promise<string> 
   const templateName = request.portfolioTemplate?.split('-')[0] || 'onyx';
   let templateHtml = await loadTemplate(templateName);
   
-  // Helper function to safely escape HTML
+  // Helper function to safely escape HTML and format image URLs
   const escapeHtml = (str: string) => {
     if (!str) return '';
     return str
@@ -457,10 +457,29 @@ const generatePortfolioHtml = async (request: DocumentRequest): Promise<string> 
       .replace(/>/g, '&gt;');
   };
 
-  // Create project HTML cards with proper escaping
+  // Format image URL to include localhost:5000 if it's a local upload
+  const formatImageUrl = (url: string | undefined): string => {
+    if (!url) return '';
+    
+    // If it's already a full URL, return as-is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // If it's a local upload path, prepend localhost:5000
+    if (url.startsWith('/uploads/')) {
+      return `http://localhost:5000${url}`;
+    }
+    
+    // If it's just a filename (old format), construct full URL
+    return `http://localhost:5000/uploads/${url}`;
+  };
+
+  // Create project HTML cards with proper escaping and image formatting
   const projectsHtml = (request.portfolioProjects || [])
     .map(project => {
-      const safeImage = escapeHtml(project.image || '');
+      const imageUrl = formatImageUrl(project.image);
+      const safeImage = escapeHtml(imageUrl);
       const safeTitle = escapeHtml(project.title || '');
       const safeDescription = escapeHtml(project.description || '');
       const safeLink = escapeHtml(project.link || '');
@@ -468,18 +487,19 @@ const generatePortfolioHtml = async (request: DocumentRequest): Promise<string> 
       
       return `
         <div class="project-card" data-id="${safeId}">
-          ${safeImage ? `<img src="${safeImage}" alt="${safeTitle}">` : ''}
+          ${safeImage ? `<img src="${safeImage}" alt="${safeTitle}" class="project-image">` : ''}
           <h3>${safeTitle}</h3>
           <p>${safeDescription}</p>
-          ${safeLink ? `<a href="${safeLink}" target="_blank">View Project</a>` : ''}
+          ${safeLink ? `<a href="${safeLink}" target="_blank" class="project-link">View Project</a>` : ''}
         </div>
       `;
     }).join('');
 
-  // Create product HTML cards with proper escaping
+  // Create product HTML cards with proper escaping and image formatting
   const productsHtml = (request.products || [])
     .map(product => {
-      const safeImage = escapeHtml(product.image || '');
+      const imageUrl = formatImageUrl(product.image);
+      const safeImage = escapeHtml(imageUrl);
       const safeTitle = escapeHtml(product.title || '');
       const safeDescription = escapeHtml(product.description || '');
       const safePrice = escapeHtml(product.price?.toString() || '');
@@ -487,19 +507,20 @@ const generatePortfolioHtml = async (request: DocumentRequest): Promise<string> 
       
       return `
         <div class="product-card" data-id="${safeId}">
-          ${safeImage ? `<img src="${safeImage}" alt="${safeTitle}">` : ''}
+          ${safeImage ? `<img src="${safeImage}" alt="${safeTitle}" class="product-image" style="width:100%; height: initial">` : ''}
           <h3>${safeTitle}</h3>
           <p>${safeDescription}</p>
-          <p><strong>Price:</strong> $${safePrice}</p>
+          <p class="product-price"><strong>Price:</strong> $${safePrice}</p>
         </div>
       `;
     }).join('');
 
-  // Escape all user content
+  // Escape all user content and format profile picture URL
   const safeName = escapeHtml(request.name || '');
   const safeJob = escapeHtml(request.targetJob || '');
   const safeContact = escapeHtml(request.contact || '');
-  const safeProfilePic = escapeHtml(request.profilePicture || '');
+  const profilePicUrl = formatImageUrl(request.profilePicture);
+  const safeProfilePic = escapeHtml(profilePicUrl);
   const safeBio = escapeHtml(request.portfolioBio || '');
   
   // Prepare social links with escaping
@@ -508,7 +529,7 @@ const generatePortfolioHtml = async (request: DocumentRequest): Promise<string> 
     .map(link => {
       const trimmed = link.trim();
       if (!trimmed) return '';
-      return `<a href="${escapeHtml(trimmed)}" target="_blank">${escapeHtml(trimmed)}</a>`;
+      return `<a href="${escapeHtml(trimmed)}" target="_blank" class="social-link">${escapeHtml(trimmed)}</a>`;
     })
     .join('<br>');
 
