@@ -113,9 +113,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const updateDocument = async (
-    doc: Document,
-    request: DocumentRequest
-  ): Promise<Document> => {
+  doc: Document,
+  request: DocumentRequest
+): Promise<Document> => {
+  try {
     if (!doc.id) throw new Error("Missing document ID");
 
     const res = await axios.put(
@@ -123,13 +124,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       {
         title: doc.title,
         content: doc.content,
+        type: doc.type, // Make sure to include type if needed
         sourceRequest: request
       },
       { headers: authHeaders() }
     );
-    setCurrentUser(res.data.user);
+
+    if (!res.data.user || !res.data.document) {
+      throw new Error("Invalid response structure from server");
+    }
+
+    // Update current user state
+    setCurrentUser(prev => {
+      if (!prev) return null;
+      
+      // Update the specific document in the user's documents array
+      const updatedDocuments = prev.documents?.map(d => 
+        d.id === doc.id ? res.data.document : d
+      ) || [];
+      
+      return {
+        ...prev,
+        documents: updatedDocuments,
+        ...res.data.user // Merge any other user updates
+      };
+    });
+
     return res.data.document;
-  };
+  } catch (error) {
+    console.error('Error updating document:', error);
+    throw error; // Re-throw for the calling component to handle
+  }
+};
 
   const deleteDocument = async (docId: string) => {
     const res = await axios.delete(`${API}/user/documents/${docId}`, {
