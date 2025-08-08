@@ -193,7 +193,7 @@ const CREATIVE_RESUME_TEMPLATE = (request: DocumentRequest) => `
 <div style="font-family: 'Lato', 'Helvetica Neue', sans-serif; margin: 0 auto; max-width: 800px; background-color: #F8F5F2; color: #333; display: flex; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
   <!-- Left Sidebar -->
   <div style="width: 33%; background-color: #1a2c3f; color: #fff; padding: 40px 30px;">
-    ${request.profilePicture ? `<img src="${request.profilePicture}" alt="Profile" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 25px; display: block; border: 4px solid #c8a46e;">` : '<div style="width: 120px; height: 120px; border-radius: 50%; background-color: #c8a46e; margin: 0 auto 25px;"></div>'}
+    ${request.profilePicture ? `<img src="${process.env.VITE_LOCAL_API_URL + request.profilePicture}" alt="Profile" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 25px; display: block; border: 4px solid #c8a46e;">` : '<div style="width: 120px; height: 120px; border-radius: 50%; background-color: #c8a46e; margin: 0 auto 25px;"></div>'}
     <h2 style="font-family: 'Playfair Display', serif; font-size: 18px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid #c8a46e; padding-bottom: 10px; margin-bottom: 20px; color: #c8a46e;">Contact</h2>
     <div style="font-size: 13px; line-height: 1.9; word-break: break-word;">${(request.contact || '').split('|').map(item => `<div>${item.trim()}</div>`).join('')}</div>
     <h2 style="font-family: 'Playfair Display', serif; font-size: 18px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid #c8a46e; padding-bottom: 10px; margin-top: 35px; margin-bottom: 20px; color: #c8a46e;">Education</h2>
@@ -218,7 +218,7 @@ const CREATIVE_RESUME_TEMPLATE = (request: DocumentRequest) => `
 const createCreativeVariant = (font: string, p: typeof PALETTES[0]) => (request: DocumentRequest) => `
 <div style="font-family: ${font}; margin: 0 auto; max-width: 800px; background-color: ${p.bg}; color: ${p.text}; display: flex; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
   <div style="width: 35%; background-color: ${p.primary}; color: ${p.bg}; padding: 40px;">
-    ${request.profilePicture ? `<img src="${request.profilePicture}" alt="Profile" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 20px; display: block; border: 4px solid ${p.bg};">` : `<div style="width: 120px; height: 120px; border-radius: 50%; background-color: ${p.secondaryText}; margin: 0 auto 20px;"></div>`}
+    ${request.profilePicture ? `<img src="${process.env.VITE_LOCAL_API_URL + request.profilePicture}" alt="Profile" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 20px; display: block; border: 4px solid ${p.bg};">` : `<div style="width: 120px; height: 120px; border-radius: 50%; background-color: ${p.secondaryText}; margin: 0 auto 20px;"></div>`}
     <h2 style="font-size: 16px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid ${p.subtle}; padding-bottom: 10px; margin-bottom: 20px;">Contact</h2>
     <p style="font-size: 13px; line-height: 1.8; word-break: break-word;">${(request.contact || '').split('|').join('<br>')}</p>
     <h2 style="font-size: 16px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid ${p.subtle}; padding-bottom: 10px; margin-top: 30px; margin-bottom: 20px;">Education</h2>

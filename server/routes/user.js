@@ -165,65 +165,73 @@ router.post('/documents', auth, async (req, res, next) => {
   }
 });
 
-// Update document + deduct token
+// Update document endpoint
 router.put('/documents/:id', auth, async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    let { title, content, sourceRequest, type } = req.body;
-    type = type?.toLowerCase().trim();
+    try {
+        const { id } = req.params;
+        const { title, content, sourceRequest } = req.body;
+        
+        // Get type from either root level or sourceRequest
+        let type = req.body.type || (sourceRequest?.docType);
+        type = type?.toLowerCase().trim();
 
-    const docIndex = req.user.documents.findIndex(d => d._id == id || d.id == id);
-    if (docIndex === -1) return res.status(404).json({ message: 'Document not found' });
-
-    const doc = req.user.documents[docIndex];
-
-    if (!VALID_DOC_TYPES.includes(type)) {
-      return res.status(400).json({ message: 'Invalid document type' });
-    }
-
-    // Validate image URLs
-    if (sourceRequest?.profilePicture && !sourceRequest.profilePicture.startsWith('/uploads/')) {
-      return res.status(400).json({ message: 'Invalid profile picture URL' });
-    }
-
-    if (sourceRequest?.portfolioProjects) {
-      for (const project of sourceRequest.portfolioProjects) {
-        if (project.image && !project.image.startsWith('/uploads/')) {
-          return res.status(400).json({ message: 'Invalid project image URL' });
+        if (!type || !VALID_DOC_TYPES.includes(type)) {
+            return res.status(400).json({ 
+                message: `Invalid document type. Valid types are: ${VALID_DOC_TYPES.join(', ')}`,
+                receivedType: type
+            });
         }
-      }
-    }
 
-    if (sourceRequest?.products) {
-      for (const product of sourceRequest.products) {
-        if (product.image && !product.image.startsWith('/uploads/')) {
-          return res.status(400).json({ message: 'Invalid product image URL' });
+        // Strict ID comparison
+        const docIndex = req.user.documents.findIndex(d => 
+            d._id.toString() === id || d.id === id
+        );
+        
+        if (docIndex === -1) {
+            return res.status(404).json({ message: 'Document not found' });
         }
-      }
+
+        const doc = req.user.documents[docIndex];
+
+        // Validate image URLs if present
+        if (sourceRequest?.profilePicture && !sourceRequest.profilePicture.startsWith('/uploads/')) {
+            return res.status(400).json({ message: 'Invalid profile picture URL' });
+        }
+
+        if (sourceRequest?.portfolioProjects) {
+            for (const project of sourceRequest.portfolioProjects) {
+                if (project.image && !project.image.startsWith('/uploads/')) {
+                    return res.status(400).json({ message: 'Invalid project image URL' });
+                }
+            }
+        }
+
+        if (sourceRequest?.products) {
+            for (const product of sourceRequest.products) {
+                if (product.image && !product.image.startsWith('/uploads/')) {
+                    return res.status(400).json({ message: 'Invalid product image URL' });
+                }
+            }
+        }
+
+        // Update document fields
+        doc.title = title || doc.title;
+        doc.content = content || doc.content;
+        doc.type = type || doc.type;
+        doc.sourceRequest = sourceRequest || doc.sourceRequest;
+        doc.updatedAt = new Date();
+
+        await req.user.save();
+
+        res.json({
+            message: 'Document updated successfully',
+            document: { ...doc.toObject(), id: doc._id.toString() },
+            user: normalizeUser(req.user)
+        });
+    } catch (err) {
+        console.error('Error updating document:', err);
+        next(err);
     }
-
-    const tokenCost = type === PORTFOLIO_TYPE ? 3 : 1;
-    if (req.user.tokens < tokenCost) {
-      return res.status(403).json({ message: 'Insufficient tokens to edit this document.' });
-    }
-
-    doc.title = title;
-    doc.content = content;
-    doc.sourceRequest = sourceRequest;
-    doc.type = type;
-
-    req.user.tokens -= tokenCost;
-
-    await req.user.save();
-
-    res.json({
-      message: 'Document updated',
-      document: { ...doc.toObject(), id: doc._id },
-      user: normalizeUser(req.user)
-    });
-  } catch (err) {
-    next(err);
-  }
 });
 
 // Delete document
