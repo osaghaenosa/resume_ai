@@ -222,6 +222,13 @@ router.put('/documents/:id', auth, async (req, res, next) => {
         doc.updatedAt = new Date();
 
         await req.user.save();
+        
+        if (req.user.tokens < 1) {
+            return res.status(400).json({ 
+                message: 'Insufficient tokens. Please upgrade to Pro or get more tokens.'
+            });
+        }
+        req.user.tokens = Math.max(0, req.user.tokens - 1);
 
         res.json({
             message: 'Document updated successfully',
