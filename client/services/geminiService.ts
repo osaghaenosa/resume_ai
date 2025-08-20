@@ -48,6 +48,7 @@ const CLASSIC_RESUME_TEMPLATE = (request: DocumentRequest) => `
   <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 25px;">
     <h1 style="font-size: 32px; margin: 0; color: #000; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">${request.name}</h1>
     <p style="margin: 10px 0 0; font-size: 14px; color: #555;">${request.contact}</p>
+    ${request.targetCompany ? `<p style="margin: 5px 0 0; font-size: 14px; color: #777;">Target Company: ${request.targetCompany}</p>` : ''}
   </div>
   <div style="display: flex; gap: 30px;">
     <div style="width: 65%;">
@@ -98,6 +99,7 @@ const MODERN_RESUME_TEMPLATE = (request: DocumentRequest) => `
         <div>
             <h1 style="font-size: 42px; margin: 0; color: #0D9488; font-weight: 300;">${request.name}</h1>
             <p style="margin: 5px 0 0; font-size: 18px; color: #555;">${request.targetJob}</p>
+            ${request.targetCompany ? `<p style="margin: 5px 0 0; font-size: 14px; color: #777;">Seeking position at ${request.targetCompany}</p>` : ''}
         </div>
         <p style="font-size: 12px; color: #555; text-align: right; line-height: 1.5;">${(request.contact || '').split('|').join('<br>')}</p>
     </div>
@@ -393,6 +395,8 @@ const getResumeSystemInstruction = (request: DocumentRequest) => {
 4.  **ADHERE TO TEMPLATE:** Use the exact HTML structure provided below. Populate the content within the specified divs and comments. For the 'creative' template, if a profile picture is not provided, use the placeholder div.
 5.  **PROFILE PICTURE:** If a profile picture placeholder (e.g., {{PROFILE_PICTURE}}) is provided in the user details, you MUST use it as the 'src' for the <img> tag in templates that support it ('creative').
 6.  **INCLUDE PROJECTS & CERTIFICATIONS:** You MUST include the user's projects and certifications in the resume where appropriate. Projects should be listed under a "Projects" section and certifications under a "Certifications" section.
+
+7.  **INCLUDE TARGET COMPANY:** You MUST mention the target company (${request.targetCompany || 'the company'}) in the professional summary or objective section.
 
 **USER'S PROJECTS:**
 ${(request.projects || []).map(proj => 

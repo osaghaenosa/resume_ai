@@ -529,6 +529,7 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
                     <FormInput label="Full Name" name="name" value={formData.name} onChange={handleInputChange} disabled={isFormDisabled} />
                     <FormInput label="Contact Info" name="contact" value={formData.contact} onChange={handleInputChange} disabled={isFormDisabled} />
                     <FormInput label="Target Job Title" name="targetJob" value={formData.targetJob} onChange={handleInputChange} disabled={isFormDisabled} />
+                    <FormInput label="Target Company" name="targetCompany" value={formData.targetCompany} onChange={handleInputChange} disabled={isFormDisabled} placeholder="Company you're applying to" />
                     <FormTextarea label="Work Experience" name="experience" value={formData.experience} onChange={handleInputChange} rows={5} disabled={isFormDisabled} />
                     <FormTextarea label="Education" name="education" value={formData.education} onChange={handleInputChange} disabled={isFormDisabled} />
                     <FormTextarea label="Skills (comma-separated)" name="skills" value={formData.skills} onChange={handleInputChange} disabled={isFormDisabled} />
