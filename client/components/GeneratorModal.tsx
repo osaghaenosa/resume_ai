@@ -708,6 +708,7 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
                      <h3 className="text-lg font-semibold text-white text-center">About You</h3>
                      <p className="text-center text-gray-400 text-sm mb-4">Tell your story. What makes you stand out?</p>
                     <FormTextarea label="Bio / About Me" name="portfolioBio" value={formData.portfolioBio || ''} onChange={handleInputChange} rows={6} disabled={isFormDisabled} />
+                    
                     <div>
                         <label className="block text-sm font-medium text-gray-300 mb-1">Profile Picture (for Pro templates)</label>
                         <div className="flex items-center gap-4">

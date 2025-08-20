@@ -443,6 +443,7 @@ const getCoverLetterSystemInstruction = (request: DocumentRequest) => `
 
 // --- PORTFOLIO ---
 // New function to generate portfolio HTML
+const API_UPLOADS_URL = import.meta.env.VITE_LOCAL_API_URL || 'http://localhost:5000';
 
 const generatePortfolioHtml = async (request: DocumentRequest): Promise<string> => {
   const templateName = request.portfolioTemplate?.split('-')[0] || 'onyx';
@@ -468,11 +469,11 @@ const generatePortfolioHtml = async (request: DocumentRequest): Promise<string> 
     
     // If it's a local upload path, prepend localhost:5000
     if (url.startsWith('/uploads/')) {
-      return `http://localhost:5000${url}`;
+      return `${API_UPLOADS_URL + url}`;
     }
     
     // If it's just a filename (old format), construct full URL
-    return `http://localhost:5000/uploads/${url}`;
+    return `${API_UPLOADS_URL + url}`;
   };
 
   // Create project HTML cards with proper escaping and image formatting
@@ -487,7 +488,7 @@ const generatePortfolioHtml = async (request: DocumentRequest): Promise<string> 
       
       return `
         <div class="project-card" data-id="${safeId}">
-          ${safeImage ? `<img src="${safeImage}" alt="${safeTitle}" class="project-image">` : ''}
+          ${safeImage ? `<img src="${safeImage}" alt="${safeTitle}" class="project-image" style="width: 100%; height: initial">` : ''}
           <h3>${safeTitle}</h3>
           <p>${safeDescription}</p>
           ${safeLink ? `<a href="${safeLink}" target="_blank" class="project-link">View Project</a>` : ''}
