@@ -122,9 +122,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const res = await axios.put(
       `${API}/user/documents/${doc.id}`,
       {
-        title: doc.title,
-        content: doc.content,
-        type: doc.type, // Make sure to include type if needed
+        ...doc,
         sourceRequest: request
       },
       { headers: authHeaders() }

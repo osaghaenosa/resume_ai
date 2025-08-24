@@ -152,6 +152,15 @@ const DEFAULT_FORM_DATA: Omit<DocumentRequest, 'docType'> = {
     ],
 };
 
+const mapToBackendType = (frontendType: DocumentType): string => {
+  const mapping: Record<DocumentType, string> = {
+    'Resume': 'resume',
+    'Cover Letter': 'cover_letter',
+    'Portfolio': 'portfolio'
+  };
+  return mapping[frontendType] || frontendType.toLowerCase();
+};
+
 // --- Template Definitions ---
 const resumeTemplateNames: ResumeTemplate[] = [
     'classic', 'modern', 'simple', 'creative', 'technical',
@@ -419,16 +428,26 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
             const request: DocumentRequest = { ...formData, docType };
             const result = await generateDocument(request);
             
+            // Extract HTML from markdown code blocks if present
+            let cleanContent = result;
+            if (result.startsWith('```html')) {
+                cleanContent = result
+                    .replace(/^```html\n/, '')
+                    .replace(/\n```$/, '');
+            }
+            
             const docTitle = docType === 'Portfolio' 
-                ? `${formData.name}'s Portfolio` 
-                : `${formData.targetJob} ${docType}`;
+            ? `${formData.name}'s Portfolio` 
+            : `${formData.targetJob} ${docType}`;
 
+            const backendType = mapToBackendType(docType);
+  
             if(docToEdit) {
-                 updateDocument({ ...docToEdit, title: docTitle, content: result }, request);
-                 markGenerationCompleted();
+              updateDocument({ ...docToEdit, title: docTitle, type: backendType, content: cleanContent }, request);
+              markGenerationCompleted();
             } else {
-                addDocument({ title: docTitle, type: docType, content: result }, request);
-                markGenerationCompleted();
+              addDocument({ title: docTitle, type: backendType, content: cleanContent }, request);
+              markGenerationCompleted();
             }
             consumeToken();
             onClose();
