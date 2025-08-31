@@ -13,7 +13,7 @@ interface CheckoutPageProps {
 }
 
 // Using a test public key from Flutterwave's documentation
-const FLUTTERWAVE_PUBLIC_KEY = 'FLWPUBK_TEST-xxxxxxxxxxxxxxxx-X';
+const FLUTTERWAVE_PUBLIC_KEY = 'FLWPUBK_TEST-4866d2e35f0fcf081b99dd0b35ce78f2-X';
 
 export default function CheckoutPage({ user, onPaymentConfirm }: CheckoutPageProps) {
     const [isLoading, setIsLoading] = useState(false);
@@ -58,6 +58,7 @@ export default function CheckoutPage({ user, onPaymentConfirm }: CheckoutPagePro
                     if (!isLoading) return; // Only update state if a payment wasn't already processed
                     setIsLoading(false);
                     console.log("Payment modal closed by user.");
+                    alert("Payment modal closed by user.");
                 },
             });
         } catch (error) {

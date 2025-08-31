@@ -2,6 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { register as registerServiceWorker } from './serviceWorkerRegistration'
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -14,3 +15,5 @@ root.render(
     <App />
   </React.StrictMode>
 );
+// Register service worker
+registerServiceWorker();
