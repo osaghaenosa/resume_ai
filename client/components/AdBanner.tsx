@@ -1,9 +1,12 @@
+import AdsterraBanner from './AdsterraBanner';
 
 import React from 'react';
 
 export default function AdBanner() {
     return (
         <div className="bg-[#111827] p-4 rounded-lg shadow-lg text-center">
+          {/* Show Adsterra Banner */}
+      <AdsterraBanner />
             <span className="text-xs text-gray-500">ADVERTISEMENT</span>
             <div className="mt-2">
                 <img 

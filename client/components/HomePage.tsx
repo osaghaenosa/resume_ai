@@ -1,3 +1,4 @@
+import AdsterraBanner from './AdsterraBanner';
 
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
@@ -35,6 +36,7 @@ export default function HomePage({ onUpgradeClick }: HomePageProps) {
 
     return (
         <div className="p-4 sm:p-6 lg:p-8">
+         
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-white">Home Dashboard</h1>
@@ -71,6 +73,9 @@ export default function HomePage({ onUpgradeClick }: HomePageProps) {
 
             {(isGeneratorOpen || editingDoc) && <GeneratorModal onClose={handleCloseGenerator} docToEdit={editingDoc} onUpgrade={onUpgradeClick} />}
             {viewingDoc && <DocumentViewer doc={viewingDoc} onClose={() => setViewingDoc(null)} onEdit={handleEditDoc} onUpgrade={onUpgradeClick} />}
+            
+             {/* Show Adsterra Banner */}
+      <AdsterraBanner />
         </div>
     );
 }
