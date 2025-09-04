@@ -1,16 +1,15 @@
-import AdsterraBanner from './AdsterraBanner';
+
 
 import React from 'react';
 
 export default function AdBanner() {
     return (
         <div className="bg-[#111827] p-4 rounded-lg shadow-lg text-center">
-          {/* Show Adsterra Banner */}
-      <AdsterraBanner />
+     
             <span className="text-xs text-gray-500">ADVERTISEMENT</span>
             <div className="mt-2">
                 <img 
-                    src="https://picsum.photos/seed/adbanner/300/250" 
+                    src="https://i0.wp.com/fishwithjd.com/wp-content/uploads/2013/05/Screen-Shot-2013-05-14-at-12.51.52-PM.png?resize=680%2C600&ssl=1" 
                     alt="Advertisement"
                     className="w-full rounded"
                 />

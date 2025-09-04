@@ -523,7 +523,7 @@ const generatePortfolioHtml = async (request: DocumentRequest): Promise<string> 
   // Escape all user content and format profile picture URL
   const safeName = escapeHtml(request.name || '');
   const safeJob = escapeHtml(request.targetJob || '');
-  const safeContact = escapeHtml(request.contact || '');
+  const safeContact = request.contact || '';
   const safeContactArray = safeContact.split('|');
   const profilePicUrl = formatImageUrl(request.profilePicture);
   const safeProfilePic = escapeHtml(profilePicUrl);
