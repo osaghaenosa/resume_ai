@@ -2,6 +2,18 @@
 import React from 'react';
 
 export default function Hero({ onStart }: { onStart: () => void }) {
+  const AdsterraBanner: React.FC = () => {
+  return (
+    <div
+      dangerouslySetInnerHTML={{
+        __html: `<script async="async" data-cfasync="false" src="//pl27573803.revenuecpmgate.com/7f36e442da4eaff03f5cbd6b619b4c31/invoke.js"></script>
+<div id="container-7f36e442da4eaff03f5cbd6b619b4c31"></div>`,
+      }}
+    />
+  );
+};
+
+export default AdsterraBanner;
     return (
         <div className="relative isolate pt-14 pb-16 md:pt-24 md:pb-24 text-center overflow-hidden bg-gray-900">
             <div className="absolute inset-0 bg-grid-cyan-500/10 [mask-image:linear-gradient(to_bottom,white_5%,transparent_90%)]"></div>
