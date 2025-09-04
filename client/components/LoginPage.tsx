@@ -1,4 +1,3 @@
-import AdsterraBanner from './AdsterraBanner';
 
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
@@ -36,8 +35,7 @@ export default function LoginPage({ onLoginSuccess, onNavigateToSignup }: LoginP
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0B1120] to-[#111827] p-4">
-          {/* Show Adsterra Banner */}
-      <AdsterraBanner />
+          
             <div className="max-w-md w-full bg-[#111827] bg-opacity-80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-700">
                 <div className="text-center">
                     <div className="inline-block p-3 bg-cyan-500/10 rounded-full mb-4">

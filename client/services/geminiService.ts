@@ -524,6 +524,7 @@ const generatePortfolioHtml = async (request: DocumentRequest): Promise<string> 
   const safeName = escapeHtml(request.name || '');
   const safeJob = escapeHtml(request.targetJob || '');
   const safeContact = escapeHtml(request.contact || '');
+  const safeContactArray = safeContact.split('|');
   const profilePicUrl = formatImageUrl(request.profilePicture);
   const safeProfilePic = escapeHtml(profilePicUrl);
   const safeBio = escapeHtml(request.portfolioBio || '');
@@ -543,6 +544,9 @@ const generatePortfolioHtml = async (request: DocumentRequest): Promise<string> 
     .replace(/{{name}}/g, safeName)
     .replace(/{{targetJob}}/g, safeJob)
     .replace(/{{contact}}/g, safeContact)
+    .replace(/{{contactEmail}}/g, safeContactArray[0])
+    .replace(/{{contactNumber}}/g, safeContactArray[1])
+    .replace(/{{contactAddress}}/g, safeContactArray[2])
     .replace(/{{profilePicture}}/g, safeProfilePic)
     .replace(/{{portfolioBio}}/g, safeBio)
     .replace(/{{socialLinks}}/g, socialLinks)
