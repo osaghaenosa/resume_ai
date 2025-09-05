@@ -1,11 +1,11 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MenuIcon, XIcon, UserIcon } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 
 const NavLink: React.FC<{ href: string; children: React.ReactNode; onClick?: () => void }> = ({ href, children, onClick }) => (
-    <a href={href} onClick={onClick} className="text-gray-300 hover:text-cyan-400 transition-colors duration-300 px-3 py-2 rounded-md text-sm font-medium">
+    <a href={href} onClick={onClick} className="text-gray-300 hover:text-white transition-colors duration-300 px-3 py-2 rounded-md text-sm font-medium relative group">
         {children}
+        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-cyan-400 transition-all duration-300 group-hover:w-full"></span>
     </a>
 );
 
@@ -22,6 +22,7 @@ export default function Header({ onNavigate, isApp, onNavigateToLogin, onNavigat
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const { currentUser, logout } = useAuth();
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const userMenuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -33,15 +34,16 @@ export default function Header({ onNavigate, isApp, onNavigateToLogin, onNavigat
     
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (isUserMenuOpen && !(event.target as HTMLElement).closest('#user-menu-button-container')) {
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
                 setIsUserMenuOpen(false);
             }
         };
+        
         document.addEventListener("mousedown", handleClickOutside);
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [isUserMenuOpen]);
+    }, []);
 
     const landingNavLinks = [
         { href: "#features", text: "Features" },
@@ -70,23 +72,32 @@ export default function Header({ onNavigate, isApp, onNavigateToLogin, onNavigat
     const AppNavButton: React.FC<{ page: 'home' | 'analyser' | 'profile' | 'settings', children: React.ReactNode, isMobile?: boolean }> = ({ page, children, isMobile }) => (
         <button 
             onClick={() => { onNavigate(page); if(isMobile) setIsMenuOpen(false); }}
-            className={isMobile ? "w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700" : "text-gray-300 hover:text-cyan-400 transition-colors duration-300 px-3 py-2 rounded-md text-sm font-medium"}
+            className={`${isMobile ? 
+                "w-full text-left block px-4 py-3 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition-colors duration-300" : 
+                "text-gray-300 hover:text-white transition-colors duration-300 px-3 py-2 rounded-md text-sm font-medium relative group"
+            }`}
         >
             {children}
+            {!isMobile && (
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-cyan-400 transition-all duration-300 group-hover:w-full"></span>
+            )}
         </button>
     );
 
     return (
-        <header className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-opacity-90 bg-[#0B1120] backdrop-blur-lg shadow-lg' : 'bg-transparent'}`}>
+        <header className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-gray-900 bg-opacity-95 backdrop-blur-md shadow-xl' : 'bg-transparent'}`}>
             <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center">
-                        <a href="#" onClick={handleLogoClick} className="text-xl font-bold text-white flex items-center">
-                           <span className="text-cyan-400">AI</span>&nbsp;Resume Gen
+                        <a href="#" onClick={handleLogoClick} className="text-2xl font-bold text-white flex items-center">
+                            <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">AI Resume</span>
+                            <span className="ml-1 hidden sm:inline">Genius</span>
                         </a>
                     </div>
+                    
+                    {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center">
-                        <div className="ml-10 flex items-baseline space-x-4">
+                        <div className="ml-10 flex items-baseline space-x-2">
                            {isApp ? (
                                appNavLinks.map(link => <AppNavButton key={link.page} page={link.page}>{link.text}</AppNavButton>)
                            ) : (
@@ -100,50 +111,67 @@ export default function Header({ onNavigate, isApp, onNavigateToLogin, onNavigat
                                     {currentUser.plan === 'Free' && isApp && onUpgradeClick && (
                                         <button 
                                             onClick={onUpgradeClick}
-                                            className="bg-yellow-500 text-black font-bold text-xs py-1 px-3 rounded-full hover:bg-yellow-400 transition-all duration-300 transform hover:scale-105"
+                                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-bold text-xs py-1.5 px-4 rounded-full hover:from-yellow-400 hover:to-yellow-500 transition-all duration-300 transform hover:scale-105 shadow-md"
                                         >
                                             Upgrade
                                         </button>
                                     )}
-                                    <div className="relative" id="user-menu-button-container">
+                                    <div className="relative" ref={userMenuRef}>
                                         <button
                                             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                            className="flex items-center space-x-2 bg-gray-800 p-1 pr-3 rounded-full hover:bg-gray-700 transition-colors"
+                                            className="flex items-center space-x-2 bg-gray-800 p-1 pr-3 rounded-full hover:bg-gray-700 transition-colors duration-300 border border-gray-700"
                                         >
-                                            <div className="h-7 w-7 bg-gray-600 rounded-full flex items-center justify-center">
+                                            <div className="h-8 w-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
                                                 <UserIcon className="h-5 w-5 text-white" />
                                             </div>
-                                            <span className="text-sm font-semibold">{currentUser.name}</span>
-                                            <span className="text-xs bg-cyan-500 text-white font-bold px-2 py-0.5 rounded-full">{currentUser.tokens}</span>
+                                            <span className="text-sm font-medium text-white">{currentUser.name}</span>
+                                            <span className="text-xs bg-cyan-600 text-white font-bold px-2 py-1 rounded-full shadow-sm">{currentUser.tokens}</span>
                                         </button>
                                         {isUserMenuOpen && isApp && (
-                                            <div className="absolute right-0 mt-2 w-48 bg-[#111827] rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50">
-                                                <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('profile'); setIsUserMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">Profile</a>
-                                                <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('settings'); setIsUserMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">Settings</a>
-                                                <a href="#" onClick={(e) => { e.preventDefault(); logout(); setIsUserMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 w-full text-left">Logout</a>
+                                            <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50 border border-gray-700">
+                                                <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('profile'); setIsUserMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">Profile</a>
+                                                <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('settings'); setIsUserMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">Settings</a>
+                                                <div className="border-t border-gray-700 my-1"></div>
+                                                <a href="#" onClick={(e) => { e.preventDefault(); logout(); setIsUserMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">Logout</a>
                                             </div>
                                         )}
                                     </div>
                                 </div>
                             ) : (
-                                <div className="flex items-center space-x-2">
-                                    <button onClick={onNavigateToLogin} className="text-gray-300 hover:text-cyan-400 transition-colors duration-300 px-3 py-2 rounded-md text-sm font-medium">Login</button>
-                                    <button onClick={onNavigateToSignup} className="bg-cyan-500 text-white font-bold py-2 px-4 rounded-md text-sm hover:bg-cyan-400 transition-colors duration-300">Sign Up</button>
+                                <div className="flex items-center space-x-3 ml-4">
+                                    <button onClick={onNavigateToLogin} className="text-gray-300 hover:text-white transition-colors duration-300 px-3 py-2 rounded-md text-sm font-medium">Login</button>
+                                    <button onClick={onNavigateToSignup} className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold py-2 px-4 rounded-md text-sm hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 shadow-md">Sign Up</button>
                                 </div>
                             )}
                         </div>
                     </div>
-                    <div className="-mr-2 flex md:hidden">
-                        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                    
+                    {/* Mobile menu button */}
+                    <div className="md:hidden flex items-center">
+                        {currentUser && isApp && onUpgradeClick && currentUser.plan === 'Free' && (
+                            <button 
+                                onClick={onUpgradeClick}
+                                className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-bold text-xs py-1.5 px-3 rounded-full mr-3 shadow-md"
+                            >
+                                Upgrade
+                            </button>
+                        )}
+                        <button 
+                            onClick={() => setIsMenuOpen(!isMenuOpen)} 
+                            className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-cyan-500 transition-colors duration-300"
+                            aria-expanded="false"
+                        >
                             <span className="sr-only">Open main menu</span>
-                            {isMenuOpen ? <XIcon /> : <MenuIcon />}
+                            {isMenuOpen ? <XIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
                         </button>
                     </div>
                 </div>
             </nav>
+            
+            {/* Mobile menu */}
             {isMenuOpen && (
-                <div className="md:hidden">
-                    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-[#111827]">
+                <div className="md:hidden bg-gray-900 shadow-xl border-t border-gray-800">
+                    <div className="px-2 pt-2 pb-3 space-y-1">
                         {isApp ? (
                             appNavLinks.map(link => <AppNavButton key={link.page} page={link.page} isMobile>{link.text}</AppNavButton>)
                         ) : (
@@ -151,27 +179,39 @@ export default function Header({ onNavigate, isApp, onNavigateToLogin, onNavigat
                         )}
                          
                         {currentUser ? (
-                            <div className="mt-4 pt-4 border-t border-gray-700 px-2 space-y-2">
-                                <div className="text-sm text-gray-300 text-center mb-2">
-                                    <p><span className="font-semibold">{currentUser.name}</span></p>
-                                    <p><span className="text-cyan-400 font-bold">{currentUser.tokens}</span> Tokens Left</p>
+                            <div className="mt-4 pt-4 border-t border-gray-800 px-2 space-y-2">
+                                <div className="flex items-center px-4 py-3">
+                                    <div className="h-10 w-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-md mr-3">
+                                        <UserIcon className="h-6 w-6 text-white" />
+                                    </div>
+                                    <div className="text-sm">
+                                        <p className="font-medium text-white">{currentUser.name}</p>
+                                        <p className="text-cyan-400 font-bold">{currentUser.tokens} Tokens</p>
+                                    </div>
                                 </div>
-                                {currentUser.plan === 'Free' && isApp && onUpgradeClick && (
-                                     <button 
-                                        onClick={() => {onUpgradeClick(); setIsMenuOpen(false);}}
-                                        className="w-full text-center block px-3 py-2 rounded-md text-base font-medium text-black bg-yellow-500 hover:bg-yellow-400"
-                                    >
-                                        Upgrade to Pro
-                                    </button>
-                                )}
                                 { isApp && <AppNavButton page="profile" isMobile>Profile</AppNavButton> }
                                 { isApp && <AppNavButton page="settings" isMobile>Settings</AppNavButton> }
-                                <button onClick={() => { logout(); setIsMenuOpen(false); }} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">Logout</button>
+                                <button 
+                                    onClick={() => { logout(); setIsMenuOpen(false); }} 
+                                    className="w-full text-left block px-4 py-3 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition-colors duration-300"
+                                >
+                                    Logout
+                                </button>
                             </div>
                         ) : (
-                             <div className="mt-4 pt-4 border-t border-gray-700 px-2 space-y-2">
-                                <button onClick={() => { if(onNavigateToLogin) onNavigateToLogin(); setIsMenuOpen(false); }} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">Login</button>
-                                <button onClick={() => { if(onNavigateToSignup) onNavigateToSignup(); setIsMenuOpen(false); }} className="w-full text-center block px-3 py-2 rounded-md text-base font-medium text-white bg-cyan-500 hover:bg-cyan-400">Sign Up</button>
+                             <div className="mt-4 pt-4 border-t border-gray-800 px-2 space-y-2">
+                                <button 
+                                    onClick={() => { if(onNavigateToLogin) onNavigateToLogin(); setIsMenuOpen(false); }} 
+                                    className="w-full text-left block px-4 py-3 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition-colors duration-300"
+                                >
+                                    Login
+                                </button>
+                                <button 
+                                    onClick={() => { if(onNavigateToSignup) onNavigateToSignup(); setIsMenuOpen(false); }} 
+                                    className="w-full text-center block px-4 py-3 rounded-md text-base font-medium text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 shadow-md"
+                                >
+                                    Sign Up
+                                </button>
                             </div>
                         )}
                     </div>

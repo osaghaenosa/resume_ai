@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import AppContent from './AppContent';
 import SharePageWrapper from './wrappers/SharePageWrapper';
+import AboutPage from './wrappers/AboutPage.tsx'
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
           <Routes>
             <Route path="/share/:docId" element={<SharePageWrapper />} />
             <Route path="*" element={<AppContent />} />
+            <Route path="/about" element={<AboutPage />} />
           </Routes>
         </Router>
       </div>
