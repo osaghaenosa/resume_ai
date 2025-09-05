@@ -4,7 +4,6 @@ import { Document } from '../types';
 import { XIcon, ClipboardCopyIcon, CheckIcon, TrashIcon, DownloadIcon, LoadingSpinner, PencilIcon, ShareIcon, LockClosedIcon } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 interface DocumentViewerProps {
     doc: Document | null;
@@ -46,7 +45,6 @@ const PortfolioAnalytics: React.FC<{ doc: Document }> = ({ doc }) => {
     );
 };
 
-
 export default function DocumentViewer({ doc, onClose, onEdit, onUpgrade }: DocumentViewerProps) {
     const { deleteDocument, publishDocument, currentUser } = useAuth();
     const [isCopied, setIsCopied] = useState(false);
@@ -85,80 +83,36 @@ export default function DocumentViewer({ doc, onClose, onEdit, onUpgrade }: Docu
         if (!doc.content) return;
     
         setIsDownloadingPdf(true);
-        const container = document.createElement('div');
         
         try {
-            // Configure temporary container
-            container.style.position = 'fixed';
-            container.style.left = '0';
-            container.style.top = '0';
-            container.style.width = '800px';
-            container.style.zIndex = '-1000';
-            container.style.overflow = 'visible';
-            container.style.backgroundColor = doc.sourceRequest?.docType === 'Portfolio' 
-                ? 'transparent' 
-                : '#ffffff';
-            container.innerHTML = doc.content;
-            document.body.appendChild(container);
-
-            const elementToCapture = container.children[0] as HTMLElement;
-            if (!elementToCapture) throw new Error("Could not find content element");
-
-            // Dynamic scaling based on content size
-            const contentHeight = elementToCapture.scrollHeight;
-            const scale = contentHeight > 5000 ? 1 : contentHeight > 3000 ? 1.5 : 2;
-
-            // Generate canvas from content
-            const canvas = await html2canvas(elementToCapture, {
-                scale,
-                useCORS: true,
-                backgroundColor: doc.sourceRequest?.docType !== 'Portfolio' ? '#ffffff' : null,
-                logging: false,
-            });
-
-            // Create PDF
+            // Create a new jsPDF instance
             const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
             
-            // Calculate image dimensions
-            const imgWidth = pdfWidth;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            // Create a temporary container for the HTML content
+            const tempContainer = document.createElement('div');
+            tempContainer.style.width = '180mm'; // A4 width minus margins
+            tempContainer.style.padding = '15mm';
+            tempContainer.innerHTML = doc.content;
+            document.body.appendChild(tempContainer);
             
-            // Add pages with content
-            let position = 0;
-            let remainingHeight = imgHeight;
-
-            while (remainingHeight > 0) {
-                const pageHeight = Math.min(remainingHeight, pdfHeight);
-                pdf.addImage(
-                    canvas.toDataURL('image/png', 1.0),
-                    'PNG',
-                    0,
-                    position,
-                    imgWidth,
-                    imgHeight,
-                    undefined,
-                    'FAST'
-                );
-                
-                remainingHeight -= pdfHeight;
-                position -= pdfHeight;
-                
-                if (remainingHeight > 0) {
-                    pdf.addPage();
-                }
-            }
-
-            pdf.save(`${doc.title.replace(/ /g, '_')}.pdf`);
+            // Use jsPDF's html method to directly convert HTML to PDF
+            await pdf.html(tempContainer, {
+                callback: function(pdf) {
+                    pdf.save(`${doc.title.replace(/ /g, '_')}.pdf`);
+                },
+                x: 15,
+                y: 15,
+                width: 180, // A4 width minus margins
+                windowWidth: tempContainer.scrollWidth
+            });
+            
+            // Clean up
+            document.body.removeChild(tempContainer);
+            
         } catch (error) {
             console.error('PDF generation failed:', error);
             alert('Error generating PDF. Please try again or use HTML export.');
         } finally {
-            // Clean up temporary elements
-            if (container.parentNode === document.body) {
-                document.body.removeChild(container);
-            }
             setIsDownloadingPdf(false);
         }
     };
