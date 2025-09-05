@@ -416,6 +416,113 @@
             color: var(--neon-secondary);
         }
         
+        /* Products Section */
+        .products {
+            background: transparent;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2.5rem;
+        }
+        
+        .product-card {
+            background: var(--dark-card);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: var(--transition);
+            transform: translateY(20px);
+            opacity: 0;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .product-card.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-glow);
+        }
+        
+        .product-img {
+            height: 220px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .product-img::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(110, 68, 255, 0.2), transparent);
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .product-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+        
+        .product-card:hover .product-img img {
+            transform: scale(1.1);
+        }
+        
+        .product-card:hover .product-img::after {
+            opacity: 1;
+        }
+        
+        .product-content {
+            padding: 1.8rem;
+        }
+        
+        .product-title {
+            font-size: 1.4rem;
+            margin-bottom: 0.8rem;
+            color: var(--text-primary);
+        }
+        
+        .product-description {
+            margin-bottom: 1.2rem;
+            color: var(--text-secondary);
+        }
+        
+        .product-price {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--neon-primary);
+            margin-bottom: 1.2rem;
+        }
+        
+        .product-links {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .product-link {
+            color: var(--neon-primary);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+        
+        .product-link:hover {
+            color: var(--neon-secondary);
+        }
+        
         /* Contact Section */
         .contact {
             background: var(--dark-card);
@@ -558,6 +665,11 @@
             }
         }
         
+        /* Visibility Control */
+        .products-section-hidden {
+            display: none !important;
+        }
+        
         /* Responsive Design */
         @media (max-width: 992px) {
             .about-content,
@@ -615,7 +727,8 @@
                 flex-direction: column;
             }
             
-            .projects-grid {
+            .projects-grid,
+            .products-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -657,6 +770,7 @@
                 <li><a href="#home" class="active">Home</a></li>
                 <li><a href="#about">About</a></li>
                 <li><a href="#projects">Projects</a></li>
+                <li><a href="#products">Products</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
             <button class="hamburger">
@@ -704,6 +818,16 @@
             <h2 class="fade-in">My Projects</h2>
             <div class="projects-grid">
                 {{projects}}
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section id="products" class="products">
+        <div class="container">
+            <h2 class="fade-in">My Products</h2>
+            <div class="products-grid">
+                {{products}}
             </div>
         </div>
     </section>
@@ -864,6 +988,48 @@
             projectObserver.observe(card);
         });
         
+        // Product card animation on scroll
+        const productCards = document.querySelectorAll('.product-card');
+        
+        const productObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    productObserver.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        });
+        
+        productCards.forEach(card => {
+            productObserver.observe(card);
+        });
+        
+        // Check if products section is empty and hide if needed
+        function checkProductsEmpty() {
+            const productsGrid = document.querySelector('.products-grid');
+            const productsSection = document.getElementById('products');
+            const productsNavLink = document.querySelector('.nav-links a[href="#products"]');
+            const parentLi = productsNavLink ? productsNavLink.parentElement : null;
+            
+            if (productsGrid) {
+                // Check if products grid is empty or contains only whitespace
+                const hasContent = productsGrid.textContent.trim() !== '';
+                
+                if (!hasContent) {
+                    // Hide the products section
+                    productsSection.classList.add('products-section-hidden');
+                    
+                    // Remove the products link from navigation
+                    if (parentLi) {
+                        parentLi.remove();
+                    }
+                }
+            }
+        }
+        
         // Initialize animations
         document.addEventListener('DOMContentLoaded', function() {
             // Add fade-in class to elements with fade-in class
@@ -880,7 +1046,11 @@
             if (profileImg) {
                 profileImg.classList.add('float');
             }
+            
+            // Check if products section is empty
+            checkProductsEmpty();
         });
+        
         const date= document.getElementById("date");
         const rdate = new Date().getFullYear();
         date.innerHTML = rdate;
