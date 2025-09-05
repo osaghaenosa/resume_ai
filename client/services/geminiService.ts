@@ -531,7 +531,7 @@ const generatePortfolioHtml = async (request: DocumentRequest): Promise<string> 
   const myskills = (request.skills).split(',');
   let safeSkillsHTML = '';
   myskills.forEach(skill =>{
-    safeSkillsHTML = `
+    safeSkillsHTML += `
                         <span class="skill">${skill.trim()}</span>
                         
                     `
