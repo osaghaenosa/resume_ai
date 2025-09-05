@@ -691,7 +691,7 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
     };
     
     const renderPortfolioWizard = () => {
-        const maxSteps = 6;
+        const maxSteps = 7;
         return (<div>
             <div className="flex justify-center items-center mb-4">
                 <span className="text-sm text-gray-400">Step {wizardStep} of {maxSteps}</span>
@@ -747,7 +747,22 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
                     </div>
                 </div>
             )}
-            {wizardStep === 4 && ( // Projects
+            {wizardStep === 4 && ( // Skills - NEW SECTION
+            <div className="space-y-4 animate-fade-in">
+                <h3 className="text-lg font-semibold text-white text-center">Your Skills</h3>
+                <p className="text-center text-gray-400 text-sm mb-4">What are you good at? List your key skills and technologies.</p>
+                <FormTextarea 
+                    label="Skills (comma-separated)" 
+                    name="skills" 
+                    value={formData.skills} 
+                    onChange={handleInputChange} 
+                    disabled={isFormDisabled}
+                    placeholder="JavaScript, React, Node.js, UI/UX Design, Python, AWS"
+                    rows={5}
+                />
+            </div>
+        )}
+            {wizardStep === 5 && ( // Projects
                 <div className="animate-fade-in">
                      <h3 className="text-lg font-semibold text-white text-center">Your Work</h3>
                      <p className="text-center text-gray-400 text-sm mb-4">Showcase your best projects. Add at least one.</p>
@@ -777,7 +792,7 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
                     </button>
                 </div>
             )}
-            {wizardStep === 5 && ( // Products
+            {wizardStep === 6 && ( // Products
                 <div className="animate-fade-in">
                      <h3 className="text-lg font-semibold text-white text-center">Products for Sale</h3>
                      <p className="text-center text-gray-400 text-sm mb-4">Optionally, add products you want to sell.</p>
@@ -834,7 +849,7 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
                     </button>
                 </div>
             )}
-            {wizardStep === 6 && ( // Socials & Contact
+            {wizardStep === 7 && ( // Socials & Contact
                  <div className="space-y-4 animate-fade-in">
                      <h3 className="text-lg font-semibold text-white text-center">Final Touches</h3>
                      <p className="text-center text-gray-400 text-sm mb-4">How can people reach you?</p>

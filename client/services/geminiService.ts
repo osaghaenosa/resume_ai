@@ -528,16 +528,99 @@ const generatePortfolioHtml = async (request: DocumentRequest): Promise<string> 
   const profilePicUrl = formatImageUrl(request.profilePicture);
   const safeProfilePic = escapeHtml(profilePicUrl);
   const safeBio = escapeHtml(request.portfolioBio || '');
+  const myskills = (request.skills).split(',');
+  let safeSkillsHTML = '';
+  myskills.forEach(skill =>{
+    safeSkillsHTML = `
+                        <span class="skill">${skill.trim()}</span>
+                        
+                    `
+  })
+  
   
   // Prepare social links with escaping
-  const socialLinks = (request.portfolioSocialLinks || '')
-    .split(',')
-    .map(link => {
-      const trimmed = link.trim();
-      if (!trimmed) return '';
-      return `<a href="${escapeHtml(trimmed)}" target="_blank" class="social-link">${escapeHtml(trimmed)}</a>`;
-    })
-    .join('<br>');
+  // Function to generate social media icons from URLs
+const generateSocialIcons = (socialLinks: string): string => {
+  const platforms = {
+    'github.com': { icon: 'fab fa-github', name: 'GitHub' },
+    'facebook.com': { icon: 'fab fa-facebook-f', name: 'Facebook' },
+    'instagram.com': { icon: 'fab fa-instagram', name: 'Instagram' },
+    'twitter.com': { icon: 'fab fa-twitter', name: 'Twitter' },
+    'x.com': { icon: 'fab fa-x-twitter', name: 'X' },
+    'dribbble.com': { icon: 'fab fa-dribbble', name: 'Dribbble' },
+    'behance.net': { icon: 'fab fa-behance', name: 'Behance' },
+    'pinterest.com': { icon: 'fab fa-pinterest-p', name: 'Pinterest' },
+    'discord.com': { icon: 'fab fa-discord', name: 'Discord' },
+    'linkedin.com': { icon: 'fab fa-linkedin-in', name: 'LinkedIn' },
+    'youtube.com': { icon: 'fab fa-youtube', name: 'YouTube' },
+    'tiktok.com': { icon: 'fab fa-tiktok', name: 'TikTok' },
+    'reddit.com': { icon: 'fab fa-reddit', name: 'Reddit' },
+    'medium.com': { icon: 'fab fa-medium', name: 'Medium' },
+    'twitch.tv': { icon: 'fab fa-twitch', name: 'Twitch' },
+    'spotify.com': { icon: 'fab fa-spotify', name: 'Spotify' },
+    'snapchat.com': { icon: 'fab fa-snapchat', name: 'Snapchat' },
+    'whatsapp.com': { icon: 'fab fa-whatsapp', name: 'WhatsApp' },
+    'telegram.org': { icon: 'fab fa-telegram', name: 'Telegram' },
+    'slack.com': { icon: 'fab fa-slack', name: 'Slack' }
+  };
+
+  // Split by comma and process each URL
+  const links = socialLinks.split(',').map(link => link.trim()).filter(link => link);
+  
+  let iconsHtml = '';
+  
+  links.forEach(link => {
+    let matched = false;
+    
+    // Check each platform to find a match
+    for (const domain in platforms) {
+      if (link.includes(domain)) {
+        const platform = platforms[domain as keyof typeof platforms];
+        iconsHtml += `
+          <a href="${escapeHtml(link)}" target="_blank" class="social-icon ${domain.split('.')[0]}" 
+             title="${platform.name}" style="
+             display: inline-flex;
+             align-items: center;
+             justify-content: center;
+             width: 45px;
+             height: 45px;
+             border-radius: 50%;
+             background: rgba(255, 255, 255, 0.1);
+             color: #f0f0f5;
+             font-size: 20px;
+             margin: 0 10px 10px 0;
+             transition: all 0.3s ease;
+             text-decoration: none;
+             border: 1px solid rgba(255, 255, 255, 0.1);
+          ">
+            <i class="${platform.icon}"></i>
+          </a>
+        `;
+        matched = true;
+        break;
+      }
+    }
+    
+    // If no platform matched, create a generic link
+    if (!matched) {
+      iconsHtml += `
+        <a href="${escapeHtml(link)}" target="_blank" class="social-link" style="
+           display: inline-block;
+           margin: 0 10px 10px 0;
+           color: #6e44ff;
+           text-decoration: none;
+        ">
+          <i class="fas fa-link"></i> ${escapeHtml(link)}
+        </a>
+      `;
+    }
+  });
+  
+  return iconsHtml;
+};
+
+// Then update the social links section in your generatePortfolioHtml function:
+const socialLinks = generateSocialIcons(request.portfolioSocialLinks || '');
 
   // Replace placeholders with safely escaped data
   return templateHtml
@@ -551,7 +634,8 @@ const generatePortfolioHtml = async (request: DocumentRequest): Promise<string> 
     .replace(/{{portfolioBio}}/g, safeBio)
     .replace(/{{socialLinks}}/g, socialLinks)
     .replace(/{{projects}}/g, projectsHtml)
-    .replace(/{{products}}/g, productsHtml);
+    .replace(/{{products}}/g, productsHtml)
+    .replace(/{{skills}}/g, safeSkillsHTML);
 };
 
 //delete the getPortfolioSystemInstruction

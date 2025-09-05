@@ -650,7 +650,7 @@
     <nav class="navbar">
         <div class="container nav-container">
             <a href="#" class="logo">
-                <i class="fas fa-code"></i>
+                <i class="fas fa-user-circle"></i>
                 {{name}} Portfolio
             </a>
             <ul class="nav-links">
@@ -691,12 +691,7 @@
                 <div class="about-text fade-in">
                     <p>{{portfolioBio}}</p>
                     <div class="skills">
-                        <span class="skill">UI/UX Design</span>
-                        <span class="skill">Frontend Development</span>
-                        <span class="skill">React</span>
-                        <span class="skill">JavaScript</span>
-                        <span class="skill">Figma</span>
-                        <span class="skill">CSS Animation</span>
+                        {{skills}}
                     </div>
                 </div>
             </div>
@@ -777,7 +772,7 @@
     <footer>
         <div class="container">
             <div class="footer-content">
-                <p>&copy; 2023 {{name}} Portfolio. All rights reserved.</p>
+                <p>&copy; <span id='date'></span> {{name}} Portfolio. All rights reserved.</p>
                 <div class="social-links">
                     {{socialLinks}}
                 </div>
@@ -886,6 +881,9 @@
                 profileImg.classList.add('float');
             }
         });
+        const date= document.getElementById("date");
+        const rdate = new Date().getFullYear();
+        date.innerHTML = rdate;
     </script>
 </body>
 </html>
