@@ -1093,6 +1093,74 @@ Produce only the HTML content as requested.`.trim();
     }
 };
 
+export const analyzeJobPosting = async (jobPost: string): Promise<{
+  targetJob: string;
+  targetCompany: string;
+  skills: string;
+  experience: string;
+  education: string;
+}> => {
+  const apiKey = getApiKey();
+
+  if (!apiKey) {
+    console.warn("API_KEY environment variable not set. Using a mock job analysis.");
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    return {
+      targetJob: 'Senior Software Engineer',
+      targetCompany: 'Tech Innovators Inc.',
+      skills: 'JavaScript, React, Node.js, AWS, Python, Leadership, Problem Solving',
+      experience: `Senior Software Engineer | Tech Solutions Inc. | January 2020 - Present
+- Led a team of 5 developers to build a React-based application, improving user engagement by 30%
+- Designed and implemented a microservices architecture using Node.js and AWS, reducing latency by 40%
+- Mentored junior developers and conducted code reviews, improving team productivity by 25%
+- Solved critical performance issues by optimizing database queries, reducing load times by 60%
+
+Software Developer | Innovation Labs | June 2017 - December 2019
+- Developed a full-stack application using React and Node.js that served over 10,000 monthly users
+- Implemented CI/CD pipelines that reduced deployment time by 50%
+- Collaborated with product team to define requirements and deliver features ahead of schedule`,
+      education: 'Bachelor\'s degree in Computer Science or related field'
+    };
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
+
+  const systemInstruction = `
+You are an expert recruiter and career coach. Your task is to analyze a job posting and generate comprehensive, compelling resume content that will help the candidate stand out.
+
+For the work experience section, create 2-3 detailed job entries that:
+1. Match the skills and requirements mentioned in the job posting
+2. Include leadership experience and team collaboration examples
+3. Highlight specific problems solved with quantifiable results
+4. Use action verbs and industry-specific terminology
+5. Include relevant company names (you can create plausible company names)
+
+Format the experience as a multi-line string with clear bullet points.
+
+Return the information in JSON format with the keys: targetJob, targetCompany, skills, experience, education.
+
+Be comprehensive and create content that would help the candidate get past automated screening systems.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-1.5-flash",
+      contents: `Analyze the following job post and generate comprehensive resume content: \n\n${jobPost}`,
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+      }
+    });
+
+    const analysis = JSON.parse(response.text);
+    return analysis;
+
+  } catch (error) {
+    console.error("Error analyzing job post with Gemini API:", error);
+    throw new Error("Failed to analyze job post. The AI service may be temporarily unavailable.");
+  }
+};
+
 
 export const analyseResume = async (resumeText: string): Promise<AnalysisResult> => {
      const apiKey = getApiKey();

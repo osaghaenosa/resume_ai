@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { DocumentType, DocumentRequest, PortfolioProject, Document, PortfolioTemplate, ResumeTemplate, UserPlan, Product } from '../types';
-import { generateDocument } from '../services/geminiService';
+import { generateDocument, analyzeJobPosting } from '../services/geminiService';
 import { XIcon, LoadingSpinner, TrashIcon, UploadIcon, LinkIcon, ArrowLeftIcon, ArrowRightIcon, LockClosedIcon, UserIcon as ProfileIcon } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -237,6 +237,41 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [wizardStep, setWizardStep] = useState(1);
+    const [jobPostInput, setJobPostInput] = useState('');
+const [isAnalyzingJob, setIsAnalyzingJob] = useState(false);
+const [jobAnalysisError, setJobAnalysisError] = useState('');
+
+// Add the job analysis function:
+const analyzeJobPost = async () => {
+  if (!jobPostInput.trim()) {
+    setJobAnalysisError('Please enter a job post URL or description');
+    return;
+  }
+  
+  setIsAnalyzingJob(true);
+  setJobAnalysisError('');
+  
+  try {
+    const analysis = await analyzeJobPosting(jobPostInput);
+    
+    // Update form data with the analysis results
+    setFormData(prev => ({
+      ...prev,
+      targetJob: analysis.targetJob || prev.targetJob,
+      targetCompany: analysis.targetCompany || prev.targetCompany,
+      skills: analysis.skills || prev.skills,
+      experience: analysis.experience || prev.experience,
+      education: analysis.education || prev.education,
+    }));
+    
+    // Move to the next step in the wizard
+    setWizardStep(2);
+  } catch (err: any) {
+    setJobAnalysisError(err.message || 'Failed to analyze job post');
+  } finally {
+    setIsAnalyzingJob(false);
+  }
+};
 
     useEffect(() => {
         if (docToEdit?.sourceRequest) {
@@ -536,12 +571,73 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
     );
     
     const renderResumeWizard = () => {
-        const maxSteps = 3; // Changed from 2 to 3
+        const maxSteps = 4; // Changed from 2 to 3
         return (<div>
             <div className="flex justify-center items-center mb-4">
                 <span className="text-sm text-gray-400">Step {wizardStep} of {maxSteps}</span>
             </div>
             {wizardStep === 1 && (
+  <div className="space-y-4 animate-fade-in">
+    <h3 className="text-lg font-semibold text-white text-center">Job Analysis</h3>
+    <p className="text-center text-gray-400 text-sm mb-4">
+      Paste a job post URL or description to tailor your resume for this specific role.
+      Our AI will analyze the requirements and generate optimized content.
+    </p>
+    
+    <div>
+      <label className="block text-sm font-medium text-gray-300 mb-1">
+        Job Post URL or Description
+      </label>
+      <textarea
+        value={jobPostInput}
+        onChange={(e) => setJobPostInput(e.target.value)}
+        placeholder="Paste job URL or full description here..."
+        rows={6}
+        className="w-full bg-gray-900 border border-gray-700 rounded-md py-2 px-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+      />
+    </div>
+    
+    {jobAnalysisError && (
+      <div className={`p-2 rounded-md text-sm ${
+        jobAnalysisError.includes('complete') 
+          ? 'bg-green-900/20 text-green-400' 
+          : 'bg-red-900/20 text-red-400'
+      }`}>
+        {jobAnalysisError}
+      </div>
+    )}
+    
+    <div className="flex gap-3">
+      <button
+        type="button"
+        onClick={analyzeJobPost}
+        disabled={isAnalyzingJob || !jobPostInput.trim()}
+        className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-md disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center"
+      >
+        {isAnalyzingJob ? <LoadingSpinner /> : 'Analyze Job'}
+      </button>
+      <button
+        type="button"
+        onClick={() => setWizardStep(2)}
+        className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md"
+      >
+        Skip Analysis
+      </button>
+    </div>
+    
+    <div className="mt-4 p-3 bg-blue-900/20 border border-blue-700 rounded-md">
+      <h4 className="text-blue-300 font-medium mb-2">What our analysis includes:</h4>
+      <ul className="text-sm text-blue-200 space-y-1">
+        <li>• Skills matching and enhancement</li>
+        <li>• Leadership experience relevant to the role</li>
+        <li>• Quantifiable achievements and problem-solving examples</li>
+        <li>• Industry-specific terminology optimization</li>
+        <li>• ATS-friendly formatting</li>
+      </ul>
+    </div>
+  </div>
+)}
+            {wizardStep === 2 && (
                 <div className="space-y-4 animate-fade-in">
                     <h3 className="text-lg font-semibold text-white text-center">Your Details</h3>
                     <p className="text-center text-gray-400 text-sm mb-4">Provide the core information for your resume.</p>
@@ -554,7 +650,7 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
                     <FormTextarea label="Skills (comma-separated)" name="skills" value={formData.skills} onChange={handleInputChange} disabled={isFormDisabled} />
                 </div>
             )}
-            {wizardStep === 2 && (
+            {wizardStep === 3 && (
                 <div className="animate-fade-in">
                     <h3 className="text-lg font-semibold text-white text-center">Projects & Certifications</h3>
                     <p className="text-center text-gray-400 text-sm mb-4">
@@ -667,7 +763,7 @@ export default function GeneratorModal({ onClose, docToEdit, onUpgrade }: Genera
                     </div>
                 </div>
             )}
-            {wizardStep === 3 && (
+            {wizardStep === 4 && (
                 <div className="animate-fade-in">
                      <h3 className="text-lg font-semibold text-white text-center">Choose a Template</h3>
                      <p className="text-center text-gray-400 text-sm mb-4">Select a style for your resume. Pro templates require an upgrade.</p>

@@ -1,7 +1,10 @@
+import Header from '../components/Header';
 import React from 'react';
 
 export default function AboutPage() {
   return (
+    <>
+      <Header onNavigate={setPage} isApp={true} onUpgradeClick={onUpgradeClick}/> 
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         {/* Header Section */}
@@ -10,7 +13,7 @@ export default function AboutPage() {
             <div className="h-64 w-64 bg-indigo-500 rounded-full blur-3xl"></div>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 relative">
-            About Our AI Career Platform
+            About Our JobReadyAI tool
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto relative">
             We're revolutionizing job applications with AI-powered tools that create interview-winning documents in minutes.
@@ -187,5 +190,6 @@ export default function AboutPage() {
         </footer>
       </div>
     </div>
+    </>
   );
 }
