@@ -1,4 +1,3 @@
-import AdsterraBanner from './AdsterraBanner';
 
 import React from 'react';
 
@@ -6,8 +5,7 @@ export default function Hero({ onStart }: { onStart: () => void }) {
     return (
         <div className="relative isolate pt-14 pb-16 md:pt-24 md:pb-24 text-center overflow-hidden bg-gray-900">
      
-      <AdsterraBanner /> />
-
+      
 
             <div className="absolute inset-0 bg-grid-cyan-500/10 [mask-image:linear-gradient(to_bottom,white_5%,transparent_90%)]"></div>
             <div className="absolute -top-1/2 left-1/2 -z-10 -translate-x-1/2 transform-gpu blur-3xl" aria-hidden="true">
