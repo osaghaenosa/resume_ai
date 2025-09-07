@@ -90,7 +90,7 @@ export default function Header({ onNavigate, isApp, onNavigateToLogin, onNavigat
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center">
                         <a href="#" onClick={handleLogoClick} className="text-2xl font-bold text-white flex items-center">
-                            <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">AI Resume</span>
+                            <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Job ready AI Tool</span>
                             <span className="ml-1 hidden sm:inline">Genius</span>
                         </a>
                     </div>
