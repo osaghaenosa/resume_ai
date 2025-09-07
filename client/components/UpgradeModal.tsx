@@ -36,7 +36,7 @@ const TierCard: React.FC<{
             onClick={onAction}
             disabled={isCurrent}
             className={`mt-8 w-full py-3 px-6 rounded-lg font-semibold transition-colors duration-300 ${
-                isCurrent ? 'bg-gray-600 text-gray-400 cursor-default' : 'bg-cyan-500 text-white hover:bg-cyan-400'
+                isCurrent ? 'bg-gray-600 text-gray-400 cursor-default' : 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white hover:bg-blue-500'
             }`}
         >
             {actionText}

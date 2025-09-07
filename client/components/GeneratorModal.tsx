@@ -512,7 +512,7 @@ const analyzeJobPost = async () => {
                 <button type="button" onClick={() => setWizardStep(s => s - 1)} disabled={wizardStep === 1 || isFormDisabled} className="flex items-center gap-2 text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed">
                     <ArrowLeftIcon /> Back
                 </button>
-                <button type="button" onClick={() => setWizardStep(s => s + 1)} disabled={isFormDisabled} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-md flex items-center gap-2 disabled:bg-gray-600">
+                <button type="button" onClick={() => setWizardStep(s => s + 1)} disabled={isFormDisabled} className="bg-gradient-to-r from-cyan-400 to-blue-500 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-md flex items-center gap-2 disabled:bg-gray-600">
                     Next <ArrowRightIcon />
                 </button>
             </div>
@@ -985,9 +985,9 @@ const analyzeJobPost = async () => {
                     <div className="space-y-4">
                         {!docToEdit && (
                             <div className="grid grid-cols-3 gap-4 mb-6">
-                                <button type="button" onClick={() => { setDocType('Resume'); setWizardStep(1); }} disabled={isFormDisabled} className={`w-full py-2 rounded transition-colors ${docType === 'Resume' ? 'bg-cyan-500 text-white' : 'bg-gray-700 text-gray-300'} disabled:opacity-50`}>Resume</button>
-                                <button type="button" onClick={() => { setDocType('Cover Letter'); setWizardStep(1); }} disabled={isFormDisabled} className={`w-full py-2 rounded transition-colors ${docType === 'Cover Letter' ? 'bg-cyan-500 text-white' : 'bg-gray-700 text-gray-300'} disabled:opacity-50`}>Cover Letter</button>
-                                <button type="button" onClick={() => { setDocType('Portfolio'); setWizardStep(1); }} disabled={isFormDisabled} className={`w-full py-2 rounded transition-colors ${docType === 'Portfolio' ? 'bg-cyan-500 text-white' : 'bg-gray-700 text-gray-300'} disabled:opacity-50`}>Portfolio</button>
+                                <button type="button" onClick={() => { setDocType('Resume'); setWizardStep(1); }} disabled={isFormDisabled} className={`w-full py-2 rounded transition-colors ${docType === 'Resume' ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white' : 'bg-gray-700 text-gray-300'} disabled:opacity-50`}>Resume</button>
+                                <button type="button" onClick={() => { setDocType('Cover Letter'); setWizardStep(1); }} disabled={isFormDisabled} className={`w-full py-2 rounded transition-colors ${docType === 'Cover Letter' ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white' : 'bg-gray-700 text-gray-300'} disabled:opacity-50`}>Cover Letter</button>
+                                <button type="button" onClick={() => { setDocType('Portfolio'); setWizardStep(1); }} disabled={isFormDisabled} className={`w-full py-2 rounded transition-colors ${docType === 'Portfolio' ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white' : 'bg-gray-700 text-gray-300'} disabled:opacity-50`}>Portfolio</button>
                             </div>
                         )}
                         

@@ -51,6 +51,7 @@ export default function Header({ onNavigate, isApp, onNavigateToLogin, onNavigat
         { href: "#why-us", text: "Why Us" },
         { href: "#pricing", text: "Pricing" },
         { href: "#contact", text: "Contact" },
+        { href: "/about", text: "About" },
     ];
 
     const appNavLinks: { text: string; page: 'home' | 'analyser' | 'profile' | 'settings' }[] = [
@@ -89,7 +90,8 @@ export default function Header({ onNavigate, isApp, onNavigateToLogin, onNavigat
             <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center">
-                        <a href="#" onClick={handleLogoClick} className="text-2xl font-bold text-white flex items-center">
+                        <a href="#" onClick={handleLogoClick} className="text-2xl font-bold text-white flex items-center gap-4">
+                          <img className="w-6 h-6" src="./static/images/jratlogo.png" />
                             <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Job ready AI Tool</span>
                             <span className="ml-1 hidden sm:inline">Genius</span>
                         </a>

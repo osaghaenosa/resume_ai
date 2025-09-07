@@ -31,7 +31,7 @@ export default function Contact() {
                         <textarea name="message" id="message" rows={4} required className="w-full bg-gray-800 border border-gray-700 rounded-md py-3 px-4 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500" placeholder="Your Message"></textarea>
                     </div>
                     <div>
-                        <button type="submit" className="w-full bg-cyan-500 text-white font-bold py-3 px-8 rounded-md hover:bg-cyan-400 transition-colors duration-300">
+                        <button type="submit" className="w-full bg-gradient-to-r from-cyan-400 to-blue-500 text-white font-bold py-3 px-8 rounded-md hover:bg-cyan-400 transition-colors duration-300">
                             Send Message
                         </button>
                     </div>

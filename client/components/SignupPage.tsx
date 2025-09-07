@@ -42,7 +42,7 @@ export default function SignupPage({ onSignupSuccess, onNavigateToLogin }: Signu
             <div className="max-w-md w-full bg-[#111827] bg-opacity-80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-700">
                 <div className="text-center">
                     <div className="inline-block p-3 bg-cyan-500/10 rounded-full mb-4">
-                        <BrainIcon />
+                        <img className="w-10 h-10" src="./static/images/jratlogo.png" />
                     </div>
                     <h1 className="text-3xl font-bold text-white">Create Your Account</h1>
                     <p className="text-gray-400 mt-2">Join now to start crafting your future.</p>
@@ -98,7 +98,7 @@ export default function SignupPage({ onSignupSuccess, onNavigateToLogin }: Signu
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-cyan-400 to-blue-500 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isLoading ? 'Creating Account...' : 'Sign Up'}
                         </button>

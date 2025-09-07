@@ -43,7 +43,7 @@ export default function HomePage({ onUpgradeClick }: HomePageProps) {
                 </div>
                 <button
                     onClick={() => setIsGeneratorOpen(true)}
-                    className="bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-400 transition-colors self-start sm:self-center"
+                    className="bg-gradient-to-r from-cyan-400 to-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-400 transition-colors self-start sm:self-center"
                 >
                     + Create New
                 </button>
@@ -72,6 +72,7 @@ export default function HomePage({ onUpgradeClick }: HomePageProps) {
 
             {(isGeneratorOpen || editingDoc) && <GeneratorModal onClose={handleCloseGenerator} docToEdit={editingDoc} onUpgrade={onUpgradeClick} />}
             {viewingDoc && <DocumentViewer doc={viewingDoc} onClose={() => setViewingDoc(null)} onEdit={handleEditDoc} onUpgrade={onUpgradeClick} />}
+            
             
         </div>
     );

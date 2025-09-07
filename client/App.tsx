@@ -13,8 +13,9 @@ export default function App() {
         <Router>
           <Routes>
             <Route path="/share/:docId" element={<SharePageWrapper />} />
-            <Route path="*" element={<AppContent />} />
+           
             <Route path="/about" element={<AboutPage />} />
+             <Route path="*" element={<AppContent />} />
           </Routes>
         </Router>
       </div>

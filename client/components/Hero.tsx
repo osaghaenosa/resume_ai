@@ -23,7 +23,7 @@ export default function Hero({ onStart }: { onStart: () => void }) {
                     <div className="mt-10">
                         <button
                             onClick={onStart}
-                            className="bg-cyan-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-cyan-400 transition-transform duration-300 transform hover:scale-105 shadow-lg shadow-cyan-500/20"
+                            className="bg-gradient-to-r from-cyan-400 to-blue-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-cyan-400 transition-transform duration-300 transform hover:scale-105 shadow-lg shadow-cyan-500/20"
                         >
                             Start Building For Free
                         </button>

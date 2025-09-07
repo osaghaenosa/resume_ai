@@ -1,16 +1,16 @@
 {
-  "short_name": "ResumeAI Generator",
+  "short_name": "Job Ready AI Tool",
   "name": "Resume AI - CV, Cover Letters & Portfolios",
   "icons": [
     {
-      "src": "/static/images/newlogo.png",
+      "src": "/static/images/jrat.png",
       "sizes": "192x192",
-      "type": "image/jpg"
+      "type": "image/png"
     },
     {
-      "src": "/static/images/newlogo.png",
+      "src": "/static/images/jrat.png",
       "sizes": "512x512",
-      "type": "image/jpg"
+      "type": "image/png"
     }
   ],
   "start_url": ".",

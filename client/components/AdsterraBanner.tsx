@@ -11,12 +11,12 @@ const AdsterraBanner: React.FC = () => {
     const script = document.createElement("script");
     script.id = "adsterra-script-33a3f2a";
     script.src =
-      "//pl27574382.revenuecpmgate.com/33a3f2a6653908ce232ef281451c50f8/invoke.js";
+      "//departuresensitivitylengthen.com/7f36e442da4eaff03f5cbd6b619b4c31/invoke.js";
     script.async = true;
     script.setAttribute("data-cfasync", "false");
 
     const container = document.getElementById(
-      "container-33a3f2a6653908ce232ef281451c50f8"
+      "container-7f36e442da4eaff03f5cbd6b619b4c31"
     );
     if (container) {
       container.innerHTML = "";
@@ -24,7 +24,7 @@ const AdsterraBanner: React.FC = () => {
     }
   }, []);
 
-  return <div id="container-33a3f2a6653908ce232ef281451c50f8" />;
+  return <div id="container-7f36e442da4eaff03f5cbd6b619b4c31" />;
 };
 
 export default AdsterraBanner; // 👈 default export here
@@ -55,7 +55,7 @@ export const AdsterraIframeBanner: React.FC = () => {
     script.id = "adsterra-script-b3ae6b0";
     script.type = "text/javascript";
     script.src =
-      "//www.highperformanceformat.com/b3ae6b053601e019084d50935f52c2fa/invoke.js";
+      "//departuresensitivitylengthen.com/f9069347f90478a98ec1f9f0c34ea048/invoke.js";
     script.async = true;
     document.body.appendChild(script);
 

@@ -76,7 +76,7 @@ export default function Pricing({ onNavigateSignup, onStartUpgrade }: { onNaviga
                         <button 
                             onClick={() => handleButtonClick(tier.plan)}
                             disabled={currentUser?.plan === tier.plan}
-                            className={`mt-8 w-full py-3 px-6 rounded-lg font-semibold transition-colors duration-300 ${tier.isFeatured ? 'bg-cyan-500 text-white hover:bg-cyan-400 disabled:bg-cyan-800 disabled:cursor-not-allowed' : 'bg-gray-700 text-white hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed'}`}
+                            className={`mt-8 w-full py-3 px-6 rounded-lg font-semibold transition-colors duration-300 ${tier.isFeatured ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white hover:bg-cyan-400 disabled:bg-cyan-800 disabled:cursor-not-allowed' : 'bg-gray-700 text-white hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed'}`}
                         >
                             {getButtonText(tier.plan)}
                         </button>
