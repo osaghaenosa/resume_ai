@@ -10,7 +10,10 @@ const StatCard: React.FC<{ title: string, value: string | number, className?: st
     </div>
 );
 
-export default function SettingsPage({ onUpgradeClick }: { onUpgradeClick: () => void }) {
+export default function SettingsPage({ onUpgradeClick, onRenewClick }: { 
+    onUpgradeClick: () => void; 
+    onRenewClick: () => void;
+}) {
     const { currentUser } = useAuth();
 
     if (!currentUser) {
@@ -19,6 +22,7 @@ export default function SettingsPage({ onUpgradeClick }: { onUpgradeClick: () =>
     
     const tokenLimit = currentUser.plan === 'Pro' ? PRO_TOKENS : FREE_TOKENS;
     const tokensPercentage = tokenLimit > 0 ? (currentUser.tokens / tokenLimit) * 100 : 0;
+    const needsRenewal = currentUser.plan === 'Pro' && currentUser.tokens <= 0;
 
     return (
         <div className="p-4 sm:p-6 lg:p-8">
@@ -37,7 +41,7 @@ export default function SettingsPage({ onUpgradeClick }: { onUpgradeClick: () =>
                     <div className="w-full bg-gray-700 rounded-full h-4">
                         <div 
                             className="bg-cyan-500 h-4 rounded-full transition-all duration-500"
-                            style={{ width: `${tokensPercentage}%` }}
+                            style={{ width: `${tokensPercentage}% / 3` }}
                         ></div>
                     </div>
                 </div>
@@ -55,11 +59,24 @@ export default function SettingsPage({ onUpgradeClick }: { onUpgradeClick: () =>
                     </div>
                 )}
 
-                {currentUser.plan === 'Pro' && (
+                {currentUser.plan === 'Pro' && !needsRenewal && (
                      <div className="mt-6 p-4 bg-green-900/50 text-green-300 border border-green-500 rounded-lg flex items-center">
                          <CheckIcon className="h-6 w-6 mr-3"/>
                          <p><strong>You are on the Pro plan.</strong> You have access to all premium features.</p>
                      </div>
+                )}
+
+                {needsRenewal && (
+                    <div className="mt-10 p-6 bg-gray-800 rounded-lg border border-cyan-500/30 text-center">
+                        <h3 className="text-xl font-bold text-white">Renew Your Token Supply</h3>
+                        <p className="mt-2 text-gray-400">Your tokens have been exhausted. Renew now to get another {PRO_TOKENS} tokens.</p>
+                        <button
+                            onClick={onRenewClick}
+                            className="mt-4 bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-cyan-400 transition-colors duration-300"
+                        >
+                            Renew Tokens
+                        </button>
+                    </div>
                 )}
             </div>
         </div>
