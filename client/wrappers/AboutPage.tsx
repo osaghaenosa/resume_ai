@@ -38,7 +38,7 @@ export default function AboutPage() {
       {/* Logo and Title */}
       <header className="flex flex-col items-center text-center mb-12">
         <img
-          src="./static/images/jratlogo.png"
+          src="./favicon.png"
           alt="Job Ready AI Tool Logo"
           className="w-20 h-20 mb-4"
         />
