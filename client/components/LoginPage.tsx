@@ -39,7 +39,7 @@ export default function LoginPage({ onLoginSuccess, onNavigateToSignup }: LoginP
             <div className="max-w-md w-full bg-[#111827] bg-opacity-80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-700">
                 <div className="text-center">
                     <div className="inline-block p-3 bg-cyan-500/10 rounded-full mb-4">
-                         <img className="w-10 h-10" src="./static/images/jratlogo.png" />
+                         <img className="w-10 h-10" src="./favicon.png" />
                     </div>
                     <h1 className="text-3xl font-bold text-white">Welcome Back</h1>
                     <p className="text-gray-400 mt-2">Log in to access your dashboard.</p>
