@@ -16,6 +16,8 @@ const UserSchema = new mongoose.Schema({
   plan: { type: String, default: 'Free' },
   tokens: { type: Number, default: 3 },
   documents: [DocumentSchema],
+  resetToken: String, // Moved to UserSchema
+  resetTokenExpiry: Date, // Moved to UserSchema
 });
 
 export default mongoose.model('User', UserSchema);

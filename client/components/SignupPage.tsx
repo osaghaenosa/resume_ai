@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { BrainIcon } from './Icons';
+import { BrainIcon, EyeIcon, EyeOffIcon } from './Icons'; // Import the eye icons
 import { SignupCredentials, User } from '../types';
 
 interface SignupPageProps {
@@ -14,6 +13,7 @@ export default function SignupPage({ onSignupSuccess, onNavigateToLogin }: Signu
     const [credentials, setCredentials] = useState<SignupCredentials>({ name: '', email: '', password: '' });
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false); // Add state for password visibility
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -77,19 +77,32 @@ export default function SignupPage({ onSignupSuccess, onNavigateToLogin }: Signu
                             placeholder="Email Address"
                         />
                     </div>
-                    <div>
+                    {/* Updated password field with eye icon */}
+                    <div className="relative">
                         <label htmlFor="password" className="sr-only">Password</label>
                         <input
                             id="password"
                             name="password"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             autoComplete="new-password"
                             required
                             value={credentials.password}
                             onChange={handleChange}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-md py-3 px-4 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-md py-3 px-4 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 pr-10"
                             placeholder="Password (min. 6 characters)"
                         />
+                        <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                            onClick={() => setShowPassword(!showPassword)}
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                            {showPassword ? (
+                                <EyeOffIcon className="w-5 h-5 text-gray-400 hover:text-gray-300 transition-colors" />
+                            ) : (
+                                <EyeIcon className="w-5 h-5 text-gray-400 hover:text-gray-300 transition-colors" />
+                            )}
+                        </button>
                     </div>
                     
                     {error && <p className="text-sm text-red-400 text-center">{error}</p>}

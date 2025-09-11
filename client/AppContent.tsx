@@ -1,5 +1,6 @@
 // AppContent.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import Features from './components/Features';
@@ -13,6 +14,7 @@ import Footer from './components/Footer';
 import AdBanner from './components/AdBanner';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
+import ForgotPasswordPage from './components/ForgotPasswordPage'; // Import the new component
 import AppLayout from './components/AppLayout';
 import UpgradeModal from './components/UpgradeModal';
 import CheckoutPage from './components/CheckoutPage';
@@ -80,7 +82,8 @@ const LandingPage: React.FC<{
 
 const AppContent: React.FC = () => {
   const { currentUser, upgradePlan, generationCompleted, clearGenerationCompleted } = useAuth();
-  const [view, setView] = useState<'landing' | 'login' | 'signup'>('landing');
+  const navigate = useNavigate();
+  const location = useLocation();
   const [upgradeFlowState, setUpgradeFlowState] = useState<'none' | 'modal' | 'checkout' | 'success'>('none');
   const [showAdPopup, setShowAdPopup] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -109,21 +112,22 @@ const AppContent: React.FC = () => {
   }, [generationCompleted, closeSuccessAndShowAd]);
 
   const handleLoginSuccess = (user: User) => {
-    setView('landing');
+    navigate('/');
     if (user.plan === 'Free') {
       setTimeout(() => setUpgradeFlowState('modal'), 500);
     }
   };
 
   const handleSignupSuccess = (user: User) => {
-    setView('landing');
+    navigate('/');
     if (user.plan === 'Free') {
       setUpgradeFlowState('modal');
     }
   };
 
-  const navigateToLogin = () => setView('login');
-  const navigateToSignup = () => setView('signup');
+  const navigateToLogin = () => navigate('/login');
+  const navigateToSignup = () => navigate('/signup');
+  const navigateToForgotPassword = () => navigate('/forgotpassword');
 
   const handleStartUpgrade = () => {
     if (currentUser?.plan !== 'Pro') setUpgradeFlowState('modal');
@@ -138,6 +142,7 @@ const AppContent: React.FC = () => {
   const handleFlowComplete = () => {
     upgradePlan();
     setUpgradeFlowState('none');
+    navigate('/');
   };
 
   const handleManualSuccessClose = () => {
@@ -148,6 +153,12 @@ const AppContent: React.FC = () => {
     closeSuccessAndShowAd();
   };
 
+  // Check if we're on an app route
+  const isAppRoute = location.pathname === '/' || 
+                     location.pathname === '/analyser' || 
+                     location.pathname === '/profile' || 
+                     location.pathname === '/settings';
+
   if (currentUser?.plan === 'Free' && upgradeFlowState === 'checkout') {
     return <CheckoutPage user={currentUser} onPaymentConfirm={handlePaymentConfirm} />;
   }
@@ -157,14 +168,44 @@ const AppContent: React.FC = () => {
   }
 
   let mainContent;
-  if (currentUser) {
+  
+  if (currentUser && isAppRoute) {
+    // User is logged in and on an app route - show AppLayout
     mainContent = <AppLayout onUpgradeClick={handleStartUpgrade} />;
-  } else if (view === 'login') {
-    mainContent = <LoginPage onLoginSuccess={handleLoginSuccess} onNavigateToSignup={navigateToSignup} />;
-  } else if (view === 'signup') {
-    mainContent = <SignupPage onSignupSuccess={handleSignupSuccess} onNavigateToLogin={navigateToLogin} />;
+  } else if (currentUser) {
+    // User is logged in but not on an app route - redirect to home
+    navigate('/');
+    mainContent = null;
+  } else if (location.pathname === '/login') {
+    mainContent = (
+      <LoginPage 
+        onLoginSuccess={handleLoginSuccess} 
+        onNavigateToSignup={navigateToSignup} 
+        onNavigateToForgotPassword={navigateToForgotPassword} 
+      />
+    );
+  } else if (location.pathname === '/signup') {
+    mainContent = (
+      <SignupPage 
+        onSignupSuccess={handleSignupSuccess} 
+        onNavigateToLogin={navigateToLogin} 
+      />
+    );
+  } else if (location.pathname === '/forgotpassword') {
+    mainContent = (
+      <ForgotPasswordPage 
+        onBackToLogin={navigateToLogin} 
+      />
+    );
   } else {
-    mainContent = <LandingPage onNavigateToLogin={navigateToLogin} onNavigateToSignup={navigateToSignup} onStartUpgrade={handleStartUpgrade} />;
+    // Show landing page for non-authenticated users
+    mainContent = (
+      <LandingPage 
+        onNavigateToLogin={navigateToLogin} 
+        onNavigateToSignup={navigateToSignup} 
+        onStartUpgrade={handleStartUpgrade} 
+      />
+    );
   }
 
   return (

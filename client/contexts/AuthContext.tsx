@@ -15,6 +15,7 @@ interface AuthContextType {
   login: (credentials: LoginCredentials) => Promise<User>;
   signup: (credentials: SignupCredentials) => Promise<User>;
   logout: () => void;
+  resetPassword: (email: string) => Promise<void>;
   consumeToken: () => Promise<void>;
   upgradePlan: () => Promise<void>;
   addDocument: (doc: Omit<Document, 'id' | 'createdAt' | 'isPublic'>, request: DocumentRequest) => Promise<Document>;
@@ -26,6 +27,7 @@ interface AuthContextType {
   markGenerationCompleted: () => void;
   clearGenerationCompleted: () => void;
   saveImage: (file: File) => Promise<string>; // Add this line
+  resetPasswordWithToken: (token: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -39,6 +41,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!token) throw new Error('No token found');
     return { Authorization: `Bearer ${token}` };
   };
+  
+  // In your AuthContext.tsx - fix the resetPassword method
+const resetPassword = async (email: string) => {
+  try {
+    // Change this from /reset-password to /forgot-password
+    await axios.post(`${API}/auth/forgot-password`, { email });
+  } catch (error: any) {
+    console.error('Error resetting password:', error);
+    throw new Error(error.response?.data?.message || 'Failed to reset password');
+  }
+};
+
+const resetPasswordWithToken = async (token: string, newPassword: string) => {
+  try {
+    // This should match your backend endpoint
+    await axios.post(`${API}/auth/reset-password`, { 
+      token, 
+      newPassword 
+    });
+  } catch (error: any) {
+    console.error('Error resetting password:', error);
+    throw new Error(error.response?.data?.message || 'Failed to reset password');
+  }
+};
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -189,6 +215,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       login,
       signup,
       logout,
+      resetPassword,
       consumeToken,
       upgradePlan,
       addDocument,
@@ -199,7 +226,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       generationCompleted,
       markGenerationCompleted,
       clearGenerationCompleted,
-      saveImage
+      saveImage,
+      resetPasswordWithToken
     }}>
       {children}
     </AuthContext.Provider>
