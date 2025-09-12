@@ -30,21 +30,21 @@ const testimonials = [
       "This tool is a game-changer. I got three interviews within a week of using the resume it generated. The writing was so natural.",
     name: "Sarah J.",
     role: "Marketing Manager",
-    avatarUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
   {
     quote:
       "I always struggled with sounding confident on paper. This service nailed the tone and helped me articulate my experience perfectly.",
     name: "Michael B.",
     role: "Software Engineer",
-    avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg",
+    avatarUrl: "https://avatar.iran.liara.run/public/41",
   },
   {
     quote:
       "The cover letter feature is incredible. It saved me hours of work and the result was far better than anything I could have written myself.",
     name: "Emily K.",
     role: "UX Designer",
-    avatarUrl: "https://randomuser.me/api/portraits/women/68.jpg",
+    avatarUrl: "https://avatar.iran.liara.run/public/19",
   },
 ];
 
