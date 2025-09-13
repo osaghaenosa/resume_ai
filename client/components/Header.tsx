@@ -133,7 +133,7 @@ export default function Header({ isApp = false, onUpgradeClick }: HeaderProps) {
             <a href="/" onClick={handleLogoClick} className="text-xl md:text-2xl font-bold text-white flex items-center gap-2 md:gap-4">
               <img className="w-6 h-6 md:w-7 md:h-7" src="./favicon.png" alt="Job Ready AI Tool Logo" />
               <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Job ready AI Tool</span>
-              <span className="ml-1 hidden sm:inline">Genius</span>
+              
             </a>
           </div>
           
