@@ -12,6 +12,9 @@ import SignupRouteWrapper from "./wrappers/SignupRouteWrapper";
 import ForgotPasswordRouteWrapper from "./wrappers/ForgotPasswordRouteWrapper";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import Header from "./components/Header2.tsx";
+import HelpPage from "./wrappers/HelpPage.tsx";
+import ContactPage from "./wrappers/ContactPage.tsx";
+import PolicyPage from "./wrappers/PolicyPage.tsx";
 
 export default function App() {
   const [waitingSW, setWaitingSW] = useState<ServiceWorkerRegistration | null>(null);
@@ -39,6 +42,24 @@ export default function App() {
             <Route path="/about" element={
                   <Header>
                     <AboutPage />
+                  </Header>
+
+              } />
+              <Route path="/help" element={
+                  <Header>
+                    <HelpPage />
+                  </Header>
+
+              } />
+              <Route path="/contact" element={
+                  <Header>
+                    <ContactPage />
+                  </Header>
+
+              } />
+              <Route path="/policy" element={
+                  <Header>
+                    <PolicyPage />
                   </Header>
 
               } />

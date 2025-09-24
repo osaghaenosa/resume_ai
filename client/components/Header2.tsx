@@ -38,9 +38,9 @@ export default function Header({ children }: { children?: React.ReactNode }) {
   const appNavLinks = [
     { to: '/', text: 'Home' },
     { to: '/about', text: 'About' },
-    { to: '#policy', text: 'Policy' },
-    { to: '#help', text: 'Help' },
-    { to: '#contact', text: 'Contact Us' },
+    { to: '/policy', text: 'Policy' },
+    { to: '/help', text: 'Help' },
+    { to: '/contact', text: 'Contact Us' },
   ];
 
   const handleLogoClick = (e: React.MouseEvent) => {

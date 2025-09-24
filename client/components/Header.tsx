@@ -60,9 +60,6 @@ export default function Header({ isApp = false, onUpgradeClick }: HeaderProps) {
   const landingNavLinks = [
     { to: "/", text: "Home" },
     { to: "/about", text: "About" },
-    { to: "#features", text: "Features" },
-    { to: "#how-it-works", text: "How It Works" },
-    { to: "#why-us", text: "Why Us" },
     { to: "#pricing", text: "Pricing" },
     { to: "#contact", text: "Contact" },
   ];
@@ -133,7 +130,7 @@ export default function Header({ isApp = false, onUpgradeClick }: HeaderProps) {
           <div className="flex items-center flex-shrink-0">
             <a href="/" onClick={handleLogoClick} className="text-xl md:text-2xl font-bold text-white flex items-center gap-2 md:gap-4">
               <img className="w-6 h-6 md:w-7 md:h-7" src="./favicon.png" alt="Job Ready AI Tool Logo" />
-              <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Job ready AI Tool</span>
+              <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Job Ready AI Tool</span>
               
             </a>
           </div>
