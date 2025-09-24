@@ -58,12 +58,13 @@ export default function Header({ isApp = false, onUpgradeClick }: HeaderProps) {
   }, []);
 
   const landingNavLinks = [
+    { to: "/", text: "Home" },
+    { to: "/about", text: "About" },
     { to: "#features", text: "Features" },
     { to: "#how-it-works", text: "How It Works" },
     { to: "#why-us", text: "Why Us" },
     { to: "#pricing", text: "Pricing" },
     { to: "#contact", text: "Contact" },
-    { to: "/about", text: "About" },
   ];
 
   const appNavLinks = [
