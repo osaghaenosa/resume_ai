@@ -11,6 +11,7 @@ import LoginRouteWrapper from "./wrappers/LoginRouteWrapper";
 import SignupRouteWrapper from "./wrappers/SignupRouteWrapper";
 import ForgotPasswordRouteWrapper from "./wrappers/ForgotPasswordRouteWrapper";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
+import Header from "./components/Header2.tsx";
 
 export default function App() {
   const [waitingSW, setWaitingSW] = useState<ServiceWorkerRegistration | null>(null);
@@ -35,7 +36,12 @@ export default function App() {
         <Router>
           <Routes>
             <Route path="/share/:docId" element={<SharePageWrapper />} />
-            <Route path="/about" element={<AboutPage />} />
+            <Route path="/about" element={
+                  <Header>
+                    <AboutPage />
+                  </Header>
+
+              } />
             <Route path="/reset" element={<ResetPasswordPage />} />
             <Route path="/login" element={<LoginRouteWrapper />} />
             <Route path="/signup" element={<SignupRouteWrapper />} />
