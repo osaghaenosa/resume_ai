@@ -28,7 +28,7 @@ export default function LoginPage({ onLoginSuccess, onNavigateToSignup, onNaviga
             const user = await login(credentials);
             onLoginSuccess(user);
         } catch (err: any) {
-            setError(err.message || 'Failed to log in. Please try again.');
+            setError('Invalid Credentials. Please try again.');
         } finally {
             setIsLoading(false);
         }
