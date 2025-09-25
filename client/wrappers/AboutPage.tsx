@@ -23,7 +23,7 @@ export default function AboutPage() {
         />
         <meta name="robots" content="index, follow" />
         <meta name="author" content="Job Ready AI Tool" />
-        <link rel="canonical" href="https://yourdomain.com/about" />
+        <link rel="canonical" href="https://jobreadyai.xyz/about" />
 
         {/* Structured Data for SEO */}
         <script type="application/ld+json">

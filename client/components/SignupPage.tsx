@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { BrainIcon, EyeIcon, EyeOffIcon } from './Icons'; // Import the eye icons
 import { SignupCredentials, User } from '../types';
+import { Helmet } from 'react-helmet';
 
 interface SignupPageProps {
     onSignupSuccess: (user: User) => void;
@@ -9,6 +10,7 @@ interface SignupPageProps {
 }
 
 export default function SignupPage({ onSignupSuccess, onNavigateToLogin }: SignupPageProps) {
+    
     const { signup } = useAuth();
     const [credentials, setCredentials] = useState<SignupCredentials>({ name: '', email: '', password: '' });
     const [error, setError] = useState('');
@@ -38,6 +40,21 @@ export default function SignupPage({ onSignupSuccess, onNavigateToLogin }: Signu
     };
 
     return (
+        <>
+        <Helmet>
+            <title>Signup | Job Ready AI Tool</title>
+            <meta
+                name="description"
+                content="Create your free Account."
+            />
+            <meta
+                name="keywords"
+                content="Create your account and get ready to stand out in your Job search."
+            />
+            <meta name="robots" content="index, follow" />
+            <meta name="author" content="Job Ready AI Tool" />
+            <link rel="canonical" href="https://jobreadyai.xyz/signup" />
+        </Helmet>
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0B1120] to-[#111827] p-4">
             <div className="max-w-md w-full bg-[#111827] bg-opacity-80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-700">
                 <div className="text-center">
@@ -126,5 +143,6 @@ export default function SignupPage({ onSignupSuccess, onNavigateToLogin }: Signu
                 </p>
             </div>
         </div>
+        </>
     );
 }

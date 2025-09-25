@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { EyeIcon, EyeOffIcon } from './Icons';
 import { LoginCredentials, User } from '../types';
+import { Helmet } from 'react-helmet';
 
 interface LoginPageProps {
     onLoginSuccess: (user: User) => void;
@@ -10,6 +11,7 @@ interface LoginPageProps {
 }
 
 export default function LoginPage({ onLoginSuccess, onNavigateToSignup, onNavigateToForgotPassword }: LoginPageProps) {
+    
     const { login } = useAuth();
     const [credentials, setCredentials] = useState<LoginCredentials>({ email: '', password: '' });
     const [error, setError] = useState('');
@@ -35,6 +37,21 @@ export default function LoginPage({ onLoginSuccess, onNavigateToSignup, onNaviga
     };
 
     return (
+        <>
+        <Helmet>
+            <title>Login | Job Ready AI Tool</title>
+            <meta
+            name="description"
+            content="Login to your Account."
+            />
+            <meta
+            name="keywords"
+            content="Welcome to your account, Login to access your account."
+            />
+            <meta name="robots" content="index, follow" />
+            <meta name="author" content="Job Ready AI Tool" />
+            <link rel="canonical" href="https://jobreadyai.xyz/login" />
+        </Helmet>
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0B1120] to-[#111827] p-4">
             <div className="max-w-md w-full bg-[#111827] bg-opacity-80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-700">
                 <div className="text-center">
@@ -120,5 +137,6 @@ export default function LoginPage({ onLoginSuccess, onNavigateToSignup, onNaviga
                 </p>
             </div>
         </div>
+        </>
     );
 }

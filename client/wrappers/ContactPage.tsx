@@ -1,7 +1,24 @@
 import React from "react";
+import { Helmet } from 'react-helmet';
 
 export default function ContactPage() {
+    
     return (
+        <>
+        <Helmet>
+            <title>Contact Us | Job Ready AI Tool</title>
+            <meta
+              name="description"
+              content="If you have any questions, feedback, or need assistance, please feel free to reach out to us. We are here to help!."
+            />
+            <meta
+              name="keywords"
+              content="If you have any questions, feedback, or need assistance, please feel free to reach out to us. We are here to help!."
+            />
+            <meta name="robots" content="index, follow" />
+            <meta name="author" content="Job Ready AI Tool" />
+            <link rel="canonical" href="https://jobreadyai.xyz/contact" />
+        </Helmet>
         <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#0B1120] text-gray-300"> {/* Dark background */}
             <div className="max-w-3xl w-full bg-gray-800 rounded-lg shadow-lg p-6"> {/* Dark card */}
                 <h1 className="text-3xl font-bold mb-4 text-white">Contact Us</h1> {/* White title */}
@@ -21,6 +38,7 @@ export default function ContactPage() {
                 <h2 className="text-2xl font-semibold mb-3 text-white">Business Hours</h2>
                 <p className="mb-4"> Monday - Friday: 9:00 AM - 6:00 PM</p>
                 <p className="mb-4"> Saturday - Sunday: Closed</p>
+                <ContactPage />
                 <h2 className="text-2xl font-semibold mb-3 text-white">Follow Us</h2>
                 <p className="mb-4">
                     Stay connected with us on social media:
@@ -30,5 +48,6 @@ export default function ContactPage() {
                 </p>
             </div>
         </div>
+        </>
     );
 }
