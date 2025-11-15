@@ -1144,7 +1144,7 @@ Be comprehensive and create content that would help the candidate get past autom
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       contents: `Analyze the following job post and generate comprehensive resume content: \n\n${jobPost}`,
       config: {
         systemInstruction,

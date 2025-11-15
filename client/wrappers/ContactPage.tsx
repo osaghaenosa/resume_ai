@@ -17,7 +17,7 @@ export default function ContactPage() {
             />
             <meta name="robots" content="index, follow" />
             <meta name="author" content="Job Ready AI Tool" />
-            <link rel="canonical" href="https://jobreadyai.xyz/contact" />
+            
         </Helmet>
         <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#0B1120] text-gray-300"> {/* Dark background */}
             <div className="max-w-3xl w-full bg-gray-800 rounded-lg shadow-lg p-6"> {/* Dark card */}
