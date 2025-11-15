@@ -27,8 +27,8 @@ export default function ContactPage() {
                 </p>
                 <h2 className="text-2xl font-semibold mb-3 text-white">Email</h2>
                 <p className="mb-4">
-                    You can contact us via email at: <a href="mailto:osaghaenosa2001@gmail.com" className="text-cyan-400 hover:underline">
-                        osaghaenosa2001@gmail.com
+                    You can contact us via email at: <a href="mailto:nosentix.network@gmail.com" className="text-cyan-400 hover:underline">
+                        nosentix.network@gmail.com
                         </a>
                 </p>
                 <h2 className="text-2xl font-semibold mb-3 text-white">Phone</h2>

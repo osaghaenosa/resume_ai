@@ -1060,7 +1060,7 @@ Produce only the HTML content as requested.`.trim();
         // Use retry mechanism with exponential backoff
         const response: GenerateContentResponse = await withRetry(async () => {
             return ai.models.generateContent({
-                model: "gemini-1.5-flash",  // Use 1.5-flash for better context handling
+                model: "gemini-2.5-flash",  // Use 2.5-flash for better context handling
                 contents: userPrompt,
                 config: {
                     systemInstruction: systemInstruction,
