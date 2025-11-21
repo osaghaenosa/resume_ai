@@ -17,7 +17,7 @@ export default function Pricing({ onNavigateSignup, onStartUpgrade }: { onNaviga
             isFeatured: false,
         },
         {
-            title: "Pro Monthly",
+            title: "Pro",
             price: String(PRO_PRICE),
             period: "month",
             plan: "Pro",
