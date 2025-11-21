@@ -8,7 +8,7 @@ import { User } from '../types';
 const SignupRouteWrapper: React.FC = () => {
   const navigate = useNavigate();
   
-  const handleLoginSuccess = (user: User) => {
+  const handleSignupSuccess = (user: User) => {
     navigate('/');
   };
   
@@ -23,9 +23,9 @@ const SignupRouteWrapper: React.FC = () => {
   
   return (
     <SignupPage 
-      onLoginSuccess={handleLoginSuccess}
+      onSignupSuccess={handleSignupSuccess}
       onNavigateToLogin={handleNavigateToLogin}
-      onNavigateToForgotPassword={handleNavigateToForgotPassword}
+      
     />
   );
 };

@@ -95,12 +95,17 @@ const resetPasswordWithToken = async (token: string, newPassword: string) => {
 };
 
   const signup = async (credentials: SignupCredentials) => {
+  try {
     const res = await axios.post(`${API}/auth/signup`, credentials);
     const { user, token } = res.data;
-    localStorage.setItem('token', token);
+    localStorage.setItem("token", token);
     setCurrentUser(user);
     return user;
-  };
+  } catch (error: any) {
+    console.error("Signup error:", error.response?.data || error);
+    throw new Error(error.response?.data?.message || "Signup failed");
+  }
+};
 
   const login = async (credentials: LoginCredentials) => {
     const res = await axios.post(`${API}/auth/login`, credentials);
