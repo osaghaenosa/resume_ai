@@ -14,7 +14,7 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, unique: true },
   password: String,
   plan: { type: String, default: 'Free' },
-  tokens: { type: Number, default: 3 },
+  tokens: { type: Number, default: 10 },
   documents: [DocumentSchema],
   resetToken: String, // Moved to UserSchema
   resetTokenExpiry: Date, // Moved to UserSchema
