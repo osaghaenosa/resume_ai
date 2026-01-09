@@ -15,6 +15,11 @@ import Header from "./components/Header2.tsx";
 import HelpPage from "./wrappers/HelpPage.tsx";
 import ContactPage from "./wrappers/ContactPage.tsx";
 import PolicyPage from "./wrappers/PolicyPage.tsx";
+import Refund from "./wrappers/Refund.jsx";
+import Terms from "./wrappers/Terms.jsx";
+import Pricing from "./components/Pricing.tsx";
+import PricingPage from "./wrappers/PricingPage.jsx";
+
 
 export default function App() {
   const [waitingSW, setWaitingSW] = useState<ServiceWorkerRegistration | null>(null);
@@ -54,6 +59,24 @@ export default function App() {
               <Route path="/contact" element={
                   <Header>
                     <ContactPage />
+                  </Header>
+
+              } />
+              <Route path="/refund" element={
+                  <Header>
+                    <Refund />
+                  </Header>
+
+              } />
+              <Route path="/pricing" element={
+                  <Header>
+                    <PricingPage />
+                  </Header>
+
+              } />
+              <Route path="/terms" element={
+                  <Header>
+                    <Terms />
                   </Header>
 
               } />
