@@ -70,7 +70,7 @@ export default function App() {
               } />
               <Route path="/pricing" element={
                   <Header>
-                    <PricingPage />
+                    <PricingPage  />
                   </Header>
 
               } />

@@ -1,8 +1,25 @@
+import React from "react";
+import { Helmet } from "react-helmet";
+
 export default function Terms() {
   return (
-    <div className="legal-page">
-      <h1>Terms and Conditions</h1>
-
+    <>
+      <Helmet>
+          <title>Terms and Conditions | Job Ready AI Tool</title>
+          <meta
+          name="description"
+          content="Terms and Conditions."
+          />
+          <meta
+          name="keywords"
+          content="Terms and Conditions."
+          />
+          <meta name="robots" content="index, follow" />
+          <meta name="author" content="Job Ready AI Tool" />
+          <link rel="canonical" href="https://jobreadyai.xyz/terms" />
+      </Helmet>
+      <div className="legal-page">
+        <h1>Terms and Conditions</h1>
       <p>
         Welcome to JobReadyAI. By accessing or using this website, you agree to
         comply with these Terms and Conditions.
@@ -29,5 +46,6 @@ export default function Terms() {
         Address: Lagos, Nigeria.
       </p>
     </div>
+    </>
   );
 }
