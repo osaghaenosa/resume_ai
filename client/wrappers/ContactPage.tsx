@@ -41,9 +41,9 @@ export default function ContactPage() {
                 <h2 className="text-2xl font-semibold mb-3 text-white">Follow Us</h2>
                 <p className="mb-4">
                     Stay connected with us on social media:
-                    <a href="https://twitter.com/nosatoons" className="text-cyan-400 hover:underline ml-2">Twitter</a>, 
-                    <a href="https://facebook.com/yourprofile" className="text-cyan-400 hover:underline ml-2">Facebook</a>,
-                    <a href="https://linkedin.com/yourprofile" className="text-cyan-400 hover:underline ml-2">LinkedIn</a>
+                     
+                    <a href="https://www.facebook.com/noa.oaghae/" className="text-cyan-400 hover:underline ml-2">Facebook</a>,
+                    <a href="https://instagram.com/nosentix.network" className="text-cyan-400 hover:underline ml-2">Instagram</a>
                 </p>
             </div>
         </div>
