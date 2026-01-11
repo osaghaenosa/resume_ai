@@ -41,7 +41,7 @@ export default function Terms() {
 
       <h3>Contact Information</h3>
       <p>
-        Email: jobreadyai@gmail.com <br />
+        Email: support@jobreadyai.xyz <br />
         Phone: +234903025188 <br />
         Address: Lagos, Nigeria.
       </p>

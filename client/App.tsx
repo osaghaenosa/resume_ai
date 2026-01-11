@@ -13,12 +13,14 @@ import ForgotPasswordRouteWrapper from "./wrappers/ForgotPasswordRouteWrapper";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import Header from "./components/Header2.tsx";
 import HelpPage from "./wrappers/HelpPage.tsx";
-import ContactPage from "./wrappers/ContactPage.tsx";
+import ContactPage from "./wrappers/ContactPage";
 import PolicyPage from "./wrappers/PolicyPage.tsx";
 import Refund from "./wrappers/Refund.jsx";
 import Terms from "./wrappers/Terms.jsx";
 import Pricing from "./components/Pricing.tsx";
 import PricingPage from "./wrappers/PricingPage.jsx";
+import ScrollToTop from "./components/ScrollToTop";
+
 
 
 export default function App() {
@@ -42,6 +44,7 @@ export default function App() {
     <AuthProvider>
       <div className="bg-[#0B1120] text-gray-300 font-sans relative">
         <Router>
+          <ScrollToTop />
           <Routes>
             <Route path="/share/:docId" element={<SharePageWrapper />} />
             <Route path="/about" element={
@@ -56,12 +59,14 @@ export default function App() {
                   </Header>
 
               } />
-              <Route path="/contact" element={
+              <Route
+                path="/contact"
+                element={
                   <Header>
                     <ContactPage />
                   </Header>
-
-              } />
+                }
+              />
               <Route path="/refund" element={
                   <Header>
                     <Refund />

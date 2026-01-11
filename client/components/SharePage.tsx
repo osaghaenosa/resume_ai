@@ -84,7 +84,7 @@ export default function SharePage({ docId }: SharePageProps) {
                  <p>
                     This portfolio was created with 
                     <a href="/" className="text-cyan-400 hover:underline mx-1 font-semibold flex items-center justify-center">
-                        <BrainIcon /> <span className="ml-1">AIResumeGen</span>
+                        <BrainIcon /> <span className="ml-1">Job Ready AI</span>
                     </a>
                 </p>
              </footer>

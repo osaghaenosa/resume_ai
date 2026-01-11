@@ -193,8 +193,8 @@ export default function Header({ isApp = false, onUpgradeClick }: HeaderProps) {
           {/* Mobile menu section */}
           <div className="md:hidden flex items-center">
             {/* Show CTA buttons on mobile for landing page when not logged in */}
-            {!isApp && !currentUser && (
-              <div className="flex items-center space-x-2 mr-3">
+            {/*!isApp && !currentUser && (
+              <div className=" items-center space-x-2 mr-3">
                 <button onClick={handleLogin} className="text-gray-300 hover:text-white transition-colors duration-300 px-2 py-1 rounded text-sm font-medium">
                   Login
                 </button>
@@ -202,7 +202,7 @@ export default function Header({ isApp = false, onUpgradeClick }: HeaderProps) {
                   Sign Up
                 </button>
               </div>
-            )}
+            )*/}
             
             {currentUser && isApp && onUpgradeClick && currentUser.plan === 'Free' && (
               <button 

@@ -3,6 +3,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { BrainIcon, EyeIcon, EyeOffIcon } from './Icons'; // Import the eye icons
 import { SignupCredentials, User } from '../types';
 import { Helmet } from 'react-helmet';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+
+
 
 interface SignupPageProps {
     onSignupSuccess: (user: User) => void;
@@ -38,6 +42,7 @@ export default function SignupPage({ onSignupSuccess, onNavigateToLogin }: Signu
             setIsLoading(false);
         }
     };
+    const navigate = useNavigate();
 
     return (
         <>
@@ -123,6 +128,23 @@ export default function SignupPage({ onSignupSuccess, onNavigateToLogin }: Signu
                     </div>
                     
                     {error && <p className="text-sm text-red-400 text-center">{error}</p>}
+                    <p className="mt-6 text-center text-sm text-gray-400">By creating an account, you agree to our 
+                        <span
+                        onClick={() => navigate('/terms')}
+                        className="cursor-pointer text-cyan-400 px-2"
+                        >
+                        terms 
+                        </span>
+
+                        and 
+
+                        <span
+                        onClick={() => navigate('/policy')}
+                        className="cursor-pointer text-cyan-400 px-2"
+                        >
+                        policies
+                        </span>
+                    </p>
                     
                     <div>
                         <button

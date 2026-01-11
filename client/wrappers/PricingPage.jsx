@@ -1,3 +1,4 @@
+import React from 'react';
 import Pricing from "../components/Pricing";
 import { useNavigate } from "react-router-dom";
 

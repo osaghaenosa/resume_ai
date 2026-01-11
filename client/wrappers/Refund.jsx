@@ -32,7 +32,7 @@ export default function Refund() {
 
         <p>
           Refund requests must be submitted within 7 days of payment by emailing
-          jobreadyai@gmail.com.
+          support@jobreadyai.xyz.
         </p>
       </div>
     </>
