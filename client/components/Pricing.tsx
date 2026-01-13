@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { CheckIcon } from './Icons';
 import { UserPlan } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -6,6 +6,49 @@ import { FREE_TOKENS, PRO_TOKENS, PRO_PRICE } from '../config';
 
 export default function Pricing({ onNavigateSignup, onStartUpgrade }: { onNavigateSignup: () => void; onStartUpgrade: () => void; }) {
     const { currentUser } = useAuth();
+
+    // fixed prices
+    const PRICE_USD = PRO_PRICE;
+    const PRICE_NGN = 30000; // Fixed NGN price
+
+    const defaultRates: Record<"USD" | "NGN", { amount: number; symbol: string }> = {
+    USD: { amount: PRICE_USD, symbol: "$" },
+    NGN: { amount: PRICE_NGN, symbol: "₦" },
+    };
+
+    
+    const [currency, setCurrency] = useState<"$" | "₦">("$");
+    const [amount, setAmount] = useState<number>(PRICE_USD);
+    const [loadingCurrency, setLoadingCurrency] = useState(true);
+    
+
+    // detect location (auto-set default)
+    useEffect(() => {
+        const fetchLocation = async () => {
+        try {
+            const res = await fetch("https://ipapi.co/json/");
+            const data = await res.json();
+
+            if (data && data.country_name === "Nigeria") {
+            setCurrency("₦");
+            setAmount(defaultRates.NGN.amount);
+            } else {
+            setCurrency("$");
+            setAmount(defaultRates.USD.amount);
+            }
+        } catch (err) {
+            console.error("Failed to detect location:", err);
+            setCurrency("$");
+            setAmount(defaultRates.USD.amount);
+        } finally {
+            setLoadingCurrency(false);
+        }
+        };
+
+        fetchLocation();
+    }, []);
+
+    
     
     const tiers = [
         {
@@ -18,7 +61,7 @@ export default function Pricing({ onNavigateSignup, onStartUpgrade }: { onNaviga
         },
         {
             title: "Pro",
-            price: String(PRO_PRICE),
+            price: String(amount),
             period: "month",
             plan: "Pro",
             features: [`${PRO_TOKENS} Generations/Month`, "Unlimited Downloads", "Premium Templates", "Human-Like AI Tone", "AI Detector Bypass", "Priority Support"],
@@ -62,7 +105,7 @@ export default function Pricing({ onNavigateSignup, onStartUpgrade }: { onNaviga
                     <div key={tier.title} className={`border rounded-lg p-8 flex flex-col ${tier.isFeatured ? 'border-cyan-500 bg-[#111827] shadow-lg shadow-cyan-500/10' : 'border-gray-700'}`}>
                         <h3 className="text-2xl font-bold text-white">{tier.title}</h3>
                         <p className="mt-4">
-                            <span className="text-4xl font-extrabold text-white">${tier.price}</span>
+                            <span className="text-4xl font-extrabold text-white">{currency}{tier.price}</span>
                             <span className="text-gray-400"> / {tier.period}</span>
                         </p>
                         <ul className="mt-6 space-y-4 text-gray-400 flex-grow">

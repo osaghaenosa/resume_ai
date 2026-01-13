@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState } from 'react';
 import { CheckIcon, XIcon } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { FREE_TOKENS, PRO_TOKENS, PRO_PRICE } from '../config';
@@ -16,12 +16,13 @@ const TierCard: React.FC<{
     isCurrent: boolean,
     onAction: () => void,
     actionText: string,
-}> = ({ title, price, period, features, isCurrent, onAction, actionText }) => (
+    currency: "$" | "₦",
+}> = ({ title, price, period, features, isCurrent, onAction, actionText, currency }) => (
      <div className={`border rounded-lg p-6 flex flex-col ${isCurrent ? 'border-cyan-500 bg-gray-800' : 'border-gray-700 bg-[#111827]'}`}>
         {isCurrent && <span className="text-xs font-bold text-cyan-400 bg-cyan-900/50 self-start px-2 py-1 rounded-full mb-3">CURRENT PLAN</span>}
         <h3 className="text-2xl font-bold text-white">{title}</h3>
         <p className="mt-4">
-            <span className="text-4xl font-extrabold text-white">${price}</span>
+            <span className="text-4xl font-extrabold text-white">{currency}{price}</span>
             <span className="text-gray-400"> / {period}</span>
         </p>
         <ul className="mt-6 space-y-4 text-gray-400 flex-grow">
@@ -47,6 +48,47 @@ const TierCard: React.FC<{
 export default function UpgradeModal({ onClose, onUpgrade }: UpgradeModalProps) {
     const { currentUser } = useAuth();
 
+    // fixed prices
+    const PRICE_USD = PRO_PRICE;
+    const PRICE_NGN = 30000; // Fixed NGN price
+
+    const defaultRates: Record<"USD" | "NGN", { amount: number; symbol: string }> = {
+    USD: { amount: PRICE_USD, symbol: "$" },
+    NGN: { amount: PRICE_NGN, symbol: "₦" },
+    };
+
+    
+    const [currency, setCurrency] = useState<"$" | "₦">("$");
+    const [amount, setAmount] = useState<number>(PRICE_USD);
+    const [loadingCurrency, setLoadingCurrency] = useState(true);
+    
+
+    // detect location (auto-set default)
+    useEffect(() => {
+        const fetchLocation = async () => {
+        try {
+            const res = await fetch("https://ipapi.co/json/");
+            const data = await res.json();
+
+            if (data && data.country_name === "Nigeria") {
+            setCurrency("₦");
+            setAmount(defaultRates.NGN.amount);
+            } else {
+            setCurrency("$");
+            setAmount(defaultRates.USD.amount);
+            }
+        } catch (err) {
+            console.error("Failed to detect location:", err);
+            setCurrency("$");
+            setAmount(defaultRates.USD.amount);
+        } finally {
+            setLoadingCurrency(false);
+        }
+        };
+
+        fetchLocation();
+    }, []);
+
     if (!currentUser || currentUser.plan !== 'Free') return null;
 
     const tiers = [
@@ -61,7 +103,7 @@ export default function UpgradeModal({ onClose, onUpgrade }: UpgradeModalProps) 
         },
         {
             title: "Pro Monthly",
-            price: String(PRO_PRICE),
+            price: String(amount),
             period: "month",
             features: [`${PRO_TOKENS} Generations/Month`, "Unlimited Downloads", "Premium Templates", "Human-Like AI Tone", "AI Detector Bypass", "Priority Support"],
             isCurrent: false,
@@ -94,6 +136,7 @@ export default function UpgradeModal({ onClose, onUpgrade }: UpgradeModalProps) 
                                 isCurrent={tier.isCurrent}
                                 onAction={tier.action}
                                 actionText={tier.actionText}
+                                currency={currency}
                             />
                         ))}
                     </div>

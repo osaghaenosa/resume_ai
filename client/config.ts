@@ -11,6 +11,8 @@ const getEnvVar = (key: string, defaultValue: string): string => {
     }
 };
 
+
+
 // Parse values, providing fallbacks if the env vars are not set.
 export const FREE_TOKENS = parseInt(getEnvVar('REACT_APP_FREE_TOKENS', '10'), 10);
 export const PRO_TOKENS = parseInt(getEnvVar('REACT_APP_PRO_TOKENS', '100'), 10);
