@@ -32,8 +32,10 @@ export default function ContactPage() {
                 </p>
                 <h2 className="text-2xl font-semibold mb-3 text-white">Phone</h2>
                 <p className="mb-4"> +2349030275188</p>
+                <h2 className="text-2xl font-semibold mb-3 text-white">Business Email address</h2>
+                <p className="mb-4"> osaghaenosa2001@gmail.com</p>
                 <h2 className="text-2xl font-semibold mb-3 text-white">Address</h2>
-                <p className="mb-4"> Lagos, Nigeria</p>
+                <p className="mb-4"> 2, captain ugbomma street, Lagos, Nigeria</p>
                 <h2 className="text-2xl font-semibold mb-3 text-white">Business Hours</h2>
                 <p className="mb-4"> Monday - Friday: 9:00 AM - 6:00 PM</p>
                 <p className="mb-4"> Saturday - Sunday: Closed</p>
