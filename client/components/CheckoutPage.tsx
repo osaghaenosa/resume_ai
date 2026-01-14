@@ -78,7 +78,7 @@ export default function CheckoutPage({
 
     try {
       FlutterwaveCheckout({
-        public_key: "FLWPUBK_TEST-4866d2e35f0fcf081b99dd0b35ce78f2-X",
+        public_key: "FLWPUBK-14d5107958eafd624e94df059b3db5f3-X",
         tx_ref: `airesumegen-pro-${Date.now()}`,
         amount: amount,
         currency: currency,
