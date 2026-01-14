@@ -12,7 +12,7 @@ interface CheckoutPageProps {
 
 // Flutterwave test public key (replace with live key in production)
 const FLUTTERWAVE_PUBLIC_KEY =
-  "FLWPUBK_TEST-4866d2e35f0fcf081b99dd0b35ce78f2-X";
+  "FLWPUBK-14d5107958eafd624e94df059b3db5f3-X";
 
 // fixed prices
 const PRICE_USD = 20;
